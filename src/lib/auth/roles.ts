@@ -17,6 +17,16 @@ export interface UserRole {
   landing: string;
 }
 
+/**
+ * STRICT role permissions.
+ * - Seller never sees Dispatch / Jobs / Drivers / Fleet / Routes / Claims.
+ * - Driver never sees Customers / Invoices / Claims / Fleet / Settings.
+ * - Foreman never sees anything financial except their own payroll.
+ * - Marketing never sees Dispatch / Jobs / Payroll / Claims.
+ * - Accountant never sees Dispatch / Drivers / Fleet / Routes.
+ * - Dispatcher never sees Invoices / Payroll / Analytics.
+ * - Owner sees everything.
+ */
 export const ROLES: Record<UserRoleId, UserRole> = {
   owner: {
     id: "owner",
@@ -28,50 +38,50 @@ export const ROLES: Record<UserRoleId, UserRole> = {
   dispatcher: {
     id: "dispatcher",
     label: "Dispatcher",
-    description: "Pipeline, dispatch board, jobs, drivers, fleet, routes.",
+    description: "Dispatch board, jobs, drivers, fleet, routes.",
     allowedRoutes: [
       "/",
-      "/pipeline",
       "/dispatch",
       "/jobs",
       "/routes",
       "/drivers",
       "/fleet",
+      "/customers",
     ],
     landing: "/dispatch",
   },
   seller: {
     id: "seller",
     label: "Seller / Sales",
-    description: "Leads, quotes, customers, and own commissions.",
-    allowedRoutes: ["/", "/leads", "/quotes", "/customers", "/payroll"],
-    landing: "/leads",
+    description: "Customers and own commissions only. (Leads/Quotes coming.)",
+    allowedRoutes: ["/", "/customers", "/payroll"],
+    landing: "/customers",
   },
   driver: {
     id: "driver",
     label: "Driver",
-    description: "Assigned jobs, personal payroll, routes.",
+    description: "Only personal jobs and personal payroll.",
     allowedRoutes: ["/", "/jobs", "/payroll"],
     landing: "/jobs",
   },
   foreman: {
     id: "foreman",
     label: "Foreman",
-    description: "Active job, inventory scan, signatures, weekly payroll.",
-    allowedRoutes: ["/", "/jobs", "/payroll", "/foreman"],
-    landing: "/foreman",
+    description: "Same as driver in the web hub. Mobile app comes later.",
+    allowedRoutes: ["/", "/jobs", "/payroll"],
+    landing: "/jobs",
   },
   marketing: {
     id: "marketing",
     label: "Marketing",
-    description: "Analytics, customers, lead sources.",
-    allowedRoutes: ["/", "/analytics", "/customers", "/leads"],
+    description: "Analytics and customers.",
+    allowedRoutes: ["/", "/analytics", "/customers"],
     landing: "/analytics",
   },
   accountant: {
     id: "accountant",
     label: "Accountant",
-    description: "Invoices, payroll, claims, financial reports.",
+    description: "Invoices, payroll audit, claims, financial analytics.",
     allowedRoutes: ["/", "/invoices", "/payroll", "/claims", "/analytics"],
     landing: "/payroll",
   },

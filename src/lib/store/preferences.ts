@@ -21,13 +21,13 @@ export const usePreferences = create<PreferencesState>()(
     (set) => ({
       palette: "midnight",
       setPalette: (palette) => set({ palette }),
-      sidebarSide: "right",
+      sidebarSide: "left",
       setSidebarSide: (sidebarSide) => set({ sidebarSide }),
       sidebarOpen: true,
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
       activeRoleId: "owner",
       setActiveRoleId: (activeRoleId) => set({ activeRoleId }),
     }),
-    { name: "arsemia.preferences.v1" },
+    { name: "arsemia.preferences.v2" },
   ),
 );

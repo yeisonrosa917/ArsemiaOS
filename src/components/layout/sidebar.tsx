@@ -7,8 +7,6 @@ import {
   Boxes,
   ClipboardList,
   Coins,
-  Compass,
-  HardHat,
   LayoutDashboard,
   LifeBuoy,
   Map,
@@ -17,7 +15,6 @@ import {
   Settings,
   ShieldAlert,
   Truck,
-  UserRound,
   Users,
   UserSquare2,
   Zap,
@@ -35,22 +32,15 @@ type NavItem = {
 
 const primaryNav: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Pipeline", href: "/pipeline", icon: Compass, badge: "New" },
   { label: "Dispatch", href: "/dispatch", icon: Zap, badge: "Live" },
   { label: "Jobs", href: "/jobs", icon: ClipboardList },
   { label: "Routes", href: "/routes", icon: RouteIcon },
-];
-
-const salesNav: NavItem[] = [
-  { label: "Leads", href: "/leads", icon: UserRound },
-  { label: "Quotes", href: "/quotes", icon: ClipboardList },
 ];
 
 const operationsNav: NavItem[] = [
   { label: "Drivers", href: "/drivers", icon: UserSquare2 },
   { label: "Customers", href: "/customers", icon: Users },
   { label: "Fleet", href: "/fleet", icon: Truck },
-  { label: "Foreman", href: "/foreman", icon: HardHat },
 ];
 
 const financeNav: NavItem[] = [
@@ -162,12 +152,6 @@ export function Sidebar() {
         <NavGroup
           label="Operate"
           items={primaryNav}
-          pathname={pathname}
-          roleId={activeRoleId}
-        />
-        <NavGroup
-          label="Sales"
-          items={salesNav}
           pathname={pathname}
           roleId={activeRoleId}
         />
