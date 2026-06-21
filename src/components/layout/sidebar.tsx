@@ -7,6 +7,8 @@ import {
   Boxes,
   ClipboardList,
   Coins,
+  Compass,
+  HardHat,
   LayoutDashboard,
   LifeBuoy,
   Map,
@@ -15,11 +17,14 @@ import {
   Settings,
   ShieldAlert,
   Truck,
+  UserRound,
   Users,
   UserSquare2,
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePreferences } from "@/lib/store/preferences";
+import { canAccessRoute, ROLES, type UserRoleId } from "@/lib/auth/roles";
 
 type NavItem = {
   label: string;
@@ -30,20 +35,27 @@ type NavItem = {
 
 const primaryNav: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Pipeline", href: "/pipeline", icon: Compass, badge: "New" },
   { label: "Dispatch", href: "/dispatch", icon: Zap, badge: "Live" },
   { label: "Jobs", href: "/jobs", icon: ClipboardList },
   { label: "Routes", href: "/routes", icon: RouteIcon },
+];
+
+const salesNav: NavItem[] = [
+  { label: "Leads", href: "/leads", icon: UserRound },
+  { label: "Quotes", href: "/quotes", icon: ClipboardList },
 ];
 
 const operationsNav: NavItem[] = [
   { label: "Drivers", href: "/drivers", icon: UserSquare2 },
   { label: "Customers", href: "/customers", icon: Users },
   { label: "Fleet", href: "/fleet", icon: Truck },
+  { label: "Foreman", href: "/foreman", icon: HardHat },
 ];
 
 const financeNav: NavItem[] = [
   { label: "Invoices", href: "/invoices", icon: Receipt },
-  { label: "Payroll", href: "/payroll", icon: Coins, badge: "3" },
+  { label: "Payroll", href: "/payroll", icon: Coins, badge: "Audit" },
   { label: "Claims", href: "/claims", icon: ShieldAlert },
 ];
 
@@ -56,18 +68,22 @@ function NavGroup({
   label,
   items,
   pathname,
+  roleId,
 }: {
   label: string;
   items: NavItem[];
   pathname: string;
+  roleId: UserRoleId;
 }) {
+  const visible = items.filter((it) => canAccessRoute(roleId, it.href));
+  if (visible.length === 0) return null;
   return (
     <div className="px-3">
       <p className="px-3 pb-1.5 pt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/45">
         {label}
       </p>
       <ul className="space-y-0.5">
-        {items.map((item) => {
+        {visible.map((item) => {
           const Icon = item.icon;
           const active =
             item.href === "/"
@@ -101,7 +117,7 @@ function NavGroup({
                       "rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
                       active
                         ? "bg-white/15 text-white"
-                        : "bg-white/8 text-sidebar-foreground/70",
+                        : "bg-white/10 text-sidebar-foreground/70",
                     )}
                   >
                     {item.badge}
@@ -118,9 +134,18 @@ function NavGroup({
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { sidebarSide, activeRoleId } = usePreferences();
+  const role = ROLES[activeRoleId];
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
+    <aside
+      className={cn(
+        "sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:flex",
+        sidebarSide === "right"
+          ? "order-2 border-l border-sidebar-border"
+          : "order-0 border-r border-sidebar-border",
+      )}
+    >
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 via-brand-500 to-brand-700 shadow-elevated">
           <Boxes className="h-5 w-5 text-white" />
@@ -134,10 +159,36 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin">
-        <NavGroup label="Operate" items={primaryNav} pathname={pathname} />
-        <NavGroup label="People & Fleet" items={operationsNav} pathname={pathname} />
-        <NavGroup label="Finance" items={financeNav} pathname={pathname} />
-        <NavGroup label="Insights" items={insightsNav} pathname={pathname} />
+        <NavGroup
+          label="Operate"
+          items={primaryNav}
+          pathname={pathname}
+          roleId={activeRoleId}
+        />
+        <NavGroup
+          label="Sales"
+          items={salesNav}
+          pathname={pathname}
+          roleId={activeRoleId}
+        />
+        <NavGroup
+          label="People & Fleet"
+          items={operationsNav}
+          pathname={pathname}
+          roleId={activeRoleId}
+        />
+        <NavGroup
+          label="Finance"
+          items={financeNav}
+          pathname={pathname}
+          roleId={activeRoleId}
+        />
+        <NavGroup
+          label="Insights"
+          items={insightsNav}
+          pathname={pathname}
+          roleId={activeRoleId}
+        />
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
@@ -146,9 +197,9 @@ export function Sidebar() {
             <Map className="h-4 w-4" />
           </div>
           <div className="leading-tight">
-            <p className="text-xs font-semibold text-white">Live Map</p>
-            <p className="text-[11px] text-sidebar-foreground/55">
-              7 vehicles streaming
+            <p className="text-xs font-semibold text-white">Active role</p>
+            <p className="text-[11px] text-sidebar-foreground/60">
+              {role.label}
             </p>
           </div>
         </div>

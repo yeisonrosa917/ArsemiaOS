@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPreview } from "@/components/shared/map-preview";
+import { LiveMap } from "@/components/shared/live-map";
 
 export function MapRoutePreview() {
   return (
@@ -25,7 +25,17 @@ export function MapRoutePreview() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="relative h-56 overflow-hidden rounded-xl border border-border">
-          <MapPreview compact />
+          <LiveMap
+            height="100%"
+            zoom={11}
+            center={[37.7749, -122.4194]}
+            markers={[
+              { id: "d1", lat: 37.7849, lng: -122.4094, label: "Driver 12 · Pedro", kind: "driver" },
+              { id: "d2", lat: 37.7649, lng: -122.4294, label: "Driver 07 · Roberto", kind: "driver" },
+              { id: "p1", lat: 37.795, lng: -122.42, label: "Pickup · 1248 Polk St", kind: "pickup" },
+              { id: "v1", lat: 37.76, lng: -122.395, label: "Delivery · 540 9th St", kind: "delivery" },
+            ]}
+          />
           <Badge
             variant="success"
             className="absolute left-3 top-3 bg-emerald-500/90 text-white"

@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   PALETTE SYSTEM
+   Each palette overrides --primary, --ring, --sidebar-accent,
+   and the gradient stops via --brand-* variables.
+   Activated by [data-palette="<name>"] on <html>.
+   The .dark class still toggles the surface tokens.
+   ============================================================ */
+
 @layer base {
   :root {
     --background: 220 33% 98%;
@@ -48,6 +56,12 @@
     --sidebar-accent: 230 92% 55%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 222 30% 16%;
+
+    /* Brand gradient stops (used by logo + KPI gradients) */
+    --brand-400: #6089ff;
+    --brand-500: #3b62ff;
+    --brand-600: #2546f5;
+    --brand-700: #1c36dd;
   }
 
   .dark {
@@ -93,6 +107,80 @@
     --sidebar-accent: 230 92% 62%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 222 32% 14%;
+  }
+
+  /* -------- Palette: Charcoal + Crimson (gris con rojo) -------- */
+  [data-palette="charcoal-crimson"] {
+    --primary: 354 78% 48%;
+    --ring: 354 78% 48%;
+    --sidebar: 220 8% 13%;
+    --sidebar-foreground: 220 8% 82%;
+    --sidebar-accent: 354 78% 48%;
+    --sidebar-border: 220 8% 20%;
+    --brand-400: #ef5266;
+    --brand-500: #dc1f3a;
+    --brand-600: #b51530;
+    --brand-700: #8a0f24;
+  }
+  .dark[data-palette="charcoal-crimson"] {
+    --primary: 354 84% 58%;
+    --ring: 354 84% 58%;
+    --sidebar: 220 10% 10%;
+    --sidebar-accent: 354 84% 58%;
+  }
+
+  /* -------- Palette: Ocean -------- */
+  [data-palette="ocean"] {
+    --primary: 188 92% 38%;
+    --ring: 188 92% 38%;
+    --sidebar: 200 50% 11%;
+    --sidebar-accent: 188 92% 42%;
+    --sidebar-border: 200 35% 18%;
+    --brand-400: #34d3e0;
+    --brand-500: #0bb6c6;
+    --brand-600: #0894a3;
+    --brand-700: #0a7882;
+  }
+  .dark[data-palette="ocean"] {
+    --primary: 188 92% 48%;
+    --ring: 188 92% 48%;
+    --sidebar: 200 50% 8%;
+  }
+
+  /* -------- Palette: Forest -------- */
+  [data-palette="forest"] {
+    --primary: 152 64% 38%;
+    --ring: 152 64% 38%;
+    --sidebar: 150 20% 11%;
+    --sidebar-accent: 152 64% 44%;
+    --sidebar-border: 150 18% 19%;
+    --brand-400: #4ade80;
+    --brand-500: #22c55e;
+    --brand-600: #16a34a;
+    --brand-700: #15803d;
+  }
+  .dark[data-palette="forest"] {
+    --primary: 152 64% 48%;
+    --ring: 152 64% 48%;
+    --sidebar: 150 20% 8%;
+  }
+
+  /* -------- Palette: Amber Sunset -------- */
+  [data-palette="amber"] {
+    --primary: 24 92% 50%;
+    --ring: 24 92% 50%;
+    --sidebar: 24 18% 12%;
+    --sidebar-accent: 24 92% 54%;
+    --sidebar-border: 24 18% 20%;
+    --brand-400: #fb923c;
+    --brand-500: #f97316;
+    --brand-600: #ea580c;
+    --brand-700: #c2410c;
+  }
+  .dark[data-palette="amber"] {
+    --primary: 24 92% 58%;
+    --ring: 24 92% 58%;
+    --sidebar: 24 22% 8%;
   }
 }
 

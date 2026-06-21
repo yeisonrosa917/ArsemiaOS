@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { AppearanceCard } from "@/components/settings/appearance-card";
 
 const SECTIONS = [
   { icon: Building2, label: "Organization", description: "Company profile, branches, time zones" },
@@ -26,6 +27,8 @@ export default function SettingsPage() {
         title="Settings"
         description="Workspace, team, billing, and integrations for Arsemia Dispatch OS."
       />
+
+      <AppearanceCard />
 
       <div className="grid grid-cols-12 gap-4">
         <Card className="col-span-12 lg:col-span-4">

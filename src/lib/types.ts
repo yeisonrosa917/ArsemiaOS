@@ -11,6 +11,9 @@ export type JobStatus =
 export type JobType =
   | "Local Move"
   | "Long Distance"
+  | "Hourly"
+  | "Packing Only"
+  | "Loading/Unloading"
   | "Delivery"
   | "Storage In"
   | "Storage Out"
@@ -40,6 +43,28 @@ export type VehicleStatus =
   | "Maintenance"
   | "Out of Service";
 
+export type DocumentKind =
+  | "start-job-local"
+  | "start-job-hourly"
+  | "end-job-hourly"
+  | "start-job-long-distance"
+  | "start-job-storage-move-in"
+  | "pickup-completed"
+  | "delivery-completed"
+  | "bulky-items-pickup"
+  | "bulky-items-delivery"
+  | "co-job"
+  | "box-bin-details"
+  | "feedback";
+
+export interface JobDocument {
+  id: string;
+  kind: DocumentKind;
+  signedAt?: string;
+  signedBy?: string;
+  signatureImage?: string;
+}
+
 export interface Job {
   id: string;
   customer: string;
@@ -48,9 +73,15 @@ export interface Job {
   delivery: string;
   pickupCity: string;
   deliveryCity: string;
+  pickupLat?: number;
+  pickupLng?: number;
+  deliveryLat?: number;
+  deliveryLng?: number;
   type: JobType;
   cuFt: number;
   miles: number;
+  hours?: number;
+  hourlyRate?: number;
   status: JobStatus;
   driverId?: string;
   driverName?: string;
@@ -62,6 +93,9 @@ export interface Job {
   zone: string;
   priority: "Low" | "Medium" | "High";
   notes?: string;
+  isCoJob?: boolean;
+  coJobPartnerJobId?: string;
+  documents?: JobDocument[];
 }
 
 export interface Driver {
@@ -76,6 +110,8 @@ export interface Driver {
   revenueHandled: number;
   rating: number;
   currentLocation: string;
+  currentLat?: number;
+  currentLng?: number;
   currentJobId?: string;
   eta?: string;
   documentsOk: boolean;
