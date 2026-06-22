@@ -58,6 +58,14 @@ export const SEED_USERS: SeedUser[] = [
     roleId: "accountant",
     avatarColor: "from-slate-400 to-slate-700",
   },
+  {
+    id: "u_cla",
+    name: "Andrea Velazquez",
+    initials: "AV",
+    email: "claims@arsemia.test",
+    roleId: "claims",
+    avatarColor: "from-cyan-400 to-blue-700",
+  },
 ];
 
 export function getUserByRole(roleId: UserRoleId): SeedUser {

@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   BarChart3,
-  Boxes,
   Briefcase,
   ClipboardList,
   Coins,
@@ -25,6 +24,7 @@ import {
   Wallet,
   Zap,
 } from "lucide-react";
+import { ArsemiaLogo } from "@/components/brand/arsemia-logo";
 import { cn } from "@/lib/utils";
 import { usePreferences } from "@/lib/store/preferences";
 import {
@@ -43,6 +43,7 @@ type NavItem = {
 
 const primaryNav: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Foreman Portal", href: "/foreman-portal", icon: KanbanSquare },
   { label: "Operations Board", href: "/operations-board", icon: KanbanSquare },
   { label: "Dispatch", href: "/dispatch", icon: Zap, badge: "Live" },
   { label: "Jobs", href: "/jobs", icon: ClipboardList },
@@ -159,12 +160,12 @@ export function Sidebar() {
     >
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 via-brand-500 to-brand-700 shadow-elevated">
-          <Boxes className="h-5 w-5 text-white" />
+          <ArsemiaLogo size={22} color="white" />
         </div>
         <div className="leading-tight">
           <p className="text-sm font-semibold text-white">Arsemia</p>
           <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/55">
-            Dispatch OS
+            Moving & Storage
           </p>
         </div>
       </div>

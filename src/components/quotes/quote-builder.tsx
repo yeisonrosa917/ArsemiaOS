@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Calculator,
   ChevronDown,
   ChevronUp,
+  Info,
   Plus,
   Trash2,
   X,
@@ -33,47 +34,103 @@ import {
   fmtUSD,
   type InventoryLine,
 } from "@/lib/calculator/engine";
+import {
+  JOB_TYPES,
+  useQuotesStore,
+  type JobType,
+  type QuoteFee,
+  type QuoteNotes,
+} from "@/lib/store/quotes";
+import { useActivityLog } from "@/lib/store/activity-log";
+import { usePreferences } from "@/lib/store/preferences";
+import { getUserByRole } from "@/lib/auth/users";
 import { cn } from "@/lib/utils";
 
+/**
+ * Default LD customer-facing mileage rate. Configurable per quote and totally
+ * separate from the internal payroll rate (which lives on the audit engine).
+ */
+const DEFAULT_CUSTOMER_MILEAGE_RATE = 7;
+const DEFAULT_INTERNAL_MILEAGE_RATE = 3;
+
 export function QuoteBuilder() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const [customer, setCustomer] = useState("");
+
+  // Form state
+  const [jobType, setJobType] = useState<JobType>("Local Move");
+  const [otherDescription, setOtherDescription] = useState("");
+  const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [pickup, setPickup] = useState("");
   const [delivery, setDelivery] = useState("");
+  const [moveDate, setMoveDate] = useState("");
   const [miles, setMiles] = useState<number>(0);
+  const [customerMileageRate, setCustomerMileageRate] = useState<number>(
+    DEFAULT_CUSTOMER_MILEAGE_RATE,
+  );
+  const [internalMileageRate, setInternalMileageRate] = useState<number>(
+    DEFAULT_INTERNAL_MILEAGE_RATE,
+  );
   const [stairsFlights, setStairsFlights] = useState<number>(0);
-  const [search, setSearch] = useState("");
+
+  // Estimated CuFt — used when the quote has no itemized inventory yet.
+  // This is a separate concept from inventory lines. Previously bug: it was
+  // injected as a fake "Estimated inventory" row.
+  const [estimatedCuFt, setEstimatedCuFt] = useState<number>(0);
+
+  // Inventory — REAL moving items only.
   const [inventory, setInventory] = useState<InventoryLine[]>([]);
+  const [search, setSearch] = useState("");
+
+  // Handling charges
   const [handlingPicked, setHandlingPicked] = useState<Record<string, boolean>>(
     {},
   );
-  // Collapsed by default — open on click.
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
   const [ltaAmount, setLtaAmount] = useState<number>(0);
+
+  // Admin Charge — customer-visible, NON-commissionable by default
+  const [adminCharge, setAdminCharge] = useState<number>(0);
+  const [adminCommissionable, setAdminCommissionable] = useState(false);
+
+  // Notes (per audience)
+  const [notesCustomer, setNotesCustomer] = useState("");
+  const [notesForeman, setNotesForeman] = useState("");
+  const [notesInternal, setNotesInternal] = useState("");
+  const [notesAccounting, setNotesAccounting] = useState("");
+
+  // Source tracking
   const [fromLeadId, setFromLeadId] = useState<string | null>(null);
+  const [fromCustomerId, setFromCustomerId] = useState<string | null>(null);
+
+  const saveQuote = useQuotesStore((s) => s.saveQuote);
+  const pushActivity = useActivityLog((s) => s.push);
+  const activeRoleId = usePreferences((s) => s.activeRoleId);
+  const user = getUserByRole(activeRoleId);
 
   useEffect(() => {
     const c = searchParams.get("customer");
     const p = searchParams.get("phone");
+    const e = searchParams.get("email");
     const fromCity = searchParams.get("fromCity");
     const toCity = searchParams.get("toCity");
     const cuft = searchParams.get("cuft");
     const leadId = searchParams.get("leadId");
-    if (c) setCustomer(c);
+    const customerId = searchParams.get("customerId");
+    const type = searchParams.get("jobType") as JobType | null;
+    if (c) setCustomerName(c);
     if (p) setPhone(p);
+    if (e) setEmail(e);
     if (fromCity) setPickup(fromCity);
     if (toCity) setDelivery(toCity);
     if (cuft && !Number.isNaN(Number(cuft))) {
-      setInventory([
-        {
-          itemName: `Estimated inventory (${cuft} ft³)`,
-          qty: 1,
-          cuftEach: Number(cuft),
-        },
-      ]);
+      setEstimatedCuFt(Number(cuft));
     }
     if (leadId) setFromLeadId(leadId);
+    if (customerId) setFromCustomerId(customerId);
+    if (type && JOB_TYPES.includes(type)) setJobType(type);
   }, [searchParams]);
 
   const filteredPresets = useMemo(() => {
@@ -126,21 +183,155 @@ export function QuoteBuilder() {
     [handlingPicked, ltaAmount],
   );
 
+  // If inventory is empty BUT estimatedCuFt > 0, pass that as the override so
+  // pricing still works. Real items take precedence.
+  const inventoryCuft = useMemo(
+    () => inventory.reduce((acc, it) => acc + it.qty * it.cuftEach, 0),
+    [inventory],
+  );
+
   const result = useMemo(
     () =>
       calculateQuote({
+        cuftOverride: inventory.length === 0 ? estimatedCuFt : undefined,
         inventory,
         miles,
         stairsFlights,
         handlingItems: pickedHandling,
+        rates: { milesShortRate: internalMileageRate, milesLongRate: internalMileageRate },
       }),
-    [inventory, miles, stairsFlights, pickedHandling],
+    [inventory, estimatedCuFt, miles, stairsFlights, pickedHandling, internalMileageRate],
   );
 
-  const totalCuft = useMemo(
-    () => inventory.reduce((acc, it) => acc + it.qty * it.cuftEach, 0),
-    [inventory],
+  const customerMileageCharge = miles * customerMileageRate;
+
+  const customerTotal = useMemo(
+    () =>
+      result.customer.cuftCharge +
+      customerMileageCharge +
+      result.customer.packingCharge +
+      result.customer.stairsCharge +
+      result.customer.handlingCharge +
+      adminCharge,
+    [result, customerMileageCharge, adminCharge],
   );
+
+  const commissionableBase = useMemo(
+    () =>
+      result.internal.commissionableBase +
+      (adminCommissionable ? adminCharge : 0),
+    [result, adminCharge, adminCommissionable],
+  );
+
+  const nonCommissionableTotal = useMemo(
+    () => (adminCommissionable ? 0 : adminCharge),
+    [adminCharge, adminCommissionable],
+  );
+
+  // Validation
+  const errors = useMemo(() => {
+    const errs: string[] = [];
+    if (!customerName.trim()) errs.push("Customer name is required");
+    if (!jobType) errs.push("Job type is required");
+    if (jobType === "Other" && !otherDescription.trim())
+      errs.push("Custom description is required when type is Other");
+    if (
+      jobType !== "Hourly" &&
+      jobType !== "Driving Day" &&
+      jobType !== "2nd Day" &&
+      inventory.length === 0 &&
+      estimatedCuFt === 0
+    )
+      errs.push("Add at least one item or set Estimated CuFt");
+    return errs;
+  }, [customerName, jobType, otherDescription, inventory, estimatedCuFt]);
+
+  const handleSave = (status: "Draft" | "Sent") => {
+    if (errors.length > 0) return;
+
+    const fees: QuoteFee[] = [];
+    if (adminCharge > 0) {
+      fees.push({
+        id: "fee_admin",
+        name: "Administrative Surcharge",
+        amount: adminCharge,
+        commissionable: adminCommissionable,
+        customerVisible: true,
+        isAdminCharge: true,
+      });
+    }
+    pickedHandling.forEach((h) => {
+      fees.push({
+        id: `fee_${h.id}`,
+        name: h.name,
+        amount: h.price,
+        commissionable: true,
+        customerVisible: true,
+      });
+    });
+
+    const notes: QuoteNotes = {
+      customer: notesCustomer || undefined,
+      foreman: notesForeman || undefined,
+      internal: notesInternal || undefined,
+      accounting: notesAccounting || undefined,
+    };
+
+    const saved = saveQuote({
+      customerId: fromCustomerId ?? undefined,
+      customerName: customerName.trim(),
+      customerPhone: phone || undefined,
+      customerEmail: email || undefined,
+      leadId: fromLeadId ?? undefined,
+      jobType,
+      otherDescription: otherDescription || undefined,
+      moveDate: moveDate || undefined,
+      pickupAddress: pickup || undefined,
+      deliveryAddress: delivery || undefined,
+      estimatedCuFt: inventory.length > 0 ? inventoryCuft : estimatedCuFt,
+      inventory: inventory.map((i) => ({
+        itemName: i.itemName,
+        qty: i.qty,
+        cuftEach: i.cuftEach,
+        packByCrew: i.packByCrew,
+      })),
+      fees,
+      mileage: {
+        miles,
+        customerRatePerMile: customerMileageRate,
+        internalRatePerMile: internalMileageRate,
+      },
+      notes,
+      customerTotal: Math.round(customerTotal * 100) / 100,
+      commissionableBase: Math.round(commissionableBase * 100) / 100,
+      nonCommissionableTotal: Math.round(nonCommissionableTotal * 100) / 100,
+      status,
+      createdBy: user.id,
+    });
+
+    pushActivity({
+      actorId: user.id,
+      actorName: user.name,
+      actorRole: activeRoleId,
+      module: "Quotes",
+      action: status === "Sent" ? "submitted" : "created",
+      objectType: "Quote",
+      objectId: saved.id,
+      title:
+        status === "Sent"
+          ? `Quote ${saved.id} sent to customer`
+          : `Quote ${saved.id} drafted`,
+      afterValue: {
+        customer: saved.customerName,
+        jobType: saved.jobType,
+        customerTotal: saved.customerTotal,
+        commissionableBase: saved.commissionableBase,
+      },
+      metadata: { leadId: fromLeadId, customerId: fromCustomerId },
+    });
+
+    router.push(`/quotes/${saved.id}`);
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -154,47 +345,98 @@ export function QuoteBuilder() {
               <p className="text-xs">
                 Prefilled from lead{" "}
                 <span className="font-mono font-semibold">{fromLeadId}</span>.
-                Adjust inventory and addresses, then save.
+                Saving will mark the lead as Quote Drafted.
               </p>
             </CardContent>
           </Card>
         )}
+
         <Card>
           <CardHeader>
-            <CardTitle>Customer & route</CardTitle>
+            <CardTitle>Job type & customer</CardTitle>
             <CardDescription>
-              Captures the basics before adding inventory.
+              Select the move type — it controls visible fields downstream.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
-            <Field label="Customer">
-              <Input
-                value={customer}
-                onChange={(e) => setCustomer(e.target.value)}
-                placeholder="Customer name"
-              />
+          <CardContent className="space-y-4">
+            <Field label="Job type">
+              <select
+                value={jobType}
+                onChange={(e) => setJobType(e.target.value as JobType)}
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
+              >
+                {JOB_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
             </Field>
-            <Field label="Phone">
-              <Input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="(305) 555-0000"
-              />
-            </Field>
-            <Field label="Pickup address">
-              <Input
-                value={pickup}
-                onChange={(e) => setPickup(e.target.value)}
-                placeholder="Pickup"
-              />
-            </Field>
-            <Field label="Delivery address">
-              <Input
-                value={delivery}
-                onChange={(e) => setDelivery(e.target.value)}
-                placeholder="Delivery"
-              />
-            </Field>
+            {jobType === "Other" && (
+              <Field label="Custom description (required)">
+                <Input
+                  value={otherDescription}
+                  onChange={(e) => setOtherDescription(e.target.value)}
+                  placeholder="Briefly describe this custom service"
+                />
+              </Field>
+            )}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Customer name">
+                <Input
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Customer name"
+                />
+              </Field>
+              <Field label="Phone">
+                <Input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="(305) 555-0000"
+                />
+              </Field>
+              <Field label="Email">
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="customer@email.com"
+                />
+              </Field>
+              <Field label="Move date">
+                <Input
+                  type="date"
+                  value={moveDate}
+                  onChange={(e) => setMoveDate(e.target.value)}
+                />
+              </Field>
+              <Field label="Pickup address">
+                <Input
+                  value={pickup}
+                  onChange={(e) => setPickup(e.target.value)}
+                  placeholder="Pickup"
+                />
+              </Field>
+              <Field label="Delivery address">
+                <Input
+                  value={delivery}
+                  onChange={(e) => setDelivery(e.target.value)}
+                  placeholder="Delivery"
+                />
+              </Field>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Mileage</CardTitle>
+            <CardDescription>
+              Customer-facing rate is separate from internal/payroll rate.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-3">
             <Field label="Miles">
               <Input
                 type="number"
@@ -204,32 +446,63 @@ export function QuoteBuilder() {
                 placeholder="0"
               />
             </Field>
+            <Field label={`Customer rate ($/mi)`}>
+              <Input
+                type="number"
+                step={0.25}
+                value={customerMileageRate}
+                onChange={(e) =>
+                  setCustomerMileageRate(Number(e.target.value) || 0)
+                }
+              />
+            </Field>
+            <Field label={`Internal rate ($/mi)`}>
+              <Input
+                type="number"
+                step={0.25}
+                value={internalMileageRate}
+                onChange={(e) =>
+                  setInternalMileageRate(Number(e.target.value) || 0)
+                }
+              />
+            </Field>
             <Field label="Stairs (flights)">
               <Input
                 type="number"
                 min={0}
                 value={stairsFlights || ""}
-                onChange={(e) =>
-                  setStairsFlights(Number(e.target.value) || 0)
-                }
+                onChange={(e) => setStairsFlights(Number(e.target.value) || 0)}
                 placeholder="0"
               />
             </Field>
-            <div className="flex flex-col gap-1 rounded-lg bg-muted/30 px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Active rates
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Customer ${DEFAULT_RATES.cuftRateCustomer}/CuFt · Internal $
-                {DEFAULT_RATES.cuftRateInternal}/CuFt
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Miles ${DEFAULT_RATES.milesShortRate} (≤
-                {DEFAULT_RATES.milesThreshold}mi) · $
-                {DEFAULT_RATES.milesLongRate} (&gt;
-                {DEFAULT_RATES.milesThreshold}mi)
-              </p>
-            </div>
+            <Field label="Estimated CuFt (if not itemized)">
+              <Input
+                type="number"
+                min={0}
+                value={estimatedCuFt || ""}
+                onChange={(e) => setEstimatedCuFt(Number(e.target.value) || 0)}
+                placeholder="0"
+                disabled={inventory.length > 0}
+              />
+            </Field>
+            <Field label="Admin charge ($)">
+              <Input
+                type="number"
+                min={0}
+                value={adminCharge || ""}
+                onChange={(e) => setAdminCharge(Number(e.target.value) || 0)}
+                placeholder="0"
+              />
+              <label className="mt-1 flex cursor-pointer items-center gap-1.5 text-[10px] text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={adminCommissionable}
+                  onChange={(e) => setAdminCommissionable(e.target.checked)}
+                  className="h-3 w-3 accent-primary"
+                />
+                Count in commissionable base
+              </label>
+            </Field>
           </CardContent>
         </Card>
 
@@ -237,8 +510,7 @@ export function QuoteBuilder() {
           <CardHeader>
             <CardTitle>Inventory</CardTitle>
             <CardDescription>
-              Pick items from the catalog. Toggle &ldquo;Pack by crew&rdquo; to
-              add box packing.
+              Real moving items only. Pack-by-crew toggles box packing.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -272,9 +544,25 @@ export function QuoteBuilder() {
             </div>
 
             {inventory.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-border bg-muted/10 px-3 py-6 text-center text-xs text-muted-foreground">
-                No items added yet. Search above to start building the quote.
-              </p>
+              <div className="space-y-2">
+                <p className="rounded-lg border border-dashed border-border bg-muted/10 px-3 py-4 text-center text-xs text-muted-foreground">
+                  No itemized inventory yet.
+                  {estimatedCuFt > 0 && (
+                    <>
+                      {" "}
+                      Pricing uses the <strong>Estimated CuFt</strong> field
+                      above ({estimatedCuFt} ft³).
+                    </>
+                  )}
+                </p>
+                {estimatedCuFt > 0 && (
+                  <p className="flex items-start gap-1.5 px-2 text-[10px] text-muted-foreground">
+                    <Info className="mt-0.5 h-3 w-3 shrink-0" />
+                    Sales should still itemize before sending the quote so the
+                    foreman can match items on pickup day.
+                  </p>
+                )}
+              </div>
             ) : (
               <div className="overflow-hidden rounded-xl border border-border">
                 <table className="w-full text-sm">
@@ -355,7 +643,7 @@ export function QuoteBuilder() {
             <div className="flex items-center justify-end gap-3 text-xs">
               <span className="text-muted-foreground">Total inventory:</span>
               <span className="font-mono font-semibold">
-                {fmtCuft(totalCuft)} ft³
+                {fmtCuft(inventoryCuft || estimatedCuFt)} ft³
               </span>
               {result.cuftMinimumApplied && (
                 <span className="rounded bg-warning/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-warning">
@@ -370,7 +658,7 @@ export function QuoteBuilder() {
           <CardHeader>
             <CardTitle>Handling charges</CardTitle>
             <CardDescription>
-              Disassembly, cardboard protection, special items, LTA.
+              Disassembly, cardboard, special items, LTA. Collapsed by default.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -447,7 +735,11 @@ export function QuoteBuilder() {
                                     : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20",
                                 )}
                               >
-                                {picked ? <X className="mx-auto h-3.5 w-3.5" /> : <Plus className="mx-auto h-3.5 w-3.5" />}
+                                {picked ? (
+                                  <X className="mx-auto h-3.5 w-3.5" />
+                                ) : (
+                                  <Plus className="mx-auto h-3.5 w-3.5" />
+                                )}
                               </button>
                             </div>
                           </div>
@@ -458,6 +750,37 @@ export function QuoteBuilder() {
                 </div>
               );
             })}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Notes</CardTitle>
+            <CardDescription>
+              Each audience sees only their own notes. Carry forward to job.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            <NotesField
+              label="Customer notes (visible to customer)"
+              value={notesCustomer}
+              onChange={setNotesCustomer}
+            />
+            <NotesField
+              label="Foreman notes (visible in foreman app)"
+              value={notesForeman}
+              onChange={setNotesForeman}
+            />
+            <NotesField
+              label="Internal notes (owner/sales/dispatch)"
+              value={notesInternal}
+              onChange={setNotesInternal}
+            />
+            <NotesField
+              label="Accounting notes (finance/payroll)"
+              value={notesAccounting}
+              onChange={setNotesAccounting}
+            />
           </CardContent>
         </Card>
       </div>
@@ -474,51 +797,126 @@ export function QuoteBuilder() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Row label="CuFt billed" value={`${fmtCuft(result.cuftTotal)} ft³`} />
+            <Row label="Job type" value={jobType} />
+            <Row
+              label="CuFt billed"
+              value={`${fmtCuft(result.cuftTotal)} ft³`}
+            />
             <Separator />
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Customer pays
               </p>
-              <Row label="CuFt charge" value={fmtUSD(result.customer.cuftCharge)} />
-              <Row label="Mileage" value={fmtUSD(result.customer.milesCharge)} />
-              <Row label="Packing" value={fmtUSD(result.customer.packingCharge)} />
+              <Row
+                label="CuFt charge"
+                value={fmtUSD(result.customer.cuftCharge)}
+              />
+              <Row
+                label={`Mileage @ $${customerMileageRate}/mi`}
+                value={fmtUSD(customerMileageCharge)}
+              />
+              <Row
+                label="Packing"
+                value={fmtUSD(result.customer.packingCharge)}
+              />
               <Row label="Stairs" value={fmtUSD(result.customer.stairsCharge)} />
-              <Row label="Handling" value={fmtUSD(result.customer.handlingCharge)} />
+              <Row
+                label="Handling"
+                value={fmtUSD(result.customer.handlingCharge)}
+              />
+              <Row label="Admin charge" value={fmtUSD(adminCharge)} />
               <div className="mt-3 flex items-baseline justify-between border-t border-border/60 pt-3">
                 <span className="text-sm font-semibold">Total</span>
                 <span className="font-mono text-2xl font-bold text-primary">
-                  {fmtUSD(result.customer.total)}
+                  {fmtUSD(customerTotal)}
                 </span>
               </div>
             </div>
+
             <Separator />
             <div className="rounded-xl border border-border bg-muted/20 p-3">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Internal commissionable base
               </p>
-              <Row label="CuFt @ internal" value={fmtUSD(result.internal.cuftCharge)} muted />
-              <Row label="Mileage" value={fmtUSD(result.internal.milesCharge)} muted />
-              <Row label="Packing @ internal" value={fmtUSD(result.internal.packingCharge)} muted />
+              <Row
+                label="CuFt @ internal"
+                value={fmtUSD(result.internal.cuftCharge)}
+                muted
+              />
+              <Row
+                label={`Mileage @ $${internalMileageRate}/mi`}
+                value={fmtUSD(result.internal.milesCharge)}
+                muted
+              />
+              <Row
+                label="Packing @ internal"
+                value={fmtUSD(result.internal.packingCharge)}
+                muted
+              />
               <Row label="Stairs" value={fmtUSD(result.internal.stairsCharge)} muted />
-              <Row label="Handling" value={fmtUSD(result.internal.handlingCharge)} muted />
+              <Row
+                label="Handling"
+                value={fmtUSD(result.internal.handlingCharge)}
+                muted
+              />
+              {adminCommissionable && adminCharge > 0 && (
+                <Row
+                  label="Admin (commissionable)"
+                  value={fmtUSD(adminCharge)}
+                  muted
+                />
+              )}
               <div className="mt-2 flex items-baseline justify-between border-t border-border/60 pt-2">
                 <span className="text-xs font-semibold">Commissionable</span>
                 <span className="font-mono text-sm font-bold">
-                  {fmtUSD(result.internal.commissionableBase)}
+                  {fmtUSD(commissionableBase)}
                 </span>
               </div>
               <p className="mt-2 text-[10px] text-muted-foreground">
                 33.5% expected payroll line:{" "}
                 <span className="font-mono font-semibold text-foreground">
-                  {fmtUSD(result.internal.commissionableBase * 0.335)}
+                  {fmtUSD(commissionableBase * 0.335)}
                 </span>
               </p>
             </div>
 
-            <Button className="w-full" size="lg">
-              Save quote
-            </Button>
+            {nonCommissionableTotal > 0 && (
+              <p className="rounded-lg bg-muted/30 px-3 py-2 text-[10px] text-muted-foreground">
+                Non-commissionable: {fmtUSD(nonCommissionableTotal)} (admin
+                charge not counted toward payroll)
+              </p>
+            )}
+
+            {errors.length > 0 && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/[0.06] p-2 text-xs">
+                <p className="font-semibold text-destructive">Cannot save:</p>
+                <ul className="ml-4 mt-1 list-disc text-destructive">
+                  {errors.map((e) => (
+                    <li key={e}>{e}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2">
+              <Button
+                size="lg"
+                className="w-full"
+                disabled={errors.length > 0}
+                onClick={() => handleSave("Draft")}
+              >
+                Save as draft
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full"
+                disabled={errors.length > 0}
+                onClick={() => handleSave("Sent")}
+              >
+                Save & mark sent
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -539,6 +937,29 @@ function Field({
         {label}
       </span>
       {children}
+    </label>
+  );
+}
+
+function NotesField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="min-h-20 rounded-lg border border-border bg-background p-2 text-xs focus:border-primary focus:outline-none"
+      />
     </label>
   );
 }

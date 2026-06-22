@@ -147,7 +147,12 @@ export function LeadsTable() {
                     className="border-t border-border/60 hover:bg-accent/20"
                   >
                     <td className="p-2.5">
-                      <p className="font-semibold">{l.name}</p>
+                      <Link
+                        href={`/leads/${l.id}`}
+                        className="font-semibold hover:underline"
+                      >
+                        {l.name}
+                      </Link>
                       <p className="text-[10px] text-muted-foreground">
                         {l.email} · {l.phone}
                       </p>
@@ -208,7 +213,8 @@ export function LeadsTable() {
                             },
                           }}
                         >
-                          Convert <ChevronDown className="h-3 w-3 -rotate-90" />
+                          Convert to Quote Draft{" "}
+                          <ChevronDown className="h-3 w-3 -rotate-90" />
                         </Link>
                       </Button>
                     </td>

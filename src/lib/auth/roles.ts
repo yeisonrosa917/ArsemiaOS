@@ -6,7 +6,8 @@ export type UserRoleId =
   | "seller"
   | "foreman"
   | "marketing"
-  | "accountant";
+  | "accountant"
+  | "claims";
 
 export interface UserRole {
   id: UserRoleId;
@@ -21,18 +22,20 @@ export interface UserRole {
 /**
  * Routes are inferred from capabilities. Each route requires at least one
  * capability to render in the sidebar.
+ *
+ * IMPORTANT: deny-by-default. If a route is NOT in this map, only Owner can
+ * access it. See canAccessRoute below.
  */
 export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
   "/": ["dashboard.view"],
   "/operations-board": ["jobs.view"],
   "/pipeline": ["leads.view"],
   "/dispatch": ["dispatch.view"],
+  "/foreman-portal": ["jobs.view"],
   "/jobs": ["jobs.view"],
   "/routes": ["routes.view"],
   "/activity": ["roles.manage"],
   "/foremen": ["drivers.view"],
-  // legacy /drivers redirects to /foremen; keep capability so the redirect chain
-  // works for everyone who could see foremen.
   "/drivers": ["drivers.view"],
   "/fleet": ["fleet.view"],
   "/customers": ["customers.view"],
@@ -72,10 +75,13 @@ export const ROLES: Record<UserRoleId, UserRole> = {
     defaultCapabilities: OWNER_CAPS,
     landing: "/",
   },
+
+  /** Dispatch / Operations — runs the live operation post-booking. */
   dispatcher: {
     id: "dispatcher",
-    label: "Dispatcher",
-    description: "Runs the live operation — dispatch board, jobs, drivers, fleet, routes.",
+    label: "Dispatch / Operations",
+    description:
+      "Dispatch board, jobs, routes, foremen, fleet basic. No financial data, no permission management.",
     defaultCapabilities: [
       "dashboard.view",
       "dispatch.view", "dispatch.assign",
@@ -87,33 +93,43 @@ export const ROLES: Record<UserRoleId, UserRole> = {
     ],
     landing: "/dispatch",
   },
+
+  /**
+   * Seller / Sales — strictly commercial. NO dashboard, operations board,
+   * dispatch, routes, fleet, payroll, claims, activity log global,
+   * permission management.
+   */
   seller: {
     id: "seller",
     label: "Seller / Sales",
-    description: "Quotes customers and tracks own commissions. Can view jobs to follow up.",
+    description:
+      "Sales pipeline, leads, quotes, customers. No operations or admin areas.",
     defaultCapabilities: [
-      "dashboard.view",
-      "jobs.view",
-      "customers.view", "customers.edit",
       "leads.view", "leads.convert",
       "quotes.view", "quotes.create",
-      "payroll.view_own",
+      "customers.view", "customers.edit",
     ],
-    landing: "/customers",
+    landing: "/pipeline",
   },
+
+  /**
+   * Foreman / Contractor — heavily restricted in the Hub. Shows a Foreman
+   * Portal placeholder until the mobile app integrates.
+   */
   foreman: {
     id: "foreman",
     label: "Foreman / Contractor",
-    description: "Works the assigned jobs in the field. Sees only own jobs, own payroll, own expenses.",
+    description:
+      "Field role. The Hub shows only own jobs, payroll, expenses placeholder until the Foreman App ships.",
     defaultCapabilities: [
-      "dashboard.view",
       "jobs.view",
-      "routes.view",
       "payroll.view_own",
       "expenses.view_own",
     ],
-    landing: "/jobs",
+    landing: "/foreman-portal",
   },
+
+  /** Marketing — analytics + customers + leads (read-only). */
   marketing: {
     id: "marketing",
     label: "Marketing",
@@ -126,19 +142,34 @@ export const ROLES: Record<UserRoleId, UserRole> = {
     ],
     landing: "/analytics",
   },
+
+  /** Accounting — finance only. NO dispatch, NO permission management. */
   accountant: {
     id: "accountant",
-    label: "Accountant",
-    description: "Invoices, expenses, payroll audit, claims, financial analytics.",
+    label: "Accounting",
+    description: "Invoices, expenses, payroll audit, financial analytics.",
     defaultCapabilities: [
-      "dashboard.view",
       "invoices.view", "invoices.create", "invoices.send",
       "expenses.view_all", "expenses.approve",
       "payroll.view_all", "payroll.approve", "payroll.audit",
-      "claims.view",
+      "customers.view",
       "analytics.view", "analytics.export",
     ],
     landing: "/payroll",
+  },
+
+  /** Claims team — claims, related job/customer/foreman context. */
+  claims: {
+    id: "claims",
+    label: "Claims Team",
+    description: "Claims and evidence. Read access to related jobs/customers/foremen.",
+    defaultCapabilities: [
+      "claims.view", "claims.manage",
+      "jobs.view",
+      "customers.view",
+      "drivers.view",
+    ],
+    landing: "/claims",
   },
 };
 
@@ -149,6 +180,7 @@ export const ROLE_IDS: UserRoleId[] = [
   "foreman",
   "marketing",
   "accountant",
+  "claims",
 ];
 
 /** Resolve effective capabilities given a role + workspace-level overrides. */
@@ -174,11 +206,40 @@ export function hasAnyCapability(
   return required.some((r) => caps.includes(r));
 }
 
+/**
+ * DENY-BY-DEFAULT route access.
+ *
+ * - If a route IS in ROUTE_REQUIRES → user must have at least one of the
+ *   required capabilities.
+ * - If a route is NOT in ROUTE_REQUIRES → only Owner (via `roles.manage`) can
+ *   access. This protects sub-routes like /foremen/[id], /fleet/[id],
+ *   /quotes/[id], /leads/[id], /customers/[id], /jobs/[id] which inherit from
+ *   the parent route — see `canAccessRouteWithFallback`.
+ */
 export function canAccessRoute(
   caps: CapabilityId[],
   route: string,
 ): boolean {
   const required = ROUTE_REQUIRES[route];
-  if (!required) return true;
-  return hasAnyCapability(caps, required);
+  if (required) return hasAnyCapability(caps, required);
+  // Deny by default. Owner is granted via roles.manage.
+  return caps.includes("roles.manage");
+}
+
+/**
+ * Like canAccessRoute but falls back to the parent route's requirement so
+ * /quotes/QT-123 inherits /quotes' permission. Use this for guarding pages.
+ */
+export function canAccessRouteWithFallback(
+  caps: CapabilityId[],
+  route: string,
+): boolean {
+  if (canAccessRoute(caps, route)) return true;
+  // Strip the last segment and re-check (handles /foo/[id] → /foo).
+  const parent = "/" + route.split("/").filter(Boolean).slice(0, 1).join("/");
+  if (parent !== route) {
+    const required = ROUTE_REQUIRES[parent];
+    if (required) return hasAnyCapability(caps, required);
+  }
+  return caps.includes("roles.manage");
 }

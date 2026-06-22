@@ -21,8 +21,38 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { usePreferences } from "@/lib/store/preferences";
+import { humanizeActivity } from "@/lib/activity/humanize";
 import type { ActivityModule } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useState as useReactState } from "react";
+
+function TechnicalDetails({ entry }: { entry: { beforeValue?: unknown; afterValue?: unknown } }) {
+  const [open, setOpen] = useReactState(false);
+  return (
+    <div className="mt-1">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+      >
+        {open ? "Hide" : "View"} technical details
+      </button>
+      {open && (
+        <div className="mt-1 grid gap-1 text-[10px] sm:grid-cols-2">
+          {entry.beforeValue !== undefined && entry.beforeValue !== null && (
+            <code className="block rounded bg-rose-500/10 px-2 py-1 text-rose-700">
+              before: {JSON.stringify(entry.beforeValue)}
+            </code>
+          )}
+          {entry.afterValue !== undefined && entry.afterValue !== null && (
+            <code className="block rounded bg-emerald-500/10 px-2 py-1 text-emerald-700">
+              after: {JSON.stringify(entry.afterValue)}
+            </code>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const MODULES: ("All" | ActivityModule)[] = [
   "All",
@@ -169,30 +199,20 @@ export default function ActivityLogPage() {
                   </p>
                 </div>
                 <div className="col-span-12 sm:col-span-7">
-                  <p className="text-sm font-semibold">{e.title}</p>
+                  <p className="text-sm font-semibold">{humanizeActivity(e)}</p>
                   <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
                     <span className="font-mono">{e.objectType}</span>
                     <ArrowRight className="h-2.5 w-2.5" />
                     <span className="font-mono">{e.objectId}</span>
                   </p>
-                  {e.notes && (
+                  {e.notes && humanizeActivity(e) !== `${e.notes}.` && (
                     <p className="mt-1 text-[11px] italic text-muted-foreground">
                       {e.notes}
                     </p>
                   )}
+                  {/* Owner-only "technical details" drawer */}
                   {(e.beforeValue !== undefined || e.afterValue !== undefined) && (
-                    <div className="mt-1.5 grid gap-1 text-[10px] sm:grid-cols-2">
-                      {e.beforeValue !== undefined && e.beforeValue !== null && (
-                        <code className="block rounded bg-rose-500/10 px-2 py-1 text-rose-700">
-                          before: {JSON.stringify(e.beforeValue)}
-                        </code>
-                      )}
-                      {e.afterValue !== undefined && e.afterValue !== null && (
-                        <code className="block rounded bg-emerald-500/10 px-2 py-1 text-emerald-700">
-                          after: {JSON.stringify(e.afterValue)}
-                        </code>
-                      )}
-                    </div>
+                    <TechnicalDetails entry={e} />
                   )}
                 </div>
                 <div className="col-span-12 sm:col-span-3">

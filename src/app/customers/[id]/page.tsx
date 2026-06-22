@@ -165,51 +165,93 @@ export default async function CustomerDetailPage({
                   No jobs yet for this customer. Start with a new quote.
                 </p>
               ) : (
-                customerJobs.map((j) => (
-                  <Link
-                    key={j.id}
-                    href={`/jobs/${j.id}`}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 hover:bg-accent/20"
-                  >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                      <Truck className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {j.id}
+                customerJobs
+                  .slice()
+                  .sort(
+                    (a, b) =>
+                      new Date(a.scheduledAt).getTime() -
+                      new Date(b.scheduledAt).getTime(),
+                  )
+                  .map((j, i) => (
+                    <div
+                      key={j.id}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <span className="text-[9px] font-semibold uppercase leading-none">
+                          Move
                         </span>
-                        <Badge variant="outline" className="text-[10px]">
-                          {j.type}
-                        </Badge>
-                        {j.bedrooms && (
+                        <span className="font-mono text-sm font-bold leading-none">
+                          #{i + 1}
+                        </span>
+                      </div>
+                      <Link
+                        href={`/jobs/${j.id}`}
+                        className="min-w-0 flex-1 hover:underline"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {j.id}
+                          </span>
                           <Badge variant="outline" className="text-[10px]">
-                            {j.bedrooms}
+                            {j.type}
                           </Badge>
-                        )}
+                          {j.bedrooms && (
+                            <Badge variant="outline" className="text-[10px]">
+                              {j.bedrooms}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="mt-0.5 flex items-center gap-1 text-xs">
+                          <MapPin className="h-2.5 w-2.5 text-muted-foreground" />
+                          <span>{j.pickupCity}</span>
+                          <ArrowRight className="h-2.5 w-2.5 text-muted-foreground" />
+                          <span>{j.deliveryCity}</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(j.scheduledAt).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}{" "}
+                          · Foreman: {j.driverName ?? "—"} · {j.cuFt} CuFt
+                        </p>
+                      </Link>
+                      <div className="text-right">
+                        <p className="font-mono text-sm font-semibold">
+                          {formatCurrency(j.price)}
+                        </p>
+                        <JobStatusBadge status={j.status} />
+                        <div className="mt-1">
+                          <Button
+                            asChild
+                            size="sm"
+                            variant="outline"
+                            className="h-6 gap-1 px-2 text-[10px]"
+                            title="Open the New Quote builder prefilled with this customer + job context"
+                          >
+                            <Link
+                              href={{
+                                pathname: "/quotes",
+                                query: {
+                                  customer: customer.name,
+                                  customerId: customer.id,
+                                  phone: customer.phone,
+                                  email: customer.email,
+                                  fromCity: j.pickupCity,
+                                  toCity: j.deliveryCity,
+                                  cuft: String(j.cuFt),
+                                  jobType: j.type,
+                                },
+                              }}
+                            >
+                              Clone as new quote
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
-                      <div className="mt-0.5 flex items-center gap-1 text-xs">
-                        <MapPin className="h-2.5 w-2.5 text-muted-foreground" />
-                        <span>{j.pickupCity}</span>
-                        <ArrowRight className="h-2.5 w-2.5 text-muted-foreground" />
-                        <span>{j.deliveryCity}</span>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">
-                        {new Date(j.scheduledAt).toLocaleDateString(undefined, {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-mono text-sm font-semibold">
-                        {formatCurrency(j.price)}
-                      </p>
-                      <JobStatusBadge status={j.status} />
-                    </div>
-                  </Link>
-                ))
+                  ))
               )}
             </CardContent>
           </Card>
