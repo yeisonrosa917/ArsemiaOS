@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Plus, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/page-header";
@@ -15,9 +16,11 @@ export default function DispatchPage() {
               <Radio className="h-4 w-4 text-emerald-500" />
               Live • 7 drivers
             </Button>
-            <Button size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              New job
+            <Button asChild size="sm" className="gap-2">
+              <Link href="/quotes?type=job">
+                <Plus className="h-4 w-4" />
+                New job
+              </Link>
             </Button>
           </>
         }

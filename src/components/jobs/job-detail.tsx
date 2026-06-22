@@ -42,6 +42,8 @@ import { drivers as seedDrivers } from "@/lib/data";
 import type { BuildingDetails, Job, JobInventoryItem } from "@/lib/types";
 import { useJobsStore } from "@/lib/store/jobs";
 import { useNotifications } from "@/lib/store/notifications";
+import { useJobEvents } from "@/lib/store/job-events";
+import { JobEventLog } from "./job-event-log";
 import { fmtUSD } from "@/lib/calculator/engine";
 import { cn } from "@/lib/utils";
 
@@ -61,6 +63,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
   const currentJob = useJobsStore((s) => s.jobs.find((j) => j.id === initial.id)) ?? initial;
   const job = currentJob;
   const pushNotif = useNotifications((s) => s.push);
+  const pushEvent = useJobEvents((s) => s.push);
 
   const [editingInv, setEditingInv] = useState(false);
 
@@ -90,6 +93,14 @@ export function JobDetail({ job: initial }: { job: Job }) {
           : `Assigned to ${to}. The foreman will be notified via the mobile app.`,
         href: `/jobs/${job.id}`,
       });
+      pushEvent({
+        jobId: job.id,
+        type: from ? "reassigned" : "assigned",
+        actor: "Mariana Castro",
+        message: from
+          ? `Reassigned from ${from} to ${to}.`
+          : `Assigned to ${to}.`,
+      });
     }
   };
 
@@ -101,6 +112,12 @@ export function JobDetail({ job: initial }: { job: Job }) {
         title: `Job ${job.id} unassigned`,
         body: `Removed from ${from}. Driver notified.`,
         href: `/jobs/${job.id}`,
+      });
+      pushEvent({
+        jobId: job.id,
+        type: "reassigned",
+        actor: "Mariana Castro",
+        message: `Removed from ${from}. Now unassigned.`,
       });
     }
   };
@@ -590,6 +607,8 @@ export function JobDetail({ job: initial }: { job: Job }) {
               )}
             </CardContent>
           </Card>
+
+          <JobEventLog jobId={job.id} />
         </div>
       </div>
     </div>

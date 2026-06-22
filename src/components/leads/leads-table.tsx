@@ -195,7 +195,19 @@ export function LeadsTable() {
                     </td>
                     <td className="p-2.5">
                       <Button asChild variant="outline" size="sm" className="h-7 gap-1 text-[10px]">
-                        <Link href="/quotes">
+                        <Link
+                          href={{
+                            pathname: "/quotes",
+                            query: {
+                              leadId: l.id,
+                              customer: l.name,
+                              phone: l.phone,
+                              fromCity: l.fromCity,
+                              toCity: l.toCity,
+                              cuft: String(l.estimatedCuFt),
+                            },
+                          }}
+                        >
                           Convert <ChevronDown className="h-3 w-3 -rotate-90" />
                         </Link>
                       </Button>

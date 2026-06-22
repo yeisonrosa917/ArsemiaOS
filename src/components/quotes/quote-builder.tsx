@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Calculator,
   ChevronDown,
@@ -35,7 +36,9 @@ import {
 import { cn } from "@/lib/utils";
 
 export function QuoteBuilder() {
+  const searchParams = useSearchParams();
   const [customer, setCustomer] = useState("");
+  const [phone, setPhone] = useState("");
   const [pickup, setPickup] = useState("");
   const [delivery, setDelivery] = useState("");
   const [miles, setMiles] = useState<number>(0);
@@ -50,6 +53,30 @@ export function QuoteBuilder() {
     special: true,
   });
   const [ltaAmount, setLtaAmount] = useState<number>(0);
+  const [fromLeadId, setFromLeadId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const c = searchParams.get("customer");
+    const p = searchParams.get("phone");
+    const fromCity = searchParams.get("fromCity");
+    const toCity = searchParams.get("toCity");
+    const cuft = searchParams.get("cuft");
+    const leadId = searchParams.get("leadId");
+    if (c) setCustomer(c);
+    if (p) setPhone(p);
+    if (fromCity) setPickup(fromCity);
+    if (toCity) setDelivery(toCity);
+    if (cuft && !Number.isNaN(Number(cuft))) {
+      setInventory([
+        {
+          itemName: `Estimated inventory (${cuft} ft³)`,
+          qty: 1,
+          cuftEach: Number(cuft),
+        },
+      ]);
+    }
+    if (leadId) setFromLeadId(leadId);
+  }, [searchParams]);
 
   const filteredPresets = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -120,6 +147,20 @@ export function QuoteBuilder() {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
+        {fromLeadId && (
+          <Card className="border-success/40 bg-success/[0.04]">
+            <CardContent className="flex items-center gap-3 p-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-success/20 text-success">
+                ✓
+              </span>
+              <p className="text-xs">
+                Prefilled from lead{" "}
+                <span className="font-mono font-semibold">{fromLeadId}</span>.
+                Adjust inventory and addresses, then save.
+              </p>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>Customer & route</CardTitle>
@@ -135,13 +176,11 @@ export function QuoteBuilder() {
                 placeholder="Customer name"
               />
             </Field>
-            <Field label="Miles">
+            <Field label="Phone">
               <Input
-                type="number"
-                min={0}
-                value={miles || ""}
-                onChange={(e) => setMiles(Number(e.target.value) || 0)}
-                placeholder="0"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="(305) 555-0000"
               />
             </Field>
             <Field label="Pickup address">
@@ -156,6 +195,15 @@ export function QuoteBuilder() {
                 value={delivery}
                 onChange={(e) => setDelivery(e.target.value)}
                 placeholder="Delivery"
+              />
+            </Field>
+            <Field label="Miles">
+              <Input
+                type="number"
+                min={0}
+                value={miles || ""}
+                onChange={(e) => setMiles(Number(e.target.value) || 0)}
+                placeholder="0"
               />
             </Field>
             <Field label="Stairs (flights)">

@@ -145,7 +145,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7494,
     deliveryLng: -80.258,
     type: "Local Move",
-    cuFt: 640,
+    cuFt: 752,
     miles: 4.5,
     status: "Pickup Started",
     driverId: "DRV-1042",
@@ -188,90 +188,157 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sectional Sofa (L-shape)",
-      qty: 1,
-      cuft: 90
-    },
+        name: "Sleeper Sofa / Sofa Bed",
+        qty: 1,
+        cuft: 60
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "Coffee Table",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Bookshelf (medium)",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Ottoman",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Twin Mattress",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Console Table",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Twin Bed Frame",
-      qty: 1,
-      cuft: 15
-    },
+        name: "Side Table",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "TV Stand (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Nightstand",
-      qty: 3,
-      cuft: 5
-    },
+        name: "King Mattress",
+        qty: 1,
+        cuft: 40
+      },
       {
-      name: "Dining Table (small)",
-      qty: 1,
-      cuft: 20
-    },
+        name: "King Bed Frame",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Dining Chair",
-      qty: 6,
-      cuft: 6
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Desk",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Armoire",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Bookshelf (medium)",
-      qty: 2,
-      cuft: 12
-    },
+        name: "Full Mattress",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Box (medium)",
-      qty: 25,
-      cuft: 3
-    },
+        name: "Full Bed Frame",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Box (large)",
-      qty: 14,
-      cuft: 7
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Box (extra large)",
-      qty: 4,
-      cuft: 10
-    },
+        name: "Peloton Bike",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "TV",
-      qty: 2,
-      cuft: 20
-    },
+        name: "Aquarium (small)",
+        qty: 1,
+        cuft: 8
+      },
       {
-      name: "Wardrobe Box",
-      qty: 6,
-      cuft: 15
-    }
+        name: "Elliptical Machine",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Shoe Rack",
+        qty: 1,
+        cuft: 6
+      },
+      {
+        name: "Trash Can",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Coat Rack",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Picture Frame XL (6ft+)",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Mirror (medium)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "TV",
+        qty: 2,
+        cuft: 20
+      },
+      {
+        name: "Box (small)",
+        qty: 4,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 13,
+        cuft: 3,
+        packByCrew: true
+      },
+      {
+        name: "Box (large)",
+        qty: 15,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 6,
+        cuft: 10
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 5,
+        cuft: 15
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 2,
+        cuft: 5,
+        packByCrew: true
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 2,
+        cuft: 7
+      }
     ],
     additionalServices: [
       {
@@ -303,7 +370,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7762,
     deliveryLng: -80.188,
     type: "Commercial",
-    cuFt: 1240,
+    cuFt: 564,
     miles: 4.5,
     status: "En Route",
     driverId: "DRV-1043",
@@ -343,43 +410,130 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sofa (2-seater)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "Sleeper Sofa / Sofa Bed",
+        qty: 1,
+        cuft: 60
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30,
-      packByCrew: false
-    },
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Console Table",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Dresser (single)",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Entertainment Center",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "Box (medium)",
-      qty: 12,
-      cuft: 3,
-      packByCrew: false
-    },
+        name: "End Table",
+        qty: 1,
+        cuft: 6
+      },
       {
-      name: "Box (large)",
-      qty: 6,
-      cuft: 7,
-      packByCrew: false
-    },
+        name: "Bookshelf (medium)",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "TV",
-      qty: 1,
-      cuft: 20
-    }
+        name: "Recliner Chair",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "TV Stand (small)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Kitchen Table",
+        qty: 1,
+        cuft: 18
+      },
+      {
+        name: "Dining Chair",
+        qty: 6,
+        cuft: 6
+      },
+      {
+        name: "Queen Mattress",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Queen Bed Frame",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
+      {
+        name: "Armoire",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Desk",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Desk Chair",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Mirror (large)",
+        qty: 2,
+        cuft: 15
+      },
+      {
+        name: "Bar Cart",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "Box (small)",
+        qty: 5,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 8,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 9,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 2,
+        cuft: 10
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 1,
+        cuft: 5
+      }
     ],
     additionalServices: [
 
@@ -406,7 +560,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7912,
     deliveryLng: -80.3416,
     type: "Storage In",
-    cuFt: 285,
+    cuFt: 426,
     miles: 8.4,
     status: "Assigned",
     driverId: "DRV-1044",
@@ -449,65 +603,100 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sofa (3-seater)",
-      qty: 1,
-      cuft: 50
-    },
+        name: "Sleeper Sofa / Sofa Bed",
+        qty: 1,
+        cuft: 60
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "Side Table",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Arm Chair",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Ottoman",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Nightstand",
-      qty: 2,
-      cuft: 5
-    },
+        name: "Dining Table (extendable)",
+        qty: 1,
+        cuft: 35
+      },
       {
-      name: "Dining Table (small)",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Dining Chair",
+        qty: 6,
+        cuft: 6
+      },
       {
-      name: "Dining Chair",
-      qty: 4,
-      cuft: 6
-    },
+        name: "Queen Mattress",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Box (medium)",
-      qty: 18,
-      cuft: 3
-    },
+        name: "Queen Bed Frame",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Box (large)",
-      qty: 8,
-      cuft: 7
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "TV",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Dresser (triple)",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "Wardrobe Box",
-      qty: 4,
-      cuft: 15
-    }
+        name: "Artwork (large, crated)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Bar Cart",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "Box (small)",
+        qty: 1,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 7,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 4,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 4,
+        cuft: 7
+      }
     ],
     additionalServices: [
 
@@ -535,7 +724,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.6712,
     deliveryLng: -80.3013,
     type: "Local Move",
-    cuFt: 920,
+    cuFt: 1468,
     miles: 4.5,
     status: "Assigned",
     driverId: "DRV-1042",
@@ -579,130 +768,199 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sectional Sofa (U-shape)",
-      qty: 1,
-      cuft: 120
-    },
+        name: "Sleeper Sofa / Sofa Bed",
+        qty: 1,
+        cuft: 60
+      },
       {
-      name: "Love Seat",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Accent Chair",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "Rug",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "King Mattress",
-      qty: 1,
-      cuft: 40
-    },
+        name: "Entertainment Center",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "King Bed Frame",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Lamp (table)",
+        qty: 1,
+        cuft: 3
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "TV Stand (small)",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Ottoman",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Twin Mattress",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Side Table",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Twin Bed Frame",
-      qty: 1,
-      cuft: 15
-    },
+        name: "Dining Table (large)",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Dresser (triple)",
-      qty: 1,
-      cuft: 45
-    },
+        name: "Dining Chair",
+        qty: 4,
+        cuft: 6
+      },
       {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "Queen Mattress",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Nightstand",
-      qty: 4,
-      cuft: 5
-    },
+        name: "Queen Bed Frame",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Dining Table (large)",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Dining Chair",
-      qty: 6,
-      cuft: 6
-    },
+        name: "Armoire",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Desk",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Bunk Bed",
+        qty: 1,
+        cuft: 50
+      },
       {
-      name: "Office Chair",
-      qty: 1,
-      cuft: 10
-    },
+        name: "Dresser (single)",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Bookshelf (large)",
-      qty: 2,
-      cuft: 20
-    },
+        name: "Crib",
+        qty: 1,
+        cuft: 18
+      },
       {
-      name: "Box (medium)",
-      qty: 35,
-      cuft: 3
-    },
+        name: "Twin Mattress",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Box (large)",
-      qty: 22,
-      cuft: 7
-    },
+        name: "Twin Bed Frame",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Box (extra large)",
-      qty: 8,
-      cuft: 10
-    },
+        name: "Dresser (single)",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "TV",
-      qty: 3,
-      cuft: 20
-    },
+        name: "Standing Desk",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Wardrobe Box",
-      qty: 10,
-      cuft: 15
-    },
+        name: "Desk Chair",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Refrigerator (French door)",
-      qty: 1,
-      cuft: 50
-    },
+        name: "Piano (upright)",
+        qty: 1,
+        cuft: 80
+      },
       {
-      name: "Washer",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Aquarium (small)",
+        qty: 1,
+        cuft: 8
+      },
       {
-      name: "Dryer",
-      qty: 1,
-      cuft: 30
-    }
+        name: "Picture Frame XL (6ft+)",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Mirror (medium)",
+        qty: 2,
+        cuft: 10
+      },
+      {
+        name: "Shoe Rack",
+        qty: 1,
+        cuft: 6
+      },
+      {
+        name: "Patio Umbrella",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Patio Chair",
+        qty: 4,
+        cuft: 8
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "TV Box (43\"-65\")",
+        qty: 2,
+        cuft: 50
+      },
+      {
+        name: "Box (small)",
+        qty: 20,
+        cuft: 1.5,
+        packByCrew: true
+      },
+      {
+        name: "Box (medium)",
+        qty: 54,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 22,
+        cuft: 7,
+        packByCrew: true
+      },
+      {
+        name: "Box (extra large)",
+        qty: 16,
+        cuft: 10,
+        packByCrew: true
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 8,
+        cuft: 15,
+        packByCrew: true
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 8,
+        cuft: 5
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 2,
+        cuft: 7
+      }
     ],
     additionalServices: [
       {
@@ -743,7 +1001,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7619,
     deliveryLng: -80.1885,
     type: "Local Move",
-    cuFt: 180,
+    cuFt: 360,
     miles: 14.6,
     status: "Pickup Completed",
     driverId: "DRV-1045",
@@ -786,43 +1044,110 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sofa (2-seater)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "Sofa (2-seater)",
+        qty: 1,
+        cuft: 35
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30,
-      packByCrew: false
-    },
+        name: "Lamp (floor)",
+        qty: 1,
+        cuft: 8
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Arm Chair",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Dresser (single)",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Lamp (table)",
+        qty: 1,
+        cuft: 3
+      },
       {
-      name: "Box (medium)",
-      qty: 12,
-      cuft: 3,
-      packByCrew: false
-    },
+        name: "Coffee Table",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Box (large)",
-      qty: 6,
-      cuft: 7,
-      packByCrew: false
-    },
+        name: "Bar Stool",
+        qty: 4,
+        cuft: 4
+      },
       {
-      name: "TV",
-      qty: 1,
-      cuft: 20
-    }
+        name: "Full Mattress",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Full Bed Frame",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "Nightstand",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Armoire",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Standing Desk",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Desk Chair",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Refrigerator (French door)",
+        qty: 1,
+        cuft: 50
+      },
+      {
+        name: "Washer",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Trash Can",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "Box (small)",
+        qty: 2,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 1,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 2,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 3,
+        cuft: 7
+      }
     ],
     additionalServices: [
 
@@ -850,7 +1175,7 @@ export const jobs: Job[] = [
     deliveryLat: 28.0042,
     deliveryLng: -82.4585,
     type: "Long Distance",
-    cuFt: 1480,
+    cuFt: 1127,
     miles: 264,
     status: "Assigned",
     driverId: "DRV-1048",
@@ -894,130 +1219,186 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sectional Sofa (U-shape)",
-      qty: 1,
-      cuft: 120
-    },
+        name: "Sofa (3-seater)",
+        qty: 1,
+        cuft: 50
+      },
       {
-      name: "Love Seat",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Ottoman",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "Side Table",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "King Mattress",
-      qty: 1,
-      cuft: 40
-    },
+        name: "Rug (large)",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "King Bed Frame",
-      qty: 1,
-      cuft: 30
-    },
+        name: "TV Stand (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "End Table",
+        qty: 1,
+        cuft: 6
+      },
       {
-      name: "Twin Mattress",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Kitchen Table",
+        qty: 1,
+        cuft: 18
+      },
       {
-      name: "Twin Bed Frame",
-      qty: 1,
-      cuft: 15
-    },
+        name: "Dining Chair",
+        qty: 4,
+        cuft: 6
+      },
       {
-      name: "Dresser (triple)",
-      qty: 1,
-      cuft: 45
-    },
+        name: "Queen Mattress",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "Queen Bed Frame",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Nightstand",
-      qty: 4,
-      cuft: 5
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Dining Table (large)",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Chest of Drawers",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Dining Chair",
-      qty: 6,
-      cuft: 6
-    },
+        name: "Twin Mattress",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Desk",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Twin Bed Frame",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Office Chair",
-      qty: 1,
-      cuft: 10
-    },
+        name: "Dresser (single)",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Bookshelf (large)",
-      qty: 2,
-      cuft: 20
-    },
+        name: "Twin Mattress",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Box (medium)",
-      qty: 35,
-      cuft: 3
-    },
+        name: "Twin Bed Frame",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Box (large)",
-      qty: 22,
-      cuft: 7
-    },
+        name: "Dresser (single)",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Box (extra large)",
-      qty: 8,
-      cuft: 10
-    },
+        name: "Pool Table",
+        qty: 1,
+        cuft: 80
+      },
       {
-      name: "TV",
-      qty: 3,
-      cuft: 20
-    },
+        name: "Gun Safe (large)",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "Wardrobe Box",
-      qty: 10,
-      cuft: 15
-    },
+        name: "Artwork (large, crated)",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Refrigerator (French door)",
-      qty: 1,
-      cuft: 50
-    },
+        name: "Picture Frame XL (6ft+)",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Washer",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Trash Can",
+        qty: 1,
+        cuft: 5
+      },
       {
-      name: "Dryer",
-      qty: 1,
-      cuft: 30
-    }
+        name: "Bar Cart",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "Kitchen Cart",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Patio Chair",
+        qty: 2,
+        cuft: 8
+      },
+      {
+        name: "Patio Lounge Chair",
+        qty: 1,
+        cuft: 18
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "TV Box (43\"-65\")",
+        qty: 2,
+        cuft: 50
+      },
+      {
+        name: "Box (small)",
+        qty: 26,
+        cuft: 1.5,
+        packByCrew: true
+      },
+      {
+        name: "Box (medium)",
+        qty: 51,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 15,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 7,
+        cuft: 10
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 3,
+        cuft: 7
+      }
     ],
     additionalServices: [
       {
@@ -1053,7 +1434,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.9555,
     deliveryLng: -80.1432,
     type: "Local Move",
-    cuFt: 380,
+    cuFt: 706,
     miles: 4.5,
     status: "En Route",
     driverId: "DRV-1047",
@@ -1096,65 +1477,165 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sofa (3-seater)",
-      qty: 1,
-      cuft: 50
-    },
+        name: "Sleeper Sofa / Sofa Bed",
+        qty: 1,
+        cuft: 60
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "Accent Chair",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Recliner Chair",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Rug",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "Console Table",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Nightstand",
-      qty: 2,
-      cuft: 5
-    },
+        name: "Entertainment Center",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "Dining Table (small)",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Ottoman",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Dining Chair",
-      qty: 4,
-      cuft: 6
-    },
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Box (medium)",
-      qty: 18,
-      cuft: 3
-    },
+        name: "Dining Table (small)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Box (large)",
-      qty: 8,
-      cuft: 7
-    },
+        name: "Dining Chair",
+        qty: 4,
+        cuft: 6
+      },
       {
-      name: "TV",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Queen Mattress",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Wardrobe Box",
-      qty: 4,
-      cuft: 15
-    }
+        name: "Queen Bed Frame",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
+      {
+        name: "Dresser (single)",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Standing Desk",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Desk Chair",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Dishwasher",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Microwave",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Refrigerator (standard)",
+        qty: 1,
+        cuft: 40
+      },
+      {
+        name: "Mini Fridge",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Treadmill",
+        qty: 1,
+        cuft: 35
+      },
+      {
+        name: "Picture Frame XL (6ft+)",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Shoe Rack",
+        qty: 1,
+        cuft: 6
+      },
+      {
+        name: "Artwork (large, crated)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Bar Cart",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "Box (small)",
+        qty: 5,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 8,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 10,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 3,
+        cuft: 10
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 1,
+        cuft: 5
+      }
     ],
     additionalServices: [
 
@@ -1182,7 +1663,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7271,
     deliveryLng: -80.2354,
     type: "Hourly",
-    cuFt: 120,
+    cuFt: 66,
     miles: 11.2,
     status: "Unassigned",
     crew: [
@@ -1217,7 +1698,36 @@ export const jobs: Job[] = [
       longCarryFeet: 0
     },
     inventoryItems: [
-
+      {
+        name: "Ottoman",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Side Table",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Lamp (table)",
+        qty: 1,
+        cuft: 3
+      },
+      {
+        name: "Box (small)",
+        qty: 1,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 2,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 5,
+        cuft: 7
+      }
     ],
     additionalServices: [
       {
@@ -1259,7 +1769,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.6502,
     deliveryLng: -80.3287,
     type: "Local Move",
-    cuFt: 1620,
+    cuFt: 1394,
     miles: 3.2,
     status: "Assigned",
     driverId: "DRV-1046",
@@ -1303,130 +1813,226 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sectional Sofa (U-shape)",
-      qty: 1,
-      cuft: 120
-    },
+        name: "Sofa (3-seater)",
+        qty: 1,
+        cuft: 50
+      },
       {
-      name: "Sofa (3-seater)",
-      qty: 2,
-      cuft: 50
-    },
+        name: "Rug",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Recliner Chair",
-      qty: 2,
-      cuft: 20
-    },
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Coffee Table",
-      qty: 2,
-      cuft: 12
-    },
+        name: "Accent Chair",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "King Mattress",
-      qty: 2,
-      cuft: 40
-    },
+        name: "Lamp (floor)",
+        qty: 1,
+        cuft: 8
+      },
       {
-      name: "King Bed Frame",
-      qty: 2,
-      cuft: 30
-    },
+        name: "Rug (large)",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Queen Mattress",
-      qty: 2,
-      cuft: 30
-    },
+        name: "Coffee Table",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 2,
-      cuft: 25
-    },
+        name: "Side Table",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Dresser (triple)",
-      qty: 2,
-      cuft: 45
-    },
+        name: "Dining Table (extendable)",
+        qty: 1,
+        cuft: 35
+      },
       {
-      name: "Nightstand",
-      qty: 6,
-      cuft: 5
-    },
+        name: "Dining Chair",
+        qty: 4,
+        cuft: 6
+      },
       {
-      name: "Dining Table (extendable)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "King Mattress",
+        qty: 1,
+        cuft: 40
+      },
       {
-      name: "Dining Chair",
-      qty: 8,
-      cuft: 6
-    },
+        name: "King Bed Frame",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Desk (L-shape)",
-      qty: 1,
-      cuft: 45
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Bookshelf (large)",
-      qty: 3,
-      cuft: 20
-    },
+        name: "Chest of Drawers",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Entertainment Center",
-      qty: 1,
-      cuft: 45
-    },
+        name: "Twin Mattress",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Piano (upright)",
-      qty: 1,
-      cuft: 80
-    },
+        name: "Twin Bed Frame",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Box (medium)",
-      qty: 55,
-      cuft: 3
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Box (large)",
-      qty: 35,
-      cuft: 7
-    },
+        name: "Twin Mattress",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Box (extra large)",
-      qty: 12,
-      cuft: 10
-    },
+        name: "Twin Bed Frame",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "TV",
-      qty: 4,
-      cuft: 20
-    },
+        name: "Nightstand",
+        qty: 1,
+        cuft: 5
+      },
       {
-      name: "Wardrobe Box",
-      qty: 18,
-      cuft: 15
-    },
+        name: "Full Mattress",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Refrigerator (French door)",
-      qty: 1,
-      cuft: 50
-    },
+        name: "Full Bed Frame",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Washer",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Nightstand",
+        qty: 1,
+        cuft: 5
+      },
       {
-      name: "Dryer",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Dresser (triple)",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "Treadmill",
-      qty: 1,
-      cuft: 35
-    }
+        name: "Treadmill",
+        qty: 1,
+        cuft: 35
+      },
+      {
+        name: "Aquarium (large)",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Foosball Table",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Coat Rack",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Trash Can",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Mirror (large)",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Mirror (medium)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Artwork (large, crated)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Wine Rack",
+        qty: 1,
+        cuft: 8
+      },
+      {
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "Patio Table",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "TV Box (43\"-65\")",
+        qty: 3,
+        cuft: 50
+      },
+      {
+        name: "Box (small)",
+        qty: 26,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 54,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 9,
+        cuft: 7,
+        packByCrew: true
+      },
+      {
+        name: "Box (extra large)",
+        qty: 2,
+        cuft: 10
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 13,
+        cuft: 15
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 8,
+        cuft: 5
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 3,
+        cuft: 7
+      }
     ],
     additionalServices: [
       {
@@ -1462,7 +2068,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7619,
     deliveryLng: -80.1885,
     type: "Packing Only",
-    cuFt: 0,
+    cuFt: 182,
     miles: 22.1,
     status: "Assigned",
     driverId: "DRV-1043",
@@ -1505,90 +2111,35 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sectional Sofa (L-shape)",
-      qty: 1,
-      cuft: 90
-    },
+        name: "Box (small)",
+        qty: 3,
+        cuft: 1.5,
+        packByCrew: true
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "Box (medium)",
+        qty: 5,
+        cuft: 3,
+        packByCrew: true
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Box (large)",
+        qty: 9,
+        cuft: 7,
+        packByCrew: true
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Box (extra large)",
+        qty: 4,
+        cuft: 10,
+        packByCrew: true
+      },
       {
-      name: "Twin Mattress",
-      qty: 1,
-      cuft: 20
-    },
-      {
-      name: "Twin Bed Frame",
-      qty: 1,
-      cuft: 15
-    },
-      {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
-      {
-      name: "Nightstand",
-      qty: 3,
-      cuft: 5
-    },
-      {
-      name: "Dining Table (small)",
-      qty: 1,
-      cuft: 20
-    },
-      {
-      name: "Dining Chair",
-      qty: 6,
-      cuft: 6
-    },
-      {
-      name: "Desk",
-      qty: 1,
-      cuft: 25
-    },
-      {
-      name: "Bookshelf (medium)",
-      qty: 2,
-      cuft: 12
-    },
-      {
-      name: "Box (medium)",
-      qty: 25,
-      cuft: 3
-    },
-      {
-      name: "Box (large)",
-      qty: 14,
-      cuft: 7
-    },
-      {
-      name: "Box (extra large)",
-      qty: 4,
-      cuft: 10
-    },
-      {
-      name: "TV",
-      qty: 2,
-      cuft: 20
-    },
-      {
-      name: "Wardrobe Box",
-      qty: 6,
-      cuft: 15
-    }
+        name: "Wardrobe Box",
+        qty: 4,
+        cuft: 15,
+        packByCrew: true
+      }
     ],
     additionalServices: [
       {
@@ -1619,7 +2170,7 @@ export const jobs: Job[] = [
     deliveryLat: 26.0987,
     deliveryLng: -80.1325,
     type: "Long Distance",
-    cuFt: 880,
+    cuFt: 471,
     miles: 31,
     status: "Unassigned",
     crew: [
@@ -1654,7 +2205,141 @@ export const jobs: Job[] = [
       longCarryFeet: 0
     },
     inventoryItems: [
-
+      {
+        name: "Sofa (2-seater)",
+        qty: 1,
+        cuft: 35
+      },
+      {
+        name: "Accent Chair",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "Rug (large)",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Bookshelf (medium)",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "Side Table",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Arm Chair",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "End Table",
+        qty: 1,
+        cuft: 6
+      },
+      {
+        name: "Console Table",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Lamp (floor)",
+        qty: 1,
+        cuft: 8
+      },
+      {
+        name: "Dining Table (large)",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Dining Chair",
+        qty: 4,
+        cuft: 6
+      },
+      {
+        name: "Queen Mattress",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Queen Bed Frame",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
+      {
+        name: "Chest of Drawers",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Standing Desk",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Desk Chair",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Microwave",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Trash Can",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Bar Cart",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "Box (small)",
+        qty: 4,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 5,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 3,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 4,
+        cuft: 10
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 1,
+        cuft: 5
+      }
     ],
     additionalServices: [
 
@@ -1681,7 +2366,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.9069,
     deliveryLng: -80.1872,
     type: "Local Move",
-    cuFt: 540,
+    cuFt: 719,
     miles: 22.1,
     status: "Completed",
     driverId: "DRV-1044",
@@ -1723,90 +2408,145 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sectional Sofa (L-shape)",
-      qty: 1,
-      cuft: 90
-    },
+        name: "Sofa (3-seater)",
+        qty: 1,
+        cuft: 50
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "Accent Chair",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Bookshelf (medium)",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Rug",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Twin Mattress",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Recliner Chair",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Twin Bed Frame",
-      qty: 1,
-      cuft: 15
-    },
+        name: "Lamp (floor)",
+        qty: 1,
+        cuft: 8
+      },
       {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "Coffee Table",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Nightstand",
-      qty: 3,
-      cuft: 5
-    },
+        name: "King Mattress",
+        qty: 1,
+        cuft: 40
+      },
       {
-      name: "Dining Table (small)",
-      qty: 1,
-      cuft: 20
-    },
+        name: "King Bed Frame",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Dining Chair",
-      qty: 6,
-      cuft: 6
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Desk",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Dresser (triple)",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "Bookshelf (medium)",
-      qty: 2,
-      cuft: 12
-    },
+        name: "Full Mattress",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Box (medium)",
-      qty: 25,
-      cuft: 3
-    },
+        name: "Full Bed Frame",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Box (large)",
-      qty: 14,
-      cuft: 7
-    },
+        name: "Nightstand",
+        qty: 1,
+        cuft: 5
+      },
       {
-      name: "Box (extra large)",
-      qty: 4,
-      cuft: 10
-    },
+        name: "Microwave",
+        qty: 1,
+        cuft: 5
+      },
       {
-      name: "TV",
-      qty: 2,
-      cuft: 20
-    },
+        name: "Dryer",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Wardrobe Box",
-      qty: 6,
-      cuft: 15
-    }
+        name: "BBQ Grill",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Coat Rack",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Mirror (medium)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Shoe Rack",
+        qty: 1,
+        cuft: 6
+      },
+      {
+        name: "Kitchen Cart",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "TV",
+        qty: 2,
+        cuft: 20
+      },
+      {
+        name: "Box (small)",
+        qty: 4,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 19,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 13,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 8,
+        cuft: 10
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 2,
+        cuft: 15
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 3,
+        cuft: 5
+      }
     ],
     additionalServices: [
 
@@ -1834,7 +2574,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.8327,
     deliveryLng: -80.3081,
     type: "Local Move",
-    cuFt: 780,
+    cuFt: 1395,
     miles: 4.5,
     status: "Delivery Started",
     driverId: "DRV-1047",
@@ -1878,130 +2618,192 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sectional Sofa (U-shape)",
-      qty: 1,
-      cuft: 120
-    },
+        name: "Sectional Sofa (L-shape)",
+        qty: 1,
+        cuft: 90
+      },
       {
-      name: "Love Seat",
-      qty: 1,
-      cuft: 20
-    },
+        name: "End Table",
+        qty: 1,
+        cuft: 6
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "TV Stand (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "King Mattress",
-      qty: 1,
-      cuft: 40
-    },
+        name: "Accent Chair",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "King Bed Frame",
-      qty: 1,
-      cuft: 30
-    },
+        name: "TV Stand (small)",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Console Table",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Lamp (table)",
+        qty: 1,
+        cuft: 3
+      },
       {
-      name: "Twin Mattress",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Twin Bed Frame",
-      qty: 1,
-      cuft: 15
-    },
+        name: "Dining Table (large)",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Dresser (triple)",
-      qty: 1,
-      cuft: 45
-    },
+        name: "Dining Chair",
+        qty: 8,
+        cuft: 6
+      },
       {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "King Mattress",
+        qty: 1,
+        cuft: 40
+      },
       {
-      name: "Nightstand",
-      qty: 4,
-      cuft: 5
-    },
+        name: "King Bed Frame",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Dining Table (large)",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Dining Chair",
-      qty: 6,
-      cuft: 6
-    },
+        name: "Chest of Drawers",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Desk",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Twin Mattress",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Office Chair",
-      qty: 1,
-      cuft: 10
-    },
+        name: "Twin Bed Frame",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Bookshelf (large)",
-      qty: 2,
-      cuft: 20
-    },
+        name: "Dresser (single)",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Box (medium)",
-      qty: 35,
-      cuft: 3
-    },
+        name: "Crib",
+        qty: 1,
+        cuft: 18
+      },
       {
-      name: "Box (large)",
-      qty: 22,
-      cuft: 7
-    },
+        name: "Dryer",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Box (extra large)",
-      qty: 8,
-      cuft: 10
-    },
+        name: "Refrigerator (standard)",
+        qty: 1,
+        cuft: 40
+      },
       {
-      name: "TV",
-      qty: 3,
-      cuft: 20
-    },
+        name: "Piano (baby grand)",
+        qty: 1,
+        cuft: 120
+      },
       {
-      name: "Wardrobe Box",
-      qty: 10,
-      cuft: 15
-    },
+        name: "Gun Safe (large)",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "Refrigerator (French door)",
-      qty: 1,
-      cuft: 50
-    },
+        name: "Artwork (large, crated)",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Washer",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Picture Frame XL (6ft+)",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Dryer",
-      qty: 1,
-      cuft: 30
-    }
+        name: "Mirror (large)",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Wine Rack",
+        qty: 1,
+        cuft: 8
+      },
+      {
+        name: "Patio Umbrella",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Patio Table",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "TV Box (43\"-65\")",
+        qty: 2,
+        cuft: 50
+      },
+      {
+        name: "Box (small)",
+        qty: 14,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 45,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 19,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 9,
+        cuft: 10,
+        packByCrew: true
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 7,
+        cuft: 15,
+        packByCrew: true
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 3,
+        cuft: 5
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 3,
+        cuft: 7
+      }
     ],
     additionalServices: [
       {
@@ -2032,7 +2834,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7903,
     deliveryLng: -80.1407,
     type: "Local Move",
-    cuFt: 420,
+    cuFt: 476,
     miles: 22.1,
     status: "Assigned",
     driverId: "DRV-1045",
@@ -2075,65 +2877,145 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sofa (3-seater)",
-      qty: 1,
-      cuft: 50
-    },
+        name: "Sleeper Sofa / Sofa Bed",
+        qty: 1,
+        cuft: 60
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "TV Stand (small)",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Coffee Table",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "End Table",
+        qty: 1,
+        cuft: 6
+      },
       {
-      name: "Nightstand",
-      qty: 2,
-      cuft: 5
-    },
+        name: "Recliner Chair",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Dining Table (small)",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Side Table",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Dining Chair",
-      qty: 4,
-      cuft: 6
-    },
+        name: "Bookshelf (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Box (medium)",
-      qty: 18,
-      cuft: 3
-    },
+        name: "Lamp (floor)",
+        qty: 1,
+        cuft: 8
+      },
       {
-      name: "Box (large)",
-      qty: 8,
-      cuft: 7
-    },
+        name: "Queen Mattress",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "TV",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Queen Bed Frame",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Wardrobe Box",
-      qty: 4,
-      cuft: 15
-    }
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
+      {
+        name: "Dresser (single)",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Standing Desk",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Desk Chair",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Dryer",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Mini Fridge",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Microwave",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Mirror (medium)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Bar Cart",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "Wine Rack",
+        qty: 1,
+        cuft: 8
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "Box (small)",
+        qty: 1,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 5,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 3,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 4,
+        cuft: 7
+      }
     ],
     additionalServices: [
 
@@ -2161,7 +3043,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7283,
     deliveryLng: -80.2402,
     type: "Local Move",
-    cuFt: 580,
+    cuFt: 956,
     miles: 11.2,
     status: "Assigned",
     driverId: "DRV-1046",
@@ -2204,90 +3086,155 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sectional Sofa (L-shape)",
-      qty: 1,
-      cuft: 90
-    },
+        name: "Sofa Recliner (3-seat)",
+        qty: 1,
+        cuft: 55
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "Bookshelf (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Rug (large)",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Twin Mattress",
-      qty: 1,
-      cuft: 20
-    },
+        name: "TV Stand (small)",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Twin Bed Frame",
-      qty: 1,
-      cuft: 15
-    },
+        name: "Dining Table (extendable)",
+        qty: 1,
+        cuft: 35
+      },
       {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "Dining Chair",
+        qty: 6,
+        cuft: 6
+      },
       {
-      name: "Nightstand",
-      qty: 3,
-      cuft: 5
-    },
+        name: "Queen Mattress",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Dining Table (small)",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Queen Bed Frame",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Dining Chair",
-      qty: 6,
-      cuft: 6
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Desk",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Dresser (triple)",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "Bookshelf (medium)",
-      qty: 2,
-      cuft: 12
-    },
+        name: "Sleeper Sofa / Sofa Bed",
+        qty: 1,
+        cuft: 60
+      },
       {
-      name: "Box (medium)",
-      qty: 25,
-      cuft: 3
-    },
+        name: "Nightstand",
+        qty: 1,
+        cuft: 5
+      },
       {
-      name: "Box (large)",
-      qty: 14,
-      cuft: 7
-    },
+        name: "Desk (L-shape)",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "Box (extra large)",
-      qty: 4,
-      cuft: 10
-    },
+        name: "Desk Chair",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "TV",
-      qty: 2,
-      cuft: 20
-    },
+        name: "Filing Cabinet (2-drawer)",
+        qty: 1,
+        cuft: 8
+      },
       {
-      name: "Wardrobe Box",
-      qty: 6,
-      cuft: 15
-    }
+        name: "Mini Fridge",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Dishwasher",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Aquarium (large)",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Picture Frame XL (6ft+)",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Coat Rack",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Mirror (medium)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "TV",
+        qty: 2,
+        cuft: 20
+      },
+      {
+        name: "Box (small)",
+        qty: 13,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 27,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 14,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 5,
+        cuft: 10
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 7,
+        cuft: 15
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 3,
+        cuft: 5
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 2,
+        cuft: 7
+      }
     ],
     additionalServices: [
       {
@@ -2323,7 +3270,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7642,
     deliveryLng: -80.1879,
     type: "Storage Out",
-    cuFt: 540,
+    cuFt: 737,
     miles: 3.2,
     status: "Assigned",
     driverId: "DRV-1043",
@@ -2366,90 +3313,150 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sectional Sofa (L-shape)",
-      qty: 1,
-      cuft: 90
-    },
+        name: "Sofa (3-seater)",
+        qty: 1,
+        cuft: 50
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "Love Seat",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Arm Chair",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Side Table",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Twin Mattress",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Bookshelf (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Twin Bed Frame",
-      qty: 1,
-      cuft: 15
-    },
+        name: "Bookshelf (medium)",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "TV Stand (small)",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Nightstand",
-      qty: 3,
-      cuft: 5
-    },
+        name: "Lamp (floor)",
+        qty: 1,
+        cuft: 8
+      },
       {
-      name: "Dining Table (small)",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Rug",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Dining Chair",
-      qty: 6,
-      cuft: 6
-    },
+        name: "Dining Table (large)",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Desk",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Dining Chair",
+        qty: 4,
+        cuft: 6
+      },
       {
-      name: "Bookshelf (medium)",
-      qty: 2,
-      cuft: 12
-    },
+        name: "King Mattress",
+        qty: 1,
+        cuft: 40
+      },
       {
-      name: "Box (medium)",
-      qty: 25,
-      cuft: 3
-    },
+        name: "King Bed Frame",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Box (large)",
-      qty: 14,
-      cuft: 7
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Box (extra large)",
-      qty: 4,
-      cuft: 10
-    },
+        name: "Dresser (double)",
+        qty: 1,
+        cuft: 35
+      },
       {
-      name: "TV",
-      qty: 2,
-      cuft: 20
-    },
+        name: "Sleeper Sofa / Sofa Bed",
+        qty: 1,
+        cuft: 60
+      },
       {
-      name: "Wardrobe Box",
-      qty: 6,
-      cuft: 15
-    }
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
+      {
+        name: "Foosball Table",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Picture Frame XL (6ft+)",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Coat Rack",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Mirror (medium)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Kitchen Cart",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "TV",
+        qty: 2,
+        cuft: 20
+      },
+      {
+        name: "Box (small)",
+        qty: 10,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 23,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 10,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 3,
+        cuft: 10
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 2,
+        cuft: 15
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 2,
+        cuft: 7
+      }
     ],
     additionalServices: [
 
@@ -2477,7 +3484,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7619,
     deliveryLng: -80.1885,
     type: "Local Move",
-    cuFt: 220,
+    cuFt: 482,
     miles: 22.1,
     status: "Unassigned",
     crew: [
@@ -2516,43 +3523,145 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sofa (2-seater)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "Sofa (2-seater)",
+        qty: 1,
+        cuft: 35
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30,
-      packByCrew: false
-    },
+        name: "Lamp (floor)",
+        qty: 1,
+        cuft: 8
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Ottoman",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Dresser (single)",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Arm Chair",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Box (medium)",
-      qty: 12,
-      cuft: 3,
-      packByCrew: false
-    },
+        name: "Entertainment Center",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "Box (large)",
-      qty: 6,
-      cuft: 7,
-      packByCrew: false
-    },
+        name: "TV Stand (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "TV",
-      qty: 1,
-      cuft: 20
-    }
+        name: "Bookshelf (medium)",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "Rug (large)",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Coffee Table",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "Kitchen Table",
+        qty: 1,
+        cuft: 18
+      },
+      {
+        name: "Dining Chair",
+        qty: 4,
+        cuft: 6
+      },
+      {
+        name: "Queen Mattress",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Queen Bed Frame",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
+      {
+        name: "Dresser (double)",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Mini Fridge",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Microwave",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Dishwasher",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Dryer",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Trash Can",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Bar Cart",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "Wine Rack",
+        qty: 1,
+        cuft: 8
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "Box (small)",
+        qty: 1,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 3,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 1,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 1,
+        cuft: 15
+      }
     ],
     additionalServices: [
 
@@ -2579,7 +3688,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7384,
     deliveryLng: -80.2599,
     type: "Local Move",
-    cuFt: 1080,
+    cuFt: 1366,
     miles: 8.4,
     status: "Pickup Started",
     driverId: "DRV-1048",
@@ -2623,130 +3732,251 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sectional Sofa (U-shape)",
-      qty: 1,
-      cuft: 120
-    },
+        name: "Sofa (2-seater)",
+        qty: 1,
+        cuft: 35
+      },
       {
-      name: "Love Seat",
-      qty: 1,
-      cuft: 20
-    },
+        name: "Bookshelf (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Coffee Table",
-      qty: 1,
-      cuft: 12
-    },
+        name: "Ottoman",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "King Mattress",
-      qty: 1,
-      cuft: 40
-    },
+        name: "Bookshelf (medium)",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "King Bed Frame",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Arm Chair",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Queen Mattress",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Lamp (table)",
+        qty: 1,
+        cuft: 3
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Rug",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Twin Mattress",
-      qty: 1,
-      cuft: 20
-    },
+        name: "End Table",
+        qty: 1,
+        cuft: 6
+      },
       {
-      name: "Twin Bed Frame",
-      qty: 1,
-      cuft: 15
-    },
+        name: "Side Table",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Dresser (triple)",
-      qty: 1,
-      cuft: 45
-    },
+        name: "Dining Table (small)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Dresser (double)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "Dining Chair",
+        qty: 4,
+        cuft: 6
+      },
       {
-      name: "Nightstand",
-      qty: 4,
-      cuft: 5
-    },
+        name: "Queen Mattress",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Dining Table (large)",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Queen Bed Frame",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Dining Chair",
-      qty: 6,
-      cuft: 6
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Desk",
-      qty: 1,
-      cuft: 25
-    },
+        name: "Dresser (double)",
+        qty: 1,
+        cuft: 35
+      },
       {
-      name: "Office Chair",
-      qty: 1,
-      cuft: 10
-    },
+        name: "Full Mattress",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Bookshelf (large)",
-      qty: 2,
-      cuft: 20
-    },
+        name: "Full Bed Frame",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Box (medium)",
-      qty: 35,
-      cuft: 3
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Box (large)",
-      qty: 22,
-      cuft: 7
-    },
+        name: "Dresser (single)",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Box (extra large)",
-      qty: 8,
-      cuft: 10
-    },
+        name: "Twin Mattress",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "TV",
-      qty: 3,
-      cuft: 20
-    },
+        name: "Twin Bed Frame",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Wardrobe Box",
-      qty: 10,
-      cuft: 15
-    },
+        name: "Dresser (single)",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Refrigerator (French door)",
-      qty: 1,
-      cuft: 50
-    },
+        name: "Dryer",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Washer",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Refrigerator (standard)",
+        qty: 1,
+        cuft: 40
+      },
       {
-      name: "Dryer",
-      qty: 1,
-      cuft: 30
-    }
+        name: "Refrigerator (French door)",
+        qty: 1,
+        cuft: 50
+      },
+      {
+        name: "Dishwasher",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Wine Fridge (3ft+)",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "Motorcycle",
+        qty: 1,
+        cuft: 80
+      },
+      {
+        name: "Bicycle",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "Coat Rack",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Shoe Rack",
+        qty: 1,
+        cuft: 6
+      },
+      {
+        name: "Mirror (medium)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Picture Frame XL (6ft+)",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Mirror (large)",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Kitchen Cart",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Bar Cart",
+        qty: 1,
+        cuft: 12
+      },
+      {
+        name: "Patio Table",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Patio Lounge Chair",
+        qty: 1,
+        cuft: 18
+      },
+      {
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "TV Box (43\"-65\")",
+        qty: 2,
+        cuft: 50
+      },
+      {
+        name: "Box (small)",
+        qty: 21,
+        cuft: 1.5,
+        packByCrew: true
+      },
+      {
+        name: "Box (medium)",
+        qty: 12,
+        cuft: 3,
+        packByCrew: true
+      },
+      {
+        name: "Box (large)",
+        qty: 18,
+        cuft: 7,
+        packByCrew: true
+      },
+      {
+        name: "Box (extra large)",
+        qty: 5,
+        cuft: 10,
+        packByCrew: true
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 10,
+        cuft: 15,
+        packByCrew: true
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 5,
+        cuft: 5,
+        packByCrew: true
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 4,
+        cuft: 7
+      }
     ],
     additionalServices: [
       {
@@ -2783,7 +4013,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.6929,
     deliveryLng: -80.161,
     type: "Local Move",
-    cuFt: 2240,
+    cuFt: 2249,
     miles: 3.2,
     status: "Assigned",
     driverId: "DRV-1046",
@@ -2827,130 +4057,275 @@ export const jobs: Job[] = [
     },
     inventoryItems: [
       {
-      name: "Sectional Sofa (U-shape)",
-      qty: 1,
-      cuft: 120
-    },
+        name: "Sofa (3-seater)",
+        qty: 1,
+        cuft: 50
+      },
       {
-      name: "Sofa (3-seater)",
-      qty: 2,
-      cuft: 50
-    },
+        name: "Love Seat",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Recliner Chair",
-      qty: 2,
-      cuft: 20
-    },
+        name: "Coffee Table",
+        qty: 1,
+        cuft: 12
+      },
       {
-      name: "Coffee Table",
-      qty: 2,
-      cuft: 12
-    },
+        name: "Side Table",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "King Mattress",
-      qty: 2,
-      cuft: 40
-    },
+        name: "Lamp (floor)",
+        qty: 1,
+        cuft: 8
+      },
       {
-      name: "King Bed Frame",
-      qty: 2,
-      cuft: 30
-    },
+        name: "Rug (large)",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Queen Mattress",
-      qty: 2,
-      cuft: 30
-    },
+        name: "Rug",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Queen Bed Frame",
-      qty: 2,
-      cuft: 25
-    },
+        name: "Ottoman",
+        qty: 1,
+        cuft: 10
+      },
       {
-      name: "Dresser (triple)",
-      qty: 2,
-      cuft: 45
-    },
+        name: "Lamp (table)",
+        qty: 1,
+        cuft: 3
+      },
       {
-      name: "Nightstand",
-      qty: 6,
-      cuft: 5
-    },
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Dining Table (extendable)",
-      qty: 1,
-      cuft: 35
-    },
+        name: "Dining Table (large)",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Dining Chair",
-      qty: 8,
-      cuft: 6
-    },
+        name: "Dining Chair",
+        qty: 6,
+        cuft: 6
+      },
       {
-      name: "Desk (L-shape)",
-      qty: 1,
-      cuft: 45
-    },
+        name: "King Mattress",
+        qty: 1,
+        cuft: 40
+      },
       {
-      name: "Bookshelf (large)",
-      qty: 3,
-      cuft: 20
-    },
+        name: "King Bed Frame",
+        qty: 1,
+        cuft: 30
+      },
       {
-      name: "Entertainment Center",
-      qty: 1,
-      cuft: 45
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Piano (upright)",
-      qty: 1,
-      cuft: 80
-    },
+        name: "Dresser (triple)",
+        qty: 1,
+        cuft: 45
+      },
       {
-      name: "Box (medium)",
-      qty: 55,
-      cuft: 3
-    },
+        name: "Full Mattress",
+        qty: 1,
+        cuft: 25
+      },
       {
-      name: "Box (large)",
-      qty: 35,
-      cuft: 7
-    },
+        name: "Full Bed Frame",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Box (extra large)",
-      qty: 12,
-      cuft: 10
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "TV",
-      qty: 4,
-      cuft: 20
-    },
+        name: "Twin Mattress",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Wardrobe Box",
-      qty: 18,
-      cuft: 15
-    },
+        name: "Twin Bed Frame",
+        qty: 1,
+        cuft: 15
+      },
       {
-      name: "Refrigerator (French door)",
-      qty: 1,
-      cuft: 50
-    },
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
       {
-      name: "Washer",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Dresser (double)",
+        qty: 1,
+        cuft: 35
+      },
       {
-      name: "Dryer",
-      qty: 1,
-      cuft: 30
-    },
+        name: "Twin Mattress",
+        qty: 1,
+        cuft: 20
+      },
       {
-      name: "Treadmill",
-      qty: 1,
-      cuft: 35
-    }
+        name: "Twin Bed Frame",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Nightstand",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Dresser (triple)",
+        qty: 1,
+        cuft: 45
+      },
+      {
+        name: "Full Mattress",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Full Bed Frame",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "Nightstand",
+        qty: 2,
+        cuft: 5
+      },
+      {
+        name: "Dishwasher",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Peloton Bike",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Elliptical Machine",
+        qty: 1,
+        cuft: 30
+      },
+      {
+        name: "Motorcycle",
+        qty: 1,
+        cuft: 80
+      },
+      {
+        name: "Trash Can",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Mirror (medium)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Coat Rack",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "Mirror (large)",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Shoe Rack",
+        qty: 1,
+        cuft: 6
+      },
+      {
+        name: "Artwork (large, crated)",
+        qty: 1,
+        cuft: 10
+      },
+      {
+        name: "Kitchen Cart",
+        qty: 1,
+        cuft: 15
+      },
+      {
+        name: "Wine Rack",
+        qty: 1,
+        cuft: 8
+      },
+      {
+        name: "Patio Table",
+        qty: 1,
+        cuft: 25
+      },
+      {
+        name: "Patio Chair",
+        qty: 4,
+        cuft: 8
+      },
+      {
+        name: "Patio Umbrella",
+        qty: 1,
+        cuft: 5
+      },
+      {
+        name: "TV",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "TV Box (43\"-65\")",
+        qty: 4,
+        cuft: 50
+      },
+      {
+        name: "Box (small)",
+        qty: 22,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 106,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 17,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 19,
+        cuft: 10
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 24,
+        cuft: 15
+      },
+      {
+        name: "Dish Pack Box",
+        qty: 12,
+        cuft: 5
+      },
+      {
+        name: "Suitcase (large)",
+        qty: 2,
+        cuft: 7
+      }
     ],
     additionalServices: [
       {
@@ -2996,7 +4371,7 @@ export const jobs: Job[] = [
     deliveryLat: 25.7654,
     deliveryLng: -80.1842,
     type: "Loading/Unloading",
-    cuFt: 380,
+    cuFt: 272,
     miles: 18.4,
     status: "Assigned",
     driverId: "DRV-1044",
@@ -3038,7 +4413,46 @@ export const jobs: Job[] = [
       longCarryFeet: 0
     },
     inventoryItems: [
-
+      {
+        name: "Box (small)",
+        qty: 6,
+        cuft: 1.5
+      },
+      {
+        name: "Box (medium)",
+        qty: 9,
+        cuft: 3
+      },
+      {
+        name: "Box (large)",
+        qty: 14,
+        cuft: 7
+      },
+      {
+        name: "Box (extra large)",
+        qty: 6,
+        cuft: 10
+      },
+      {
+        name: "Wardrobe Box",
+        qty: 2,
+        cuft: 15
+      },
+      {
+        name: "TV Stand (large)",
+        qty: 1,
+        cuft: 20
+      },
+      {
+        name: "Lamp (floor)",
+        qty: 1,
+        cuft: 8
+      },
+      {
+        name: "Plant (large)",
+        qty: 1,
+        cuft: 20
+      }
     ],
     additionalServices: [
 

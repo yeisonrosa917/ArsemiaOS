@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Mail, Phone, Plus, Search, UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -98,9 +99,12 @@ export default function CustomersPage() {
           </TableHeader>
           <TableBody>
             {customers.map((c) => (
-              <TableRow key={c.id}>
+              <TableRow key={c.id} className="hover:bg-accent/30">
                 <TableCell className="pl-5">
-                  <div className="flex items-center gap-2">
+                  <Link
+                    href={`/customers/${c.id}`}
+                    className="flex items-center gap-2 hover:underline"
+                  >
                     <Avatar className="h-7 w-7">
                       <AvatarFallback className="bg-brand-500/15 text-[10px] text-brand-700 dark:text-brand-300">
                         {initials(c.name)}
@@ -110,7 +114,7 @@ export default function CustomersPage() {
                       <p className="text-xs font-semibold">{c.name}</p>
                       <p className="text-[10px] text-muted-foreground">{c.id}</p>
                     </div>
-                  </div>
+                  </Link>
                 </TableCell>
                 <TableCell className="text-xs">
                   <p className="flex items-center gap-1.5 text-muted-foreground">

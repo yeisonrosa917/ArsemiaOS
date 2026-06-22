@@ -1,10 +1,12 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Calendar } from "lucide-react";
 import {
   Card,
   CardContent,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { formatCompactCurrency } from "@/lib/utils";
 
@@ -78,7 +80,35 @@ export function TimeRangePicker({
   value: TimeRange;
   onChange: (v: TimeRange) => void;
 }) {
-  const meta = TIME_RANGES.find((t) => t.id === value)!;
+  const today = new Date().toISOString().slice(0, 10);
+  const monthAgo = new Date(Date.now() - 30 * 24 * 3600 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  const [customFrom, setCustomFrom] = useState(monthAgo);
+  const [customTo, setCustomTo] = useState(today);
+
+  const customMeta = useMemo<TimeRangeMeta>(() => {
+    const days = Math.max(
+      1,
+      Math.round(
+        (new Date(customTo).getTime() - new Date(customFrom).getTime()) /
+          (1000 * 3600 * 24),
+      ),
+    );
+    // Pro-rate from 30-day baseline of $542k / 412 jobs
+    const baseRev = (542000 / 30) * days;
+    const baseJobs = Math.round((412 / 30) * days);
+    return {
+      id: "custom",
+      label: `${customFrom} → ${customTo}`,
+      revenue: Math.round(baseRev),
+      jobs: baseJobs,
+      prevRevenue: Math.round(baseRev * 0.93),
+      prevJobs: Math.round(baseJobs * 0.95),
+    };
+  }, [customFrom, customTo]);
+
+  const meta = value === "custom" ? customMeta : TIME_RANGES.find((t) => t.id === value)!;
   const revDelta =
     meta.prevRevenue > 0
       ? ((meta.revenue - meta.prevRevenue) / meta.prevRevenue) * 100
@@ -110,57 +140,77 @@ export function TimeRangePicker({
           })}
         </div>
 
-        {value !== "custom" && (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <StatBlock
-              label="Revenue"
-              value={formatCompactCurrency(meta.revenue)}
-              prev={formatCompactCurrency(meta.prevRevenue)}
-              delta={revDelta}
-              primary
-            />
-            <StatBlock
-              label="Jobs closed"
-              value={meta.jobs.toLocaleString()}
-              prev={meta.prevJobs.toLocaleString()}
-              delta={jobDelta}
-            />
-            <StatBlock
-              label="Avg ticket"
-              value={
-                meta.jobs > 0
-                  ? formatCompactCurrency(meta.revenue / meta.jobs)
-                  : "—"
-              }
-              prev={
-                meta.prevJobs > 0
-                  ? formatCompactCurrency(meta.prevRevenue / meta.prevJobs)
-                  : "—"
-              }
-              delta={
-                meta.prevJobs > 0 && meta.jobs > 0
-                  ? ((meta.revenue / meta.jobs -
-                      meta.prevRevenue / meta.prevJobs) /
-                      (meta.prevRevenue / meta.prevJobs)) *
-                    100
-                  : 0
-              }
-            />
-            <StatBlock
-              label="Period"
-              value={meta.label}
-              prev="vs prior period"
-              delta={0}
-              hideDelta
-            />
+        {value === "custom" && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col gap-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                From
+              </span>
+              <Input
+                type="date"
+                value={customFrom}
+                max={customTo}
+                onChange={(e) => setCustomFrom(e.target.value)}
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                To
+              </span>
+              <Input
+                type="date"
+                value={customTo}
+                min={customFrom}
+                max={today}
+                onChange={(e) => setCustomTo(e.target.value)}
+              />
+            </label>
           </div>
         )}
 
-        {value === "custom" && (
-          <p className="rounded-lg border border-dashed border-border bg-muted/10 p-4 text-center text-xs text-muted-foreground">
-            Custom date picker comes in 2.3 with the calendar component.
-          </p>
-        )}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatBlock
+            label="Revenue"
+            value={formatCompactCurrency(meta.revenue)}
+            prev={formatCompactCurrency(meta.prevRevenue)}
+            delta={revDelta}
+            primary
+          />
+          <StatBlock
+            label="Jobs closed"
+            value={meta.jobs.toLocaleString()}
+            prev={meta.prevJobs.toLocaleString()}
+            delta={jobDelta}
+          />
+          <StatBlock
+            label="Avg ticket"
+            value={
+              meta.jobs > 0
+                ? formatCompactCurrency(meta.revenue / meta.jobs)
+                : "—"
+            }
+            prev={
+              meta.prevJobs > 0
+                ? formatCompactCurrency(meta.prevRevenue / meta.prevJobs)
+                : "—"
+            }
+            delta={
+              meta.prevJobs > 0 && meta.jobs > 0
+                ? ((meta.revenue / meta.jobs -
+                    meta.prevRevenue / meta.prevJobs) /
+                    (meta.prevRevenue / meta.prevJobs)) *
+                  100
+                : 0
+            }
+          />
+          <StatBlock
+            label="Period"
+            value={meta.label}
+            prev="vs prior period"
+            delta={0}
+            hideDelta
+          />
+        </div>
       </CardContent>
     </Card>
   );
