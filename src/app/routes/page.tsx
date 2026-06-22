@@ -52,7 +52,7 @@ export default function RoutesPage() {
             <div>
               <CardTitle>Today&apos;s active routes</CardTitle>
               <CardDescription>
-                Bay Area • 4 active vehicles • 13 total stops
+                Miami Metro • 4 active vehicles • 13 total stops
               </CardDescription>
             </div>
             <Badge variant="success">

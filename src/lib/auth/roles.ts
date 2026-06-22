@@ -24,12 +24,15 @@ export interface UserRole {
  */
 export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
   "/": ["dashboard.view"],
+  "/pipeline": ["jobs.view"],
   "/dispatch": ["dispatch.view"],
   "/jobs": ["jobs.view"],
   "/routes": ["routes.view"],
   "/drivers": ["drivers.view"],
   "/fleet": ["fleet.view"],
   "/customers": ["customers.view"],
+  "/leads": ["leads.view"],
+  "/quotes": ["quotes.view"],
   "/invoices": ["invoices.view"],
   "/payroll": ["payroll.view_own", "payroll.view_all"],
   "/claims": ["claims.view"],

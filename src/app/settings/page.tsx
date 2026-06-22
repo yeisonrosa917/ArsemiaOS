@@ -91,14 +91,14 @@ export default function SettingsPage() {
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {[
-                  "SF Central",
-                  "SF SOMA",
-                  "SF FiDi",
-                  "SF North",
-                  "East Bay",
-                  "North Bay",
-                  "Peninsula",
-                  "Statewide",
+                  "Downtown Miami",
+                  "Brickell",
+                  "Wynwood",
+                  "North Miami",
+                  "Hialeah",
+                  "Aventura",
+                  "South Dade",
+                  "Long Distance",
                 ].map((z) => (
                   <span
                     key={z}

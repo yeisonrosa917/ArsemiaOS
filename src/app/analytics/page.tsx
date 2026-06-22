@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Bar,
   BarChart,
@@ -15,7 +16,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { BarChart3, TrendingUp } from "lucide-react";
+import { Download, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,8 +28,12 @@ import {
 } from "@/components/ui/card";
 import { jobsByZone, revenueByMonth } from "@/lib/mock-data";
 import { formatCompactCurrency } from "@/lib/utils";
+import {
+  TimeRangePicker,
+  type TimeRange,
+} from "@/components/analytics/time-range-picker";
 
-const ZONE_COLORS = ["#3b62ff", "#10b981", "#f59e0b", "#8b5cf6", "#0ea5e9"];
+const ZONE_COLORS = ["#2563eb", "#10b981", "#f59e0b", "#8b5cf6", "#0ea5e9"];
 
 const efficiency = [
   { week: "W1", utilization: 68, onTime: 91 },
@@ -40,6 +45,7 @@ const efficiency = [
 ];
 
 export default function AnalyticsPage() {
+  const [range, setRange] = useState<TimeRange>("30d");
   return (
     <div className="space-y-6">
       <PageHeader
@@ -47,11 +53,13 @@ export default function AnalyticsPage() {
         description="Trend lines, mix analysis, and operational efficiency across the platform."
         actions={
           <Button variant="outline" size="sm" className="gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Last 90 days
+            <Download className="h-4 w-4" />
+            Export
           </Button>
         }
       />
+
+      <TimeRangePicker value={range} onChange={setRange} />
 
       <div className="grid grid-cols-12 gap-4">
         <Card className="col-span-12 lg:col-span-8">

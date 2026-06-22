@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Boxes,
+  Briefcase,
   ClipboardList,
   Coins,
+  Compass,
   LayoutDashboard,
   LifeBuoy,
   Map,
@@ -15,6 +17,7 @@ import {
   Settings,
   ShieldAlert,
   Truck,
+  UserRound,
   Users,
   UserSquare2,
   Zap,
@@ -37,9 +40,15 @@ type NavItem = {
 
 const primaryNav: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Pipeline", href: "/pipeline", icon: Compass },
   { label: "Dispatch", href: "/dispatch", icon: Zap, badge: "Live" },
   { label: "Jobs", href: "/jobs", icon: ClipboardList },
   { label: "Routes", href: "/routes", icon: RouteIcon },
+];
+
+const salesNav: NavItem[] = [
+  { label: "Leads", href: "/leads", icon: UserRound },
+  { label: "Quotes", href: "/quotes", icon: Briefcase },
 ];
 
 const operationsNav: NavItem[] = [
@@ -156,6 +165,7 @@ export function Sidebar() {
 
       <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin">
         <NavGroup label="Operate" items={primaryNav} pathname={pathname} caps={caps} />
+        <NavGroup label="Sales" items={salesNav} pathname={pathname} caps={caps} />
         <NavGroup label="People & Fleet" items={operationsNav} pathname={pathname} caps={caps} />
         <NavGroup label="Finance" items={financeNav} pathname={pathname} caps={caps} />
         <NavGroup label="Insights" items={insightsNav} pathname={pathname} caps={caps} />

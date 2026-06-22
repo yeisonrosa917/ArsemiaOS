@@ -16,7 +16,7 @@ export function MapRoutePreview() {
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <div>
           <CardTitle>Live route map</CardTitle>
-          <CardDescription>SF Bay Area • 7 vehicles tracked</CardDescription>
+          <CardDescription>Miami Metro • 7 vehicles tracked</CardDescription>
         </div>
         <Button variant="ghost" size="sm" className="gap-1 text-xs">
           Open dispatch
@@ -28,12 +28,12 @@ export function MapRoutePreview() {
           <LiveMap
             height="100%"
             zoom={11}
-            center={[37.7749, -122.4194]}
+            center={[25.7617, -80.1918]}
             markers={[
-              { id: "d1", lat: 37.7849, lng: -122.4094, label: "Driver 12 · Pedro", kind: "driver" },
-              { id: "d2", lat: 37.7649, lng: -122.4294, label: "Driver 07 · Roberto", kind: "driver" },
-              { id: "p1", lat: 37.795, lng: -122.42, label: "Pickup · 1248 Polk St", kind: "pickup" },
-              { id: "v1", lat: 37.76, lng: -122.395, label: "Delivery · 540 9th St", kind: "delivery" },
+              { id: "d1", lat: 25.7741, lng: -80.1937, label: "Driver 12 · Pedro", kind: "driver" },
+              { id: "d2", lat: 25.7907, lng: -80.13, label: "Driver 07 · Roberto", kind: "driver" },
+              { id: "p1", lat: 25.795, lng: -80.21, label: "Pickup · 1601 Collins Ave, Miami Beach", kind: "pickup" },
+              { id: "v1", lat: 25.74, lng: -80.34, label: "Delivery · 8000 NW 33rd St, Doral", kind: "delivery" },
             ]}
           />
           <Badge
