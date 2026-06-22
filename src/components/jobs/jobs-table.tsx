@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MoreHorizontal, Search } from "lucide-react";
+import Link from "next/link";
+import { Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -207,8 +208,8 @@ export function JobsTable() {
                 <PayrollStatusBadge status={job.payrollStatus} />
               </TableCell>
               <TableCell className="pr-5">
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <MoreHorizontal className="h-4 w-4" />
+                <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-[10px]">
+                  <Link href={`/jobs/${job.id}`}>Open</Link>
                 </Button>
               </TableCell>
             </TableRow>

@@ -1,10 +1,11 @@
 "use client";
 
-import { Bell, CommandIcon, Plus, Search } from "lucide-react";
+import { CommandIcon, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { RoleSwitcher } from "./role-switcher";
 import { ThemeMenu } from "./theme-menu";
+import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import {
   CommandPalette,
   useCommandPalette,
@@ -44,15 +45,7 @@ export function Topbar() {
 
           <ThemeMenu />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative h-9 w-9 rounded-lg"
-            aria-label="Notifications"
-          >
-            <Bell className="h-4 w-4" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-background" />
-          </Button>
+          <NotificationsBell />
 
           <Separator orientation="vertical" className="mx-1 h-6" />
 

@@ -65,6 +65,66 @@ export interface JobDocument {
   signatureImage?: string;
 }
 
+export type BedroomCount =
+  | "Studio"
+  | "1BR"
+  | "2BR"
+  | "3BR"
+  | "4BR"
+  | "5BR+";
+
+export type PropertyType =
+  | "Apartment"
+  | "Condo"
+  | "House"
+  | "Townhouse"
+  | "Commercial"
+  | "Storage Unit";
+
+export interface BuildingDetails {
+  type: PropertyType;
+  bedrooms?: BedroomCount;
+  floor?: number;
+  hasElevator?: boolean;
+  stairsFlights?: number;
+  isStrict?: boolean;
+  coiRequired?: boolean;
+  coiSubmitted?: boolean;
+  parkingNotes?: string;
+  longCarryFeet?: number;
+  notes?: string;
+}
+
+export interface JobInventoryItem {
+  name: string;
+  qty: number;
+  cuft: number;
+  packByCrew?: boolean;
+}
+
+export interface JobAdditionalService {
+  id: string;
+  name: string;
+  price: number;
+}
+
+export interface JobConfirmations {
+  customerConfirmed: boolean;
+  customerConfirmedAt?: string;
+  foremanAccepted: boolean;
+  foremanAcceptedAt?: string;
+  coiSubmitted?: boolean;
+  coiSubmittedAt?: string;
+}
+
+export interface JobAdjustment {
+  id: string;
+  amount: number;
+  reason: string;
+  appliedBy: string;
+  appliedAt: string;
+}
+
 export interface Job {
   id: string;
   customer: string;
@@ -96,6 +156,14 @@ export interface Job {
   isCoJob?: boolean;
   coJobPartnerJobId?: string;
   documents?: JobDocument[];
+  bedrooms?: BedroomCount;
+  pickupBuilding?: BuildingDetails;
+  deliveryBuilding?: BuildingDetails;
+  inventoryItems?: JobInventoryItem[];
+  additionalServices?: JobAdditionalService[];
+  packingByCrew?: boolean;
+  confirmations?: JobConfirmations;
+  adjustments?: JobAdjustment[];
 }
 
 export interface Driver {

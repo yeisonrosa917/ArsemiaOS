@@ -132,259 +132,2926 @@ export const drivers: Driver[] = [
 ];
 
 export const jobs: Job[] = [
-  {
+{
     id: "JOB-10421",
-    customer: "Whitman Residence",
-    customerPhone: "(305) 555-7741",
-    pickup: "742 Brickell Ave, Miami, FL",
-    delivery: "118 Collins Ave, Miami Beach, FL",
-    pickupCity: "Miami",
-    deliveryCity: "Miami",
+    customer: "Sofia Martinez",
+    customerPhone: "(786) 555-9975",
+    pickup: "1100 Brickell Bay Dr, Miami, FL",
+    delivery: "100 Andalusia Ave, Coral Gables, FL",
+    pickupCity: "Brickell",
+    deliveryCity: "Coral Gables",
+    pickupLat: 25.7642,
+    pickupLng: -80.1879,
+    deliveryLat: 25.7494,
+    deliveryLng: -80.258,
     type: "Local Move",
     cuFt: 640,
-    miles: 4.2,
+    miles: 4.5,
     status: "Pickup Started",
     driverId: "DRV-1042",
     driverName: "Marcus Reyes",
-    crew: ["Marcus Reyes", "Diego Soto"],
+    crew: [
+      "Marcus Reyes",
+      "Luis Rivera"
+    ],
     price: 2480,
     payrollStatus: "Pending",
-    scheduledAt: "2026-05-24T08:00:00",
-    eta: "11:42 AM",
-    zone: "Downtown Miami",
+    scheduledAt: "2026-06-27T14:00:00",
+    eta: "18:45 PM",
+    zone: "Brickell",
     priority: "High",
-    notes: "Elevator reserved 9-11am. Piano on dolly.",
+    notes: "Elevator reserved 9–11am. Upright piano (h34 special handling).",
+    bedrooms: "2BR",
+    pickupBuilding: {
+      type: "Apartment",
+      bedrooms: "2BR",
+      floor: 9,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: true,
+      coiRequired: true,
+      coiSubmitted: true,
+      parkingNotes: "Loading zone reserved",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "House",
+      bedrooms: "2BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 1,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sectional Sofa (L-shape)",
+      qty: 1,
+      cuft: 90
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Twin Mattress",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Twin Bed Frame",
+      qty: 1,
+      cuft: 15
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 3,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (small)",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Dining Chair",
+      qty: 6,
+      cuft: 6
+    },
+      {
+      name: "Desk",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Bookshelf (medium)",
+      qty: 2,
+      cuft: 12
+    },
+      {
+      name: "Box (medium)",
+      qty: 25,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 14,
+      cuft: 7
+    },
+      {
+      name: "Box (extra large)",
+      qty: 4,
+      cuft: 10
+    },
+      {
+      name: "TV",
+      qty: 2,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 6,
+      cuft: 15
+    }
+    ],
+    additionalServices: [
+      {
+      id: "svc_st_t",
+      name: "Stairs at delivery (1 flight)",
+      price: 35
+    }
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: true,
+      coiSubmittedAt: "2026-06-20T11:00:00"
+    }
   },
-  {
+{
     id: "JOB-10422",
-    customer: "Hayward Logistics",
-    customerPhone: "(786) 555-8821",
-    pickup: "3201 W 49th St, Hialeah, FL",
-    delivery: "1188 Biscayne Blvd, Miami, FL",
+    customer: "Hayward Logistics LLC",
+    customerPhone: "(305) 555-5706",
+    pickup: "2600 W 8th Ave, Hialeah, FL",
+    delivery: "50 Biscayne Blvd, Miami, FL",
     pickupCity: "Hialeah",
     deliveryCity: "Miami",
+    pickupLat: 25.821,
+    pickupLng: -80.2926,
+    deliveryLat: 25.7762,
+    deliveryLng: -80.188,
     type: "Commercial",
     cuFt: 1240,
-    miles: 18.6,
+    miles: 4.5,
     status: "En Route",
     driverId: "DRV-1043",
     driverName: "Sofia Hernandez",
-    crew: ["Sofia Hernandez", "Tomas Quill", "Brian Lee"],
+    crew: [
+      "Sofia Hernandez",
+      "Brian Lee"
+    ],
     price: 4625,
     payrollStatus: "Pending",
-    scheduledAt: "2026-05-24T07:30:00",
-    eta: "12:05 PM",
+    scheduledAt: "2026-06-19T13:00:00",
+    eta: "15:45 PM",
     zone: "Hialeah",
     priority: "High",
+    notes: "Office relocation. Loading dock reserved. 3-person crew.",
+    pickupBuilding: {
+      type: "House",
+      floor: 1,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "House",
+      floor: 1,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sofa (2-seater)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30,
+      packByCrew: false
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Dresser (single)",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Box (medium)",
+      qty: 12,
+      cuft: 3,
+      packByCrew: false
+    },
+      {
+      name: "Box (large)",
+      qty: 6,
+      cuft: 7,
+      packByCrew: false
+    },
+      {
+      name: "TV",
+      qty: 1,
+      cuft: 20
+    }
+    ],
+    additionalServices: [
+
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: false
+    }
   },
-  {
+{
     id: "JOB-10423",
-    customer: "Avery Chen",
-    customerPhone: "(305) 555-9912",
-    pickup: "1622 Lincoln Rd, Miami Beach, FL",
-    delivery: "Arsemia Storage - Bay A12",
-    pickupCity: "Miami",
-    deliveryCity: "Miami",
+    customer: "Olivia Chen",
+    customerPhone: "(786) 555-6696",
+    pickup: "1100 Brickell Bay Dr, Miami, FL",
+    delivery: "5005 NW 87th Ave, Doral, FL",
+    pickupCity: "Brickell",
+    deliveryCity: "Doral",
+    pickupLat: 25.7642,
+    pickupLng: -80.1879,
+    deliveryLat: 25.7912,
+    deliveryLng: -80.3416,
     type: "Storage In",
     cuFt: 285,
-    miles: 6.1,
+    miles: 8.4,
     status: "Assigned",
     driverId: "DRV-1044",
     driverName: "Trevon Walker",
-    crew: ["Trevon Walker", "Diego Soto"],
+    crew: [
+      "Trevon Walker",
+      "Tomas Quill"
+    ],
     price: 1180,
     payrollStatus: "Pending",
-    scheduledAt: "2026-05-24T10:00:00",
-    eta: "10:30 AM",
-    zone: "North Miami",
+    scheduledAt: "2026-06-29T10:00:00",
+    eta: "13:45 PM",
+    zone: "Brickell",
     priority: "Medium",
+    notes: "Temporary storage during home renovation, 3 months estimated.",
+    bedrooms: "1BR",
+    pickupBuilding: {
+      type: "Apartment",
+      bedrooms: "1BR",
+      floor: 14,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: true,
+      coiRequired: true,
+      coiSubmitted: true,
+      parkingNotes: "Loading zone reserved",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "House",
+      bedrooms: "1BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sofa (3-seater)",
+      qty: 1,
+      cuft: 50
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 2,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (small)",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Dining Chair",
+      qty: 4,
+      cuft: 6
+    },
+      {
+      name: "Box (medium)",
+      qty: 18,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 8,
+      cuft: 7
+    },
+      {
+      name: "TV",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 4,
+      cuft: 15
+    }
+    ],
+    additionalServices: [
+
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: true,
+      coiSubmittedAt: "2026-06-20T11:00:00"
+    }
   },
-  {
+{
     id: "JOB-10424",
-    customer: "Granite Interiors",
-    customerPhone: "(305) 555-3344",
-    pickup: "98 NW 2S Miami Ave, Miami, FL",
-    delivery: "451 NE 2nd Ave, Miami, FL",
-    pickupCity: "Miami",
-    deliveryCity: "Miami",
-    type: "Delivery",
-    cuFt: 210,
-    miles: 3.4,
-    status: "Unassigned",
-    crew: [],
-    price: 740,
+    customer: "Marcus Thompson",
+    customerPhone: "(786) 555-5712",
+    pickup: "2900 Bayshore Dr, Coconut Grove, FL",
+    delivery: "11500 SW 57th Ave, Pinecrest, FL",
+    pickupCity: "Coconut Grove",
+    deliveryCity: "Pinecrest",
+    pickupLat: 25.7271,
+    pickupLng: -80.2354,
+    deliveryLat: 25.6712,
+    deliveryLng: -80.3013,
+    type: "Local Move",
+    cuFt: 920,
+    miles: 4.5,
+    status: "Assigned",
+    driverId: "DRV-1042",
+    driverName: "Marcus Reyes",
+    crew: [
+      "Marcus Reyes",
+      "Andres Romero",
+      "Diego Soto"
+    ],
+    price: 3580,
     payrollStatus: "Pending",
-    scheduledAt: "2026-05-24T11:00:00",
-    zone: "Wynwood",
+    scheduledAt: "2026-06-30T10:00:00",
+    eta: "13:15 PM",
+    zone: "Coconut Grove",
     priority: "Medium",
+    notes: "House to house. Family with young kids. Crew packs kitchen + nursery.",
+    bedrooms: "3BR",
+    pickupBuilding: {
+      type: "House",
+      bedrooms: "3BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 2,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 80
+    },
+    deliveryBuilding: {
+      type: "House",
+      bedrooms: "3BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sectional Sofa (U-shape)",
+      qty: 1,
+      cuft: 120
+    },
+      {
+      name: "Love Seat",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "King Mattress",
+      qty: 1,
+      cuft: 40
+    },
+      {
+      name: "King Bed Frame",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Twin Mattress",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Twin Bed Frame",
+      qty: 1,
+      cuft: 15
+    },
+      {
+      name: "Dresser (triple)",
+      qty: 1,
+      cuft: 45
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 4,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (large)",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Dining Chair",
+      qty: 6,
+      cuft: 6
+    },
+      {
+      name: "Desk",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Office Chair",
+      qty: 1,
+      cuft: 10
+    },
+      {
+      name: "Bookshelf (large)",
+      qty: 2,
+      cuft: 20
+    },
+      {
+      name: "Box (medium)",
+      qty: 35,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 22,
+      cuft: 7
+    },
+      {
+      name: "Box (extra large)",
+      qty: 8,
+      cuft: 10
+    },
+      {
+      name: "TV",
+      qty: 3,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 10,
+      cuft: 15
+    },
+      {
+      name: "Refrigerator (French door)",
+      qty: 1,
+      cuft: 50
+    },
+      {
+      name: "Washer",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Dryer",
+      qty: 1,
+      cuft: 30
+    }
+    ],
+    additionalServices: [
+      {
+      id: "svc_st_f",
+      name: "Stairs at pickup (2 flights)",
+      price: 70
+    },
+      {
+      id: "svc_lc",
+      name: "Long carry",
+      price: 75
+    },
+      {
+      id: "svc_pk",
+      name: "Crew packing service",
+      price: 480
+    }
+    ],
+    packingByCrew: true,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: false
+    }
   },
-  {
+{
     id: "JOB-10425",
-    customer: "Lindsey & Roe LLP",
-    customerPhone: "(305) 555-4421",
-    pickup: "55 S Miami Ave, Miami, FL",
-    delivery: "2 Brickell City Centre, Miami, FL",
-    pickupCity: "Miami",
-    deliveryCity: "Miami",
-    type: "Commercial",
-    cuFt: 980,
-    miles: 2.8,
-    status: "Delivery Started",
+    customer: "Aiden Vasquez",
+    customerPhone: "(305) 555-7533",
+    pickup: "350 NW 24th St, Miami, FL",
+    delivery: "1300 Brickell Bay Dr, Miami, FL",
+    pickupCity: "Wynwood",
+    deliveryCity: "Brickell",
+    pickupLat: 25.7998,
+    pickupLng: -80.197,
+    deliveryLat: 25.7619,
+    deliveryLng: -80.1885,
+    type: "Local Move",
+    cuFt: 180,
+    miles: 14.6,
+    status: "Pickup Completed",
     driverId: "DRV-1045",
     driverName: "Anya Volkov",
-    crew: ["Anya Volkov", "Brian Lee", "Tomas Quill"],
-    price: 3210,
+    crew: [
+      "Anya Volkov",
+      "Diego Soto"
+    ],
+    price: 820,
     payrollStatus: "Pending",
-    scheduledAt: "2026-05-24T07:00:00",
-    eta: "1:15 PM",
-    zone: "Brickell",
-    priority: "High",
+    scheduledAt: "2026-06-30T10:00:00",
+    eta: "14:45 PM",
+    zone: "Wynwood",
+    priority: "Low",
+    notes: "Studio to studio. COI submitted to new building.",
+    bedrooms: "Studio",
+    pickupBuilding: {
+      type: "Apartment",
+      bedrooms: "Studio",
+      floor: 16,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: true,
+      coiSubmitted: true,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "Apartment",
+      bedrooms: "Studio",
+      floor: 15,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Service elevator booked",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sofa (2-seater)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30,
+      packByCrew: false
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Dresser (single)",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Box (medium)",
+      qty: 12,
+      cuft: 3,
+      packByCrew: false
+    },
+      {
+      name: "Box (large)",
+      qty: 6,
+      cuft: 7,
+      packByCrew: false
+    },
+      {
+      name: "TV",
+      qty: 1,
+      cuft: 20
+    }
+    ],
+    additionalServices: [
+
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: true,
+      coiSubmittedAt: "2026-06-20T11:00:00"
+    }
   },
-  {
+{
     id: "JOB-10426",
-    customer: "Pham Family",
-    customerPhone: "(408) 555-7711",
-    pickup: "212 Coral Way, Miami, CA",
-    delivery: "920 Bayshore Blvd, Tampa, FL",
-    pickupCity: "Miami",
+    customer: "Isabella Fernandez",
+    customerPhone: "(786) 555-8851",
+    pickup: "11800 SW 67th Ave, Pinecrest, FL",
+    delivery: "5800 N Florida Ave, Tampa, FL",
+    pickupCity: "Pinecrest",
     deliveryCity: "Tampa",
+    pickupLat: 25.6643,
+    pickupLng: -80.3149,
+    deliveryLat: 28.0042,
+    deliveryLng: -82.4585,
     type: "Long Distance",
-    cuFt: 1820,
-    miles: 386,
+    cuFt: 1480,
+    miles: 264,
     status: "Assigned",
     driverId: "DRV-1048",
     driverName: "Ravi Shankar",
-    crew: ["Ravi Shankar", "Marcus Reyes"],
-    price: 9840,
+    crew: [
+      "Ravi Shankar",
+      "Luis Rivera",
+      "Andres Romero"
+    ],
+    price: 8950,
     payrollStatus: "Pending",
-    scheduledAt: "2026-05-25T06:00:00",
-    zone: "Long Distance",
+    scheduledAt: "2026-06-26T11:00:00",
+    eta: "15:00 PM",
+    zone: "Tampa, FL",
     priority: "High",
-    notes: "Two-day move. Hotel pre-booked.",
+    notes: "Family relocating for new job. Full pack + LD. Driver overnight in Tampa.",
+    bedrooms: "3BR",
+    pickupBuilding: {
+      type: "House",
+      bedrooms: "3BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 80
+    },
+    deliveryBuilding: {
+      type: "House",
+      bedrooms: "3BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sectional Sofa (U-shape)",
+      qty: 1,
+      cuft: 120
+    },
+      {
+      name: "Love Seat",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "King Mattress",
+      qty: 1,
+      cuft: 40
+    },
+      {
+      name: "King Bed Frame",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Twin Mattress",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Twin Bed Frame",
+      qty: 1,
+      cuft: 15
+    },
+      {
+      name: "Dresser (triple)",
+      qty: 1,
+      cuft: 45
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 4,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (large)",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Dining Chair",
+      qty: 6,
+      cuft: 6
+    },
+      {
+      name: "Desk",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Office Chair",
+      qty: 1,
+      cuft: 10
+    },
+      {
+      name: "Bookshelf (large)",
+      qty: 2,
+      cuft: 20
+    },
+      {
+      name: "Box (medium)",
+      qty: 35,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 22,
+      cuft: 7
+    },
+      {
+      name: "Box (extra large)",
+      qty: 8,
+      cuft: 10
+    },
+      {
+      name: "TV",
+      qty: 3,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 10,
+      cuft: 15
+    },
+      {
+      name: "Refrigerator (French door)",
+      qty: 1,
+      cuft: 50
+    },
+      {
+      name: "Washer",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Dryer",
+      qty: 1,
+      cuft: 30
+    }
+    ],
+    additionalServices: [
+      {
+      id: "svc_lc",
+      name: "Long carry",
+      price: 75
+    },
+      {
+      id: "svc_pk",
+      name: "Crew packing service",
+      price: 480
+    }
+    ],
+    packingByCrew: true,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: false
+    }
   },
-  {
+{
     id: "JOB-10427",
-    customer: "Birch & Co Studio",
-    customerPhone: "(305) 555-1180",
-    pickup: "Arsemia Storage - Bay C04",
-    delivery: "775 NW 27th Ave, Miami, FL",
-    pickupCity: "Miami",
-    deliveryCity: "Miami",
-    type: "Storage Out",
-    cuFt: 460,
-    miles: 5.5,
-    status: "Pickup Completed",
-    driverId: "DRV-1042",
-    driverName: "Marcus Reyes",
-    crew: ["Marcus Reyes"],
-    price: 1320,
-    payrollStatus: "Approved",
-    scheduledAt: "2026-05-24T09:30:00",
-    eta: "11:10 AM",
-    zone: "Downtown Miami",
-    priority: "Medium",
-  },
-  {
-    id: "JOB-10428",
-    customer: "Hollins Move",
-    customerPhone: "(305) 555-9920",
-    pickup: "16 Buena Vista Ave, Miami, FL",
-    delivery: "402 Country Club Dr, Aventura, FL",
-    pickupCity: "Miami",
+    customer: "Mia Patel",
+    customerPhone: "(305) 555-8898",
+    pickup: "5333 Collins Ave, Miami Beach, FL",
+    delivery: "19501 Biscayne Blvd, Aventura, FL",
+    pickupCity: "Miami Beach",
     deliveryCity: "Aventura",
+    pickupLat: 25.8211,
+    pickupLng: -80.1271,
+    deliveryLat: 25.9555,
+    deliveryLng: -80.1432,
     type: "Local Move",
-    cuFt: 720,
-    miles: 22.4,
-    status: "Completed",
-    driverId: "DRV-1046",
-    driverName: "Jamal Carter",
-    crew: ["Jamal Carter", "Diego Soto"],
-    price: 2980,
-    payrollStatus: "Approved",
-    scheduledAt: "2026-05-23T08:00:00",
-    zone: "Aventura",
-    priority: "Medium",
-  },
-  {
-    id: "JOB-10429",
-    customer: "Quinn Estates",
-    customerPhone: "(925) 555-7012",
-    pickup: "880 NW 24th St, Wynwood, FL",
-    delivery: "44 Bayshore Dr, Coconut Grove, FL",
-    pickupCity: "Wynwood",
-    deliveryCity: "Coconut Grove",
-    type: "Local Move",
-    cuFt: 175,
-    miles: 32.1,
-    status: "Cancelled",
-    crew: [],
-    price: 1480,
-    payrollStatus: "Pending",
-    scheduledAt: "2026-05-23T13:00:00",
-    zone: "Long Distance",
-    priority: "Low",
-    notes: "Customer cancelled - rebooked for next week.",
-  },
-  {
-    id: "JOB-10430",
-    customer: "Atelier West Inc",
-    customerPhone: "(305) 555-6610",
-    pickup: "2244 Calle 8, Miami, FL",
-    delivery: "180 S Dixie Hwy, Pinecrest, FL",
-    pickupCity: "Miami",
-    deliveryCity: "Pinecrest",
-    type: "Commercial",
-    cuFt: 1490,
-    miles: 19.2,
-    status: "Unassigned",
-    crew: [],
-    price: 5240,
-    payrollStatus: "Pending",
-    scheduledAt: "2026-05-24T14:00:00",
-    zone: "South Dade",
-    priority: "High",
-  },
-  {
-    id: "JOB-10431",
-    customer: "Renault Family",
-    customerPhone: "(650) 555-2210",
-    pickup: "300 Brickell Ave, Brickell, FL",
-    delivery: "120 Crandon Blvd, Key Biscayne, FL",
-    pickupCity: "Brickell",
-    deliveryCity: "Key Biscayne",
-    type: "Pickup",
-    cuFt: 95,
-    miles: 9.4,
-    status: "Completed",
+    cuFt: 380,
+    miles: 4.5,
+    status: "En Route",
     driverId: "DRV-1047",
     driverName: "Elena Park",
-    crew: ["Elena Park"],
-    price: 540,
-    payrollStatus: "Paid",
-    scheduledAt: "2026-05-22T09:00:00",
-    zone: "South Dade",
-    priority: "Low",
+    crew: [
+      "Elena Park",
+      "Diego Soto"
+    ],
+    price: 1640,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-30T13:00:00",
+    eta: "15:00 PM",
+    zone: "Miami Beach",
+    priority: "Medium",
+    notes: "Both buildings require COI. Submitted yesterday, confirmed.",
+    bedrooms: "1BR",
+    pickupBuilding: {
+      type: "Apartment",
+      bedrooms: "1BR",
+      floor: 15,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: true,
+      coiRequired: true,
+      coiSubmitted: true,
+      parkingNotes: "Loading zone reserved",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "Apartment",
+      bedrooms: "1BR",
+      floor: 17,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Service elevator booked",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sofa (3-seater)",
+      qty: 1,
+      cuft: 50
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 2,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (small)",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Dining Chair",
+      qty: 4,
+      cuft: 6
+    },
+      {
+      name: "Box (medium)",
+      qty: 18,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 8,
+      cuft: 7
+    },
+      {
+      name: "TV",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 4,
+      cuft: 15
+    }
+    ],
+    additionalServices: [
+
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: true,
+      coiSubmittedAt: "2026-06-20T11:00:00"
+    }
   },
-  {
-    id: "JOB-10432",
-    customer: "Northstar Foods",
-    customerPhone: "(305) 555-1102",
-    pickup: "1411 S Miami Ave, Miami, FL",
-    delivery: "788 NW 27th Ave, Miami, FL",
-    pickupCity: "Miami",
-    deliveryCity: "Miami",
-    type: "Delivery",
-    cuFt: 140,
-    miles: 2.1,
-    status: "Completed",
+{
+    id: "JOB-10428",
+    customer: "Layla Khoury",
+    customerPhone: "(786) 555-6040",
+    pickup: "2900 Bayshore Dr, Coconut Grove, FL",
+    delivery: "2900 Bayshore Dr, Coconut Grove, FL",
+    pickupCity: "Coconut Grove",
+    deliveryCity: "Coconut Grove",
+    pickupLat: 25.7271,
+    pickupLng: -80.2354,
+    deliveryLat: 25.7271,
+    deliveryLng: -80.2354,
+    type: "Hourly",
+    cuFt: 120,
+    miles: 11.2,
+    status: "Unassigned",
+    crew: [
+
+    ],
+    price: 540,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-29T11:00:00",
+    zone: "Coconut Grove",
+    priority: "Low",
+    notes: "Hourly @ $135/hr. Estimated 4 hrs. Within-neighborhood reposition.",
+    pickupBuilding: {
+      type: "House",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 1,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 80
+    },
+    deliveryBuilding: {
+      type: "House",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 1,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+
+    ],
+    additionalServices: [
+      {
+      id: "svc_st_f",
+      name: "Stairs at pickup (1 flight)",
+      price: 35
+    },
+      {
+      id: "svc_st_t",
+      name: "Stairs at delivery (1 flight)",
+      price: 35
+    },
+      {
+      id: "svc_lc",
+      name: "Long carry",
+      price: 75
+    }
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: false,
+      coiSubmitted: false
+    },
+    hours: 4,
+    hourlyRate: 135
+  },
+{
+    id: "JOB-10429",
+    customer: "Lucas Beltran",
+    customerPhone: "(305) 555-3455",
+    pickup: "4400 Ponce de Leon Blvd, Coral Gables, FL",
+    delivery: "7575 SW 124th St, Pinecrest, FL",
+    pickupCity: "Coral Gables",
+    deliveryCity: "Pinecrest",
+    pickupLat: 25.7384,
+    pickupLng: -80.2599,
+    deliveryLat: 25.6502,
+    deliveryLng: -80.3287,
+    type: "Local Move",
+    cuFt: 1620,
+    miles: 3.2,
+    status: "Assigned",
+    driverId: "DRV-1046",
+    driverName: "Jamal Carter",
+    crew: [
+      "Jamal Carter",
+      "Tomas Quill",
+      "Brian Lee"
+    ],
+    price: 5820,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-23T10:00:00",
+    eta: "14:45 PM",
+    zone: "Coral Gables",
+    priority: "High",
+    notes: "Large family home. Heavy items (pool table, baby grand piano). Crew of 4.",
+    bedrooms: "4BR",
+    pickupBuilding: {
+      type: "House",
+      bedrooms: "4BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 1,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "House",
+      bedrooms: "4BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sectional Sofa (U-shape)",
+      qty: 1,
+      cuft: 120
+    },
+      {
+      name: "Sofa (3-seater)",
+      qty: 2,
+      cuft: 50
+    },
+      {
+      name: "Recliner Chair",
+      qty: 2,
+      cuft: 20
+    },
+      {
+      name: "Coffee Table",
+      qty: 2,
+      cuft: 12
+    },
+      {
+      name: "King Mattress",
+      qty: 2,
+      cuft: 40
+    },
+      {
+      name: "King Bed Frame",
+      qty: 2,
+      cuft: 30
+    },
+      {
+      name: "Queen Mattress",
+      qty: 2,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 2,
+      cuft: 25
+    },
+      {
+      name: "Dresser (triple)",
+      qty: 2,
+      cuft: 45
+    },
+      {
+      name: "Nightstand",
+      qty: 6,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (extendable)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Dining Chair",
+      qty: 8,
+      cuft: 6
+    },
+      {
+      name: "Desk (L-shape)",
+      qty: 1,
+      cuft: 45
+    },
+      {
+      name: "Bookshelf (large)",
+      qty: 3,
+      cuft: 20
+    },
+      {
+      name: "Entertainment Center",
+      qty: 1,
+      cuft: 45
+    },
+      {
+      name: "Piano (upright)",
+      qty: 1,
+      cuft: 80
+    },
+      {
+      name: "Box (medium)",
+      qty: 55,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 35,
+      cuft: 7
+    },
+      {
+      name: "Box (extra large)",
+      qty: 12,
+      cuft: 10
+    },
+      {
+      name: "TV",
+      qty: 4,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 18,
+      cuft: 15
+    },
+      {
+      name: "Refrigerator (French door)",
+      qty: 1,
+      cuft: 50
+    },
+      {
+      name: "Washer",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Dryer",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Treadmill",
+      qty: 1,
+      cuft: 35
+    }
+    ],
+    additionalServices: [
+      {
+      id: "svc_st_f",
+      name: "Stairs at pickup (1 flight)",
+      price: 35
+    },
+      {
+      id: "svc_pk",
+      name: "Crew packing service",
+      price: 480
+    }
+    ],
+    packingByCrew: true,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: false
+    }
+  },
+{
+    id: "JOB-10430",
+    customer: "Camila Lopez",
+    customerPhone: "(786) 555-8114",
+    pickup: "2 SW 10th St, Miami, FL",
+    delivery: "1300 Brickell Bay Dr, Miami, FL",
+    pickupCity: "Brickell",
+    deliveryCity: "Brickell",
+    pickupLat: 25.7689,
+    pickupLng: -80.1937,
+    deliveryLat: 25.7619,
+    deliveryLng: -80.1885,
+    type: "Packing Only",
+    cuFt: 0,
+    miles: 22.1,
+    status: "Assigned",
     driverId: "DRV-1043",
     driverName: "Sofia Hernandez",
-    crew: ["Sofia Hernandez"],
-    price: 410,
+    crew: [
+      "Sofia Hernandez",
+      "Brian Lee"
+    ],
+    price: 980,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-23T14:00:00",
+    eta: "18:00 PM",
+    zone: "Brickell",
+    priority: "Medium",
+    notes: "Packing-only service. Move is next week with another company. 30 boxes estimated.",
+    bedrooms: "2BR",
+    pickupBuilding: {
+      type: "Apartment",
+      bedrooms: "2BR",
+      floor: 16,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: true,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Loading zone reserved",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "Apartment",
+      bedrooms: "2BR",
+      floor: 18,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Service elevator booked",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sectional Sofa (L-shape)",
+      qty: 1,
+      cuft: 90
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Twin Mattress",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Twin Bed Frame",
+      qty: 1,
+      cuft: 15
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 3,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (small)",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Dining Chair",
+      qty: 6,
+      cuft: 6
+    },
+      {
+      name: "Desk",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Bookshelf (medium)",
+      qty: 2,
+      cuft: 12
+    },
+      {
+      name: "Box (medium)",
+      qty: 25,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 14,
+      cuft: 7
+    },
+      {
+      name: "Box (extra large)",
+      qty: 4,
+      cuft: 10
+    },
+      {
+      name: "TV",
+      qty: 2,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 6,
+      cuft: 15
+    }
+    ],
+    additionalServices: [
+      {
+      id: "svc_pk",
+      name: "Crew packing service",
+      price: 480
+    }
+    ],
+    packingByCrew: true,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: false
+    }
+  },
+{
+    id: "JOB-10431",
+    customer: "Aronson Design Studio",
+    customerPhone: "(786) 555-3999",
+    pickup: "2520 NW 2nd Ave, Miami, FL",
+    delivery: "401 SE 17th St, Fort Lauderdale, FL",
+    pickupCity: "Wynwood",
+    deliveryCity: "Fort Lauderdale",
+    pickupLat: 25.8013,
+    pickupLng: -80.1939,
+    deliveryLat: 26.0987,
+    deliveryLng: -80.1325,
+    type: "Long Distance",
+    cuFt: 880,
+    miles: 31,
+    status: "Unassigned",
+    crew: [
+
+    ],
+    price: 4720,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-26T14:00:00",
+    zone: "Fort Lauderdale",
+    priority: "High",
+    notes: "Boutique office relocation. Art crating required. COI to delivery building.",
+    pickupBuilding: {
+      type: "Commercial",
+      floor: 1,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: true,
+      coiSubmitted: true,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "Commercial",
+      floor: 1,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+
+    ],
+    additionalServices: [
+
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: false,
+      coiSubmitted: true,
+      coiSubmittedAt: "2026-06-20T11:00:00"
+    }
+  },
+{
+    id: "JOB-10432",
+    customer: "Ethan Park",
+    customerPhone: "(305) 555-7738",
+    pickup: "21100 Point Pl, Aventura, FL",
+    delivery: "13800 NE 6th Ave, North Miami, FL",
+    pickupCity: "Aventura",
+    deliveryCity: "North Miami",
+    pickupLat: 25.9627,
+    pickupLng: -80.1304,
+    deliveryLat: 25.9069,
+    deliveryLng: -80.1872,
+    type: "Local Move",
+    cuFt: 540,
+    miles: 22.1,
+    status: "Completed",
+    driverId: "DRV-1044",
+    driverName: "Trevon Walker",
+    crew: [
+      "Trevon Walker",
+      "Diego Soto"
+    ],
+    price: 2180,
     payrollStatus: "Paid",
-    scheduledAt: "2026-05-23T07:30:00",
-    zone: "Wynwood",
+    scheduledAt: "2026-06-29T10:00:00",
+    zone: "Aventura",
+    priority: "Medium",
+    notes: "Completed Saturday. Both buildings strict; COI cleared smoothly.",
+    bedrooms: "2BR",
+    pickupBuilding: {
+      type: "Apartment",
+      bedrooms: "2BR",
+      floor: 13,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: true,
+      coiRequired: true,
+      coiSubmitted: true,
+      parkingNotes: "Loading zone reserved",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "Apartment",
+      bedrooms: "2BR",
+      floor: 5,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Service elevator booked",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sectional Sofa (L-shape)",
+      qty: 1,
+      cuft: 90
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Twin Mattress",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Twin Bed Frame",
+      qty: 1,
+      cuft: 15
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 3,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (small)",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Dining Chair",
+      qty: 6,
+      cuft: 6
+    },
+      {
+      name: "Desk",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Bookshelf (medium)",
+      qty: 2,
+      cuft: 12
+    },
+      {
+      name: "Box (medium)",
+      qty: 25,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 14,
+      cuft: 7
+    },
+      {
+      name: "Box (extra large)",
+      qty: 4,
+      cuft: 10
+    },
+      {
+      name: "TV",
+      qty: 2,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 6,
+      cuft: 15
+    }
+    ],
+    additionalServices: [
+
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: true,
+      coiSubmittedAt: "2026-06-20T11:00:00"
+    }
+  },
+{
+    id: "JOB-10433",
+    customer: "Liam Henderson",
+    customerPhone: "(305) 555-5060",
+    pickup: "8001 NW 79th Ave, Doral, FL",
+    delivery: "1390 W 49th St, Hialeah, FL",
+    pickupCity: "Doral",
+    deliveryCity: "Hialeah",
+    pickupLat: 25.8195,
+    pickupLng: -80.337,
+    deliveryLat: 25.8327,
+    deliveryLng: -80.3081,
+    type: "Local Move",
+    cuFt: 780,
+    miles: 4.5,
+    status: "Delivery Started",
+    driverId: "DRV-1047",
+    driverName: "Elena Park",
+    crew: [
+      "Elena Park",
+      "Diego Soto",
+      "Andres Romero"
+    ],
+    price: 2980,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-19T11:00:00",
+    eta: "13:00 PM",
+    zone: "Doral",
+    priority: "Medium",
+    notes: "House to townhouse upgrade. Long carry at delivery side.",
+    bedrooms: "3BR",
+    pickupBuilding: {
+      type: "House",
+      bedrooms: "3BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "House",
+      bedrooms: "3BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 2,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sectional Sofa (U-shape)",
+      qty: 1,
+      cuft: 120
+    },
+      {
+      name: "Love Seat",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "King Mattress",
+      qty: 1,
+      cuft: 40
+    },
+      {
+      name: "King Bed Frame",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Twin Mattress",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Twin Bed Frame",
+      qty: 1,
+      cuft: 15
+    },
+      {
+      name: "Dresser (triple)",
+      qty: 1,
+      cuft: 45
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 4,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (large)",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Dining Chair",
+      qty: 6,
+      cuft: 6
+    },
+      {
+      name: "Desk",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Office Chair",
+      qty: 1,
+      cuft: 10
+    },
+      {
+      name: "Bookshelf (large)",
+      qty: 2,
+      cuft: 20
+    },
+      {
+      name: "Box (medium)",
+      qty: 35,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 22,
+      cuft: 7
+    },
+      {
+      name: "Box (extra large)",
+      qty: 8,
+      cuft: 10
+    },
+      {
+      name: "TV",
+      qty: 3,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 10,
+      cuft: 15
+    },
+      {
+      name: "Refrigerator (French door)",
+      qty: 1,
+      cuft: 50
+    },
+      {
+      name: "Washer",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Dryer",
+      qty: 1,
+      cuft: 30
+    }
+    ],
+    additionalServices: [
+      {
+      id: "svc_st_t",
+      name: "Stairs at delivery (2 flights)",
+      price: 70
+    }
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: false
+    }
+  },
+{
+    id: "JOB-10434",
+    customer: "Emma Suarez",
+    customerPhone: "(786) 555-3149",
+    pickup: "100 Andalusia Ave, Coral Gables, FL",
+    delivery: "1340 Lincoln Rd, Miami Beach, FL",
+    pickupCity: "Coral Gables",
+    deliveryCity: "Miami Beach",
+    pickupLat: 25.7494,
+    pickupLng: -80.258,
+    deliveryLat: 25.7903,
+    deliveryLng: -80.1407,
+    type: "Local Move",
+    cuFt: 420,
+    miles: 22.1,
+    status: "Assigned",
+    driverId: "DRV-1045",
+    driverName: "Anya Volkov",
+    crew: [
+      "Anya Volkov",
+      "Brian Lee"
+    ],
+    price: 1720,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-19T10:00:00",
+    eta: "14:30 PM",
+    zone: "Coral Gables",
     priority: "Low",
+    notes: "Move-in date is rigid (lease starts). 8am arrival required.",
+    bedrooms: "1BR",
+    pickupBuilding: {
+      type: "Apartment",
+      bedrooms: "1BR",
+      floor: 6,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: true,
+      coiSubmitted: true,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "Apartment",
+      bedrooms: "1BR",
+      floor: 9,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Service elevator booked",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sofa (3-seater)",
+      qty: 1,
+      cuft: 50
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 2,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (small)",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Dining Chair",
+      qty: 4,
+      cuft: 6
+    },
+      {
+      name: "Box (medium)",
+      qty: 18,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 8,
+      cuft: 7
+    },
+      {
+      name: "TV",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 4,
+      cuft: 15
+    }
+    ],
+    additionalServices: [
+
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: true,
+      coiSubmittedAt: "2026-06-20T11:00:00"
+    }
+  },
+{
+    id: "JOB-10435",
+    customer: "Owen Mitchell",
+    customerPhone: "(786) 555-7396",
+    pickup: "250 NW 23rd St, Miami, FL",
+    delivery: "3170 Mary St, Coconut Grove, FL",
+    pickupCity: "Wynwood",
+    deliveryCity: "Coconut Grove",
+    pickupLat: 25.799,
+    pickupLng: -80.1972,
+    deliveryLat: 25.7283,
+    deliveryLng: -80.2402,
+    type: "Local Move",
+    cuFt: 580,
+    miles: 11.2,
+    status: "Assigned",
+    driverId: "DRV-1046",
+    driverName: "Jamal Carter",
+    crew: [
+      "Jamal Carter",
+      "Andres Romero"
+    ],
+    price: 2350,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-21T09:00:00",
+    eta: "11:15 AM",
+    zone: "Wynwood",
+    priority: "Medium",
+    notes: "Apt to house. Crew packs fragile only ($420 packing line).",
+    bedrooms: "2BR",
+    pickupBuilding: {
+      type: "Apartment",
+      bedrooms: "2BR",
+      floor: 18,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "House",
+      bedrooms: "2BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 1,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sectional Sofa (L-shape)",
+      qty: 1,
+      cuft: 90
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Twin Mattress",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Twin Bed Frame",
+      qty: 1,
+      cuft: 15
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 3,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (small)",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Dining Chair",
+      qty: 6,
+      cuft: 6
+    },
+      {
+      name: "Desk",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Bookshelf (medium)",
+      qty: 2,
+      cuft: 12
+    },
+      {
+      name: "Box (medium)",
+      qty: 25,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 14,
+      cuft: 7
+    },
+      {
+      name: "Box (extra large)",
+      qty: 4,
+      cuft: 10
+    },
+      {
+      name: "TV",
+      qty: 2,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 6,
+      cuft: 15
+    }
+    ],
+    additionalServices: [
+      {
+      id: "svc_st_t",
+      name: "Stairs at delivery (1 flight)",
+      price: 35
+    },
+      {
+      id: "svc_pk",
+      name: "Crew packing service",
+      price: 480
+    }
+    ],
+    packingByCrew: true,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: false
+    }
+  },
+{
+    id: "JOB-10436",
+    customer: "Daniel Rivera",
+    customerPhone: "(786) 555-1422",
+    pickup: "10800 NW 25th St, Doral, FL",
+    delivery: "1100 Brickell Bay Dr, Miami, FL",
+    pickupCity: "Doral",
+    deliveryCity: "Brickell",
+    pickupLat: 25.7905,
+    pickupLng: -80.3596,
+    deliveryLat: 25.7642,
+    deliveryLng: -80.1879,
+    type: "Storage Out",
+    cuFt: 540,
+    miles: 3.2,
+    status: "Assigned",
+    driverId: "DRV-1043",
+    driverName: "Sofia Hernandez",
+    crew: [
+      "Sofia Hernandez",
+      "Diego Soto"
+    ],
+    price: 2080,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-25T08:00:00",
+    eta: "10:45 AM",
+    zone: "Doral",
+    priority: "Medium",
+    notes: "Storage-out after 4 months. Customer also wants 6 boxes from inventory.",
+    bedrooms: "2BR",
+    pickupBuilding: {
+      type: "House",
+      bedrooms: "2BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: true,
+      coiSubmitted: true,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "Apartment",
+      bedrooms: "2BR",
+      floor: 13,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Service elevator booked",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sectional Sofa (L-shape)",
+      qty: 1,
+      cuft: 90
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Twin Mattress",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Twin Bed Frame",
+      qty: 1,
+      cuft: 15
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 3,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (small)",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Dining Chair",
+      qty: 6,
+      cuft: 6
+    },
+      {
+      name: "Desk",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Bookshelf (medium)",
+      qty: 2,
+      cuft: 12
+    },
+      {
+      name: "Box (medium)",
+      qty: 25,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 14,
+      cuft: 7
+    },
+      {
+      name: "Box (extra large)",
+      qty: 4,
+      cuft: 10
+    },
+      {
+      name: "TV",
+      qty: 2,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 6,
+      cuft: 15
+    }
+    ],
+    additionalServices: [
+
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: true,
+      coiSubmittedAt: "2026-06-20T11:00:00"
+    }
+  },
+{
+    id: "JOB-10437",
+    customer: "Mila Akinyemi",
+    customerPhone: "(305) 555-9513",
+    pickup: "50 Biscayne Blvd, Miami, FL",
+    delivery: "1300 Brickell Bay Dr, Miami, FL",
+    pickupCity: "Miami",
+    deliveryCity: "Brickell",
+    pickupLat: 25.7762,
+    pickupLng: -80.188,
+    deliveryLat: 25.7619,
+    deliveryLng: -80.1885,
+    type: "Local Move",
+    cuFt: 220,
+    miles: 22.1,
+    status: "Unassigned",
+    crew: [
+
+    ],
+    price: 940,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-24T08:00:00",
+    zone: "Downtown Miami",
+    priority: "Low",
+    notes: "Small studio move. Customer working corporate; wants weekend slot.",
+    bedrooms: "Studio",
+    pickupBuilding: {
+      type: "Apartment",
+      bedrooms: "Studio",
+      floor: 16,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: true,
+      coiRequired: true,
+      coiSubmitted: true,
+      parkingNotes: "Loading zone reserved",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "Apartment",
+      bedrooms: "Studio",
+      floor: 7,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Service elevator booked",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sofa (2-seater)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30,
+      packByCrew: false
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Dresser (single)",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Box (medium)",
+      qty: 12,
+      cuft: 3,
+      packByCrew: false
+    },
+      {
+      name: "Box (large)",
+      qty: 6,
+      cuft: 7,
+      packByCrew: false
+    },
+      {
+      name: "TV",
+      qty: 1,
+      cuft: 20
+    }
+    ],
+    additionalServices: [
+
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: false,
+      coiSubmitted: true,
+      coiSubmittedAt: "2026-06-20T11:00:00"
+    }
+  },
+{
+    id: "JOB-10438",
+    customer: "Ava Aronson",
+    customerPhone: "(786) 555-1559",
+    pickup: "5333 Collins Ave, Miami Beach, FL",
+    delivery: "4400 Ponce de Leon Blvd, Coral Gables, FL",
+    pickupCity: "Miami Beach",
+    deliveryCity: "Coral Gables",
+    pickupLat: 25.8211,
+    pickupLng: -80.1271,
+    deliveryLat: 25.7384,
+    deliveryLng: -80.2599,
+    type: "Local Move",
+    cuFt: 1080,
+    miles: 8.4,
+    status: "Pickup Started",
+    driverId: "DRV-1048",
+    driverName: "Ravi Shankar",
+    crew: [
+      "Ravi Shankar",
+      "Luis Rivera",
+      "Andre Bell"
+    ],
+    price: 4280,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-26T13:00:00",
+    eta: "15:15 PM",
+    zone: "Miami Beach",
+    priority: "High",
+    notes: "Penthouse to house. Crew packs entire kitchen + closets. Art crating.",
+    bedrooms: "3BR",
+    pickupBuilding: {
+      type: "Apartment",
+      bedrooms: "3BR",
+      floor: 4,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: true,
+      coiRequired: true,
+      coiSubmitted: true,
+      parkingNotes: "Loading zone reserved",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "House",
+      bedrooms: "3BR",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 1,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sectional Sofa (U-shape)",
+      qty: 1,
+      cuft: 120
+    },
+      {
+      name: "Love Seat",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Coffee Table",
+      qty: 1,
+      cuft: 12
+    },
+      {
+      name: "King Mattress",
+      qty: 1,
+      cuft: 40
+    },
+      {
+      name: "King Bed Frame",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Mattress",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Twin Mattress",
+      qty: 1,
+      cuft: 20
+    },
+      {
+      name: "Twin Bed Frame",
+      qty: 1,
+      cuft: 15
+    },
+      {
+      name: "Dresser (triple)",
+      qty: 1,
+      cuft: 45
+    },
+      {
+      name: "Dresser (double)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Nightstand",
+      qty: 4,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (large)",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Dining Chair",
+      qty: 6,
+      cuft: 6
+    },
+      {
+      name: "Desk",
+      qty: 1,
+      cuft: 25
+    },
+      {
+      name: "Office Chair",
+      qty: 1,
+      cuft: 10
+    },
+      {
+      name: "Bookshelf (large)",
+      qty: 2,
+      cuft: 20
+    },
+      {
+      name: "Box (medium)",
+      qty: 35,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 22,
+      cuft: 7
+    },
+      {
+      name: "Box (extra large)",
+      qty: 8,
+      cuft: 10
+    },
+      {
+      name: "TV",
+      qty: 3,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 10,
+      cuft: 15
+    },
+      {
+      name: "Refrigerator (French door)",
+      qty: 1,
+      cuft: 50
+    },
+      {
+      name: "Washer",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Dryer",
+      qty: 1,
+      cuft: 30
+    }
+    ],
+    additionalServices: [
+      {
+      id: "svc_st_t",
+      name: "Stairs at delivery (1 flight)",
+      price: 35
+    },
+      {
+      id: "svc_pk",
+      name: "Crew packing service",
+      price: 480
+    }
+    ],
+    packingByCrew: true,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: true,
+      coiSubmittedAt: "2026-06-20T11:00:00"
+    }
+  },
+{
+    id: "JOB-10439",
+    customer: "Noah Goldstein",
+    customerPhone: "(305) 555-9682",
+    pickup: "11800 SW 67th Ave, Pinecrest, FL",
+    delivery: "200 Crandon Blvd, Key Biscayne, FL",
+    pickupCity: "Pinecrest",
+    deliveryCity: "Key Biscayne",
+    pickupLat: 25.6643,
+    pickupLng: -80.3149,
+    deliveryLat: 25.6929,
+    deliveryLng: -80.161,
+    type: "Local Move",
+    cuFt: 2240,
+    miles: 3.2,
+    status: "Assigned",
+    driverId: "DRV-1046",
+    driverName: "Jamal Carter",
+    crew: [
+      "Jamal Carter",
+      "Tomas Quill",
+      "Brian Lee"
+    ],
+    price: 9620,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-26T14:00:00",
+    eta: "16:15 PM",
+    zone: "Pinecrest",
+    priority: "High",
+    notes: "Luxury estate move. Wine cellar (240 bottles). Gun safe (large). 5-person crew.",
+    bedrooms: "5BR+",
+    pickupBuilding: {
+      type: "House",
+      bedrooms: "5BR+",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 2,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Street parking available",
+      longCarryFeet: 80
+    },
+    deliveryBuilding: {
+      type: "House",
+      bedrooms: "5BR+",
+      floor: 1,
+      hasElevator: false,
+      stairsFlights: 1,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Driveway clear",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+      {
+      name: "Sectional Sofa (U-shape)",
+      qty: 1,
+      cuft: 120
+    },
+      {
+      name: "Sofa (3-seater)",
+      qty: 2,
+      cuft: 50
+    },
+      {
+      name: "Recliner Chair",
+      qty: 2,
+      cuft: 20
+    },
+      {
+      name: "Coffee Table",
+      qty: 2,
+      cuft: 12
+    },
+      {
+      name: "King Mattress",
+      qty: 2,
+      cuft: 40
+    },
+      {
+      name: "King Bed Frame",
+      qty: 2,
+      cuft: 30
+    },
+      {
+      name: "Queen Mattress",
+      qty: 2,
+      cuft: 30
+    },
+      {
+      name: "Queen Bed Frame",
+      qty: 2,
+      cuft: 25
+    },
+      {
+      name: "Dresser (triple)",
+      qty: 2,
+      cuft: 45
+    },
+      {
+      name: "Nightstand",
+      qty: 6,
+      cuft: 5
+    },
+      {
+      name: "Dining Table (extendable)",
+      qty: 1,
+      cuft: 35
+    },
+      {
+      name: "Dining Chair",
+      qty: 8,
+      cuft: 6
+    },
+      {
+      name: "Desk (L-shape)",
+      qty: 1,
+      cuft: 45
+    },
+      {
+      name: "Bookshelf (large)",
+      qty: 3,
+      cuft: 20
+    },
+      {
+      name: "Entertainment Center",
+      qty: 1,
+      cuft: 45
+    },
+      {
+      name: "Piano (upright)",
+      qty: 1,
+      cuft: 80
+    },
+      {
+      name: "Box (medium)",
+      qty: 55,
+      cuft: 3
+    },
+      {
+      name: "Box (large)",
+      qty: 35,
+      cuft: 7
+    },
+      {
+      name: "Box (extra large)",
+      qty: 12,
+      cuft: 10
+    },
+      {
+      name: "TV",
+      qty: 4,
+      cuft: 20
+    },
+      {
+      name: "Wardrobe Box",
+      qty: 18,
+      cuft: 15
+    },
+      {
+      name: "Refrigerator (French door)",
+      qty: 1,
+      cuft: 50
+    },
+      {
+      name: "Washer",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Dryer",
+      qty: 1,
+      cuft: 30
+    },
+      {
+      name: "Treadmill",
+      qty: 1,
+      cuft: 35
+    }
+    ],
+    additionalServices: [
+      {
+      id: "svc_st_f",
+      name: "Stairs at pickup (2 flights)",
+      price: 70
+    },
+      {
+      id: "svc_st_t",
+      name: "Stairs at delivery (1 flight)",
+      price: 35
+    },
+      {
+      id: "svc_lc",
+      name: "Long carry",
+      price: 75
+    },
+      {
+      id: "svc_pk",
+      name: "Crew packing service",
+      price: 480
+    }
+    ],
+    packingByCrew: true,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: false
+    }
+  },
+{
+    id: "JOB-10440",
+    customer: "Aria Williams",
+    customerPhone: "(786) 555-4067",
+    pickup: "901 Brickell Key Blvd, Miami, FL",
+    delivery: "901 Brickell Key Blvd, Miami, FL",
+    pickupCity: "Brickell",
+    deliveryCity: "Brickell",
+    pickupLat: 25.7654,
+    pickupLng: -80.1842,
+    deliveryLat: 25.7654,
+    deliveryLng: -80.1842,
+    type: "Loading/Unloading",
+    cuFt: 380,
+    miles: 18.4,
+    status: "Assigned",
+    driverId: "DRV-1044",
+    driverName: "Trevon Walker",
+    crew: [
+      "Trevon Walker",
+      "Tomas Quill"
+    ],
+    price: 720,
+    payrollStatus: "Pending",
+    scheduledAt: "2026-06-23T11:00:00",
+    eta: "14:15 PM",
+    zone: "Brickell",
+    priority: "Low",
+    notes: "Customer rented PODS container. Crew unloads only at delivery.",
+    bedrooms: "2BR",
+    pickupBuilding: {
+      type: "Apartment",
+      bedrooms: "2BR",
+      floor: 4,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: true,
+      coiRequired: true,
+      coiSubmitted: true,
+      parkingNotes: "Loading zone reserved",
+      longCarryFeet: 0
+    },
+    deliveryBuilding: {
+      type: "Apartment",
+      bedrooms: "2BR",
+      floor: 14,
+      hasElevator: true,
+      stairsFlights: 0,
+      isStrict: false,
+      coiRequired: false,
+      coiSubmitted: false,
+      parkingNotes: "Service elevator booked",
+      longCarryFeet: 0
+    },
+    inventoryItems: [
+
+    ],
+    additionalServices: [
+
+    ],
+    packingByCrew: false,
+    confirmations: {
+      customerConfirmed: true,
+      customerConfirmedAt: "2026-06-18T14:23:00",
+      foremanAccepted: true,
+      foremanAcceptedAt: "2026-06-19T09:10:00",
+      coiSubmitted: true,
+      coiSubmittedAt: "2026-06-20T11:00:00"
+    }
   },
 ];
 

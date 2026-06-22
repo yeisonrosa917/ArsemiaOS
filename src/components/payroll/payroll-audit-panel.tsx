@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, ChevronRight, Settings2 } from "lucide-react";
+import { AlertCircle, Building2, CheckCircle2, ChevronRight } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -9,28 +9,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
   auditJob,
-  buildWeeklyBuckets,
   DEFAULT_COMMISSION_CONFIG,
-  type AttendanceOverride,
   type CrewMember,
   type JobAuditInput,
 } from "@/lib/payroll/audit";
 import { fmtUSD } from "@/lib/calculator/engine";
 import { cn } from "@/lib/utils";
 
-const SAMPLE_CREW: CrewMember[] = [
-  { id: "c_foreman", name: "Foreman / Owner", role: "foreman", basePct: 15 },
-  { id: "c_h1", name: "Helper 1", role: "helper", basePct: 8 },
-  { id: "c_h2", name: "Helper 2", role: "helper", basePct: 7 },
-];
-
 interface SampleJob extends JobAuditInput {
   type: string;
-  attendance?: AttendanceOverride[];
 }
 
 const SAMPLE_JOBS: SampleJob[] = [
@@ -79,53 +69,56 @@ const SAMPLE_JOBS: SampleJob[] = [
     paidCompanyLine: 1431.29,
     excluded: { admin: 963.5, tolls: 150 },
   },
+];
+
+// Solo se usa cuando el foreman tiene compañía registrada (modelo 33.5%).
+// El crew member es solo el foreman recibiendo el 100% del contractor income;
+// la repartición a helpers/empleados queda fuera del panel y la maneja el owner.
+const FOREMAN_AS_CONTRACTOR: CrewMember[] = [
   {
-    jobId: "1540382",
-    customer: "Shulagra Shah",
-    type: "LD Straight · MIA→VA",
-    commissionableBase: 4187.0,
-    paidCompanyLine: undefined,
-    excluded: { admin: 933, tolls: 90 },
-    attendance: [
-      {
-        crewId: "c_h2",
-        mode: "pickup-only",
-        flatPay: 125,
-      },
-    ],
+    id: "c_foreman",
+    name: "Foreman (registered contractor)",
+    role: "foreman",
+    basePct: 30,
   },
 ];
 
 export function PayrollAuditPanel() {
-  const [config, setConfig] = useState(DEFAULT_COMMISSION_CONFIG);
-  const [crew, setCrew] = useState<CrewMember[]>(SAMPLE_CREW);
+  // Toggle: foreman operates as a registered contractor (33.5% model active).
+  // When false, payroll is just gross commission to foreman with no company
+  // savings split — UI hides the reserve and 33.5% layer.
+  const [registeredContractor, setRegisteredContractor] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const audits = useMemo(
-    () =>
-      SAMPLE_JOBS.map((j) =>
-        auditJob(j, crew, j.attendance ?? [], config),
-      ),
-    [crew, config],
-  );
+  const config = registeredContractor
+    ? DEFAULT_COMMISSION_CONFIG
+    : {
+        // Non-registered mode: the foreman receives the gross commission line
+        // straight; there is no "reserve" because there is no LLC behind it.
+        companyCommissionPct: DEFAULT_COMMISSION_CONFIG.companyCommissionPct,
+        crewPoolPct: DEFAULT_COMMISSION_CONFIG.companyCommissionPct,
+        companyReservePct: 0,
+      };
 
-  const buckets = useMemo(
-    () => buildWeeklyBuckets(audits, 693.52, true),
-    [audits],
+  const audits = useMemo(
+    () => SAMPLE_JOBS.map((j) => auditJob(j, FOREMAN_AS_CONTRACTOR, [], config)),
+    [config],
   );
 
   const totals = useMemo(() => {
     let totalBase = 0;
     let totalExpected = 0;
     let totalPaid = 0;
+    let totalReserve = 0;
+    let totalForeman = 0;
     let okCount = 0;
     let flaggedCount = 0;
-    for (const j of SAMPLE_JOBS) {
-      totalBase += j.commissionableBase;
-    }
+    for (const j of SAMPLE_JOBS) totalBase += j.commissionableBase;
     for (const a of audits) {
       totalExpected += a.expectedCompanyLine;
       totalPaid += a.paidCompanyLine ?? 0;
+      totalReserve += a.companyReserve;
+      totalForeman += a.perCrew.reduce((acc, c) => acc + c.finalPay, 0);
       if (a.flags.includes("OK")) okCount++;
       else if (
         a.flags.includes("UNDERPAID") ||
@@ -133,32 +126,75 @@ export function PayrollAuditPanel() {
       )
         flaggedCount++;
     }
-    return { totalBase, totalExpected, totalPaid, okCount, flaggedCount };
+    return {
+      totalBase,
+      totalExpected,
+      totalPaid,
+      totalReserve,
+      totalForeman,
+      okCount,
+      flaggedCount,
+    };
   }, [audits]);
 
   return (
     <div className="space-y-6">
+      <Card className="border-primary/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Building2 className="h-4 w-4 text-primary" />
+            Contractor model
+          </CardTitle>
+          <CardDescription>
+            Activa esto solo si el foreman tiene compañía registrada (LLC /
+            contractor). Habilita el modelo 33.5%: el foreman cobra como
+            contractor y separa una reserva de empresa.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-background p-4 transition-colors hover:bg-accent/30">
+            <input
+              type="checkbox"
+              checked={registeredContractor}
+              onChange={(e) => setRegisteredContractor(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-primary"
+            />
+            <div className="flex-1">
+              <p className="text-sm font-semibold">
+                Foreman opera como contractor registrado (33.5% del base)
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Cuando está ON, el motor calcula el {config.companyCommissionPct}%
+                del base comisionable como ingreso al contractor; un {DEFAULT_COMMISSION_CONFIG.companyReservePct}%
+                queda como reserva de la compañía. Cuando está OFF, el foreman
+                recibe el gross commission directo sin separar reserva.
+              </p>
+            </div>
+          </label>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KPI
           label="Commissionable base"
           value={fmtUSD(totals.totalBase)}
-          hint="All commissionable items, excluding admin/tolls/reimb."
+          hint="Items comisionables (excl. admin/tolls/reimb)"
         />
         <KPI
           label={`Expected ${config.companyCommissionPct}%`}
           value={fmtUSD(totals.totalExpected)}
-          hint="What the company should receive"
+          hint="Lo que debe recibir el contractor"
           primary
         />
         <KPI
           label="Actually paid"
           value={fmtUSD(totals.totalPaid)}
-          hint="Sum of confirmed payroll lines"
+          hint="Suma de payroll lines confirmados"
         />
         <KPI
           label="Audit"
           value={`${totals.okCount} OK · ${totals.flaggedCount} flag`}
-          hint="Match between expected and paid"
+          hint="Match entre expected y paid"
           variant={totals.flaggedCount > 0 ? "warning" : "success"}
         />
       </div>
@@ -168,7 +204,7 @@ export function PayrollAuditPanel() {
           <CardHeader>
             <CardTitle>Job-by-job audit</CardTitle>
             <CardDescription>
-              Compare expected vs paid. Click to expand crew distribution.
+              Compara expected vs paid. Click para ver el desglose.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -250,46 +286,40 @@ export function PayrollAuditPanel() {
                   </button>
                   {isExpanded && (
                     <div className="border-t border-border/60 bg-muted/20 p-4">
-                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        Distribution
-                      </p>
-                      <div className="space-y-1.5">
-                        {a.perCrew.map((c) => (
-                          <div
-                            key={c.crewId}
-                            className="flex items-center justify-between rounded-md bg-background px-3 py-2 text-sm"
-                          >
-                            <div>
-                              <p className="font-medium">{c.name}</p>
-                              {c.notes && (
-                                <p className="text-[10px] text-muted-foreground">
-                                  {c.notes}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3">
-                              {c.pctApplied > 0 && (
-                                <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
-                                  {c.pctApplied}%
-                                </span>
-                              )}
-                              <span className="font-mono text-sm font-semibold">
-                                {fmtUSD(c.finalPay)}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                        <div className="flex items-center justify-between rounded-md bg-primary/5 px-3 py-2 text-sm">
-                          <span className="font-semibold">Company reserve</span>
-                          <span className="font-mono text-sm font-semibold text-primary">
-                            {fmtUSD(a.companyReserve)}
-                          </span>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            Contractor income (foreman)
+                          </p>
+                          <p className="mt-1 font-mono text-lg font-bold">
+                            {fmtUSD(
+                              a.perCrew.reduce((acc, c) => acc + c.finalPay, 0),
+                            )}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {a.perCrew[0]?.pctApplied ?? 0}% del base
+                          </p>
                         </div>
+                        {registeredContractor && (
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              Company reserve
+                            </p>
+                            <p className="mt-1 font-mono text-lg font-bold text-primary">
+                              {fmtUSD(a.companyReserve)}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {DEFAULT_COMMISSION_CONFIG.companyReservePct}% del
+                              base
+                            </p>
+                          </div>
+                        )}
                       </div>
                       {j.excluded && (
                         <p className="mt-3 text-[10px] text-muted-foreground">
-                          Excluded from base:{" "}
-                          {j.excluded.admin && `Admin ${fmtUSD(j.excluded.admin)}`}
+                          Excluido del base:{" "}
+                          {j.excluded.admin &&
+                            `Admin ${fmtUSD(j.excluded.admin)}`}
                           {j.excluded.tolls &&
                             ` · Tolls ${fmtUSD(j.excluded.tolls)}`}
                           {j.excluded.reimbursements &&
@@ -304,118 +334,40 @@ export function PayrollAuditPanel() {
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Settings2 className="h-4 w-4 text-primary" />
-                Commission config
-              </CardTitle>
-              <CardDescription>
-                Percentages of commissionable base.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <ConfigRow
-                label="Company commission %"
-                value={config.companyCommissionPct}
-                onChange={(v) =>
-                  setConfig((c) => ({ ...c, companyCommissionPct: v }))
-                }
-              />
-              <ConfigRow
-                label="Crew pool %"
-                value={config.crewPoolPct}
-                onChange={(v) =>
-                  setConfig((c) => ({ ...c, crewPoolPct: v }))
-                }
-              />
-              <ConfigRow
-                label="Company reserve %"
-                value={config.companyReservePct}
-                onChange={(v) =>
-                  setConfig((c) => ({ ...c, companyReservePct: v }))
-                }
-              />
-              <p className="text-[10px] text-muted-foreground">
-                Default: 30% crew + 3.5% reserve = 33.5% total.
-              </p>
-              <Separator />
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Crew percentages
-              </p>
-              {crew.map((c, idx) => (
-                <div
-                  key={c.id}
-                  className="flex items-center gap-2 text-xs"
-                >
-                  <span className="flex-1 font-medium">{c.name}</span>
-                  <Input
-                    type="number"
-                    value={c.basePct}
-                    onChange={(e) =>
-                      setCrew((arr) => {
-                        const next = [...arr];
-                        next[idx] = {
-                          ...next[idx],
-                          basePct: Number(e.target.value) || 0,
-                        };
-                        return next;
-                      })
-                    }
-                    className="h-7 w-16 text-center font-mono"
-                  />
-                  <span className="text-muted-foreground">%</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Weekly buckets</CardTitle>
-              <CardDescription>
-                Where the money goes after distribution
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <BucketRow
-                label="Owner pay pending"
-                value={fmtUSD(buckets.ownerPayPending)}
-              />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Period summary</CardTitle>
+            <CardDescription>
+              {registeredContractor
+                ? "Distribución entre foreman y reserva de empresa"
+                : "Gross foreman commission"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <BucketRow
+              label="Foreman income"
+              value={fmtUSD(totals.totalForeman)}
+            />
+            {registeredContractor && (
               <BucketRow
                 label="Company savings (3.5%)"
-                value={fmtUSD(buckets.companySavingsPending)}
+                value={fmtUSD(totals.totalReserve)}
                 accent
               />
-              <BucketRow
-                label="Reimbursements bucket"
-                value={fmtUSD(buckets.reimbursementBucket)}
-              />
-              <Separator />
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Helper payouts
-              </p>
-              {Object.entries(buckets.helperPayouts).map(([id, amt]) => {
-                const c = crew.find((cm) => cm.id === id);
-                return (
-                  <BucketRow
-                    key={id}
-                    label={c?.name ?? id}
-                    value={fmtUSD(amt)}
-                  />
-                );
-              })}
-              <Separator />
-              <div className="flex items-center justify-between font-semibold">
-                <span className="text-xs">Total received</span>
-                <span className="font-mono text-sm">
-                  {fmtUSD(buckets.totalCompanyReceived)}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+            <Separator />
+            <div className="flex items-center justify-between font-semibold">
+              <span className="text-xs">Total received</span>
+              <span className="font-mono text-sm">
+                {fmtUSD(totals.totalPaid)}
+              </span>
+            </div>
+            <p className="mt-2 text-[10px] text-muted-foreground">
+              La repartición a helpers/empleados se maneja por separado en la
+              contabilidad del contractor — no se refleja en este panel.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
@@ -486,30 +438,6 @@ function KPI({
         <p className="mt-1 text-[10px] text-muted-foreground">{hint}</p>
       </CardContent>
     </Card>
-  );
-}
-
-function ConfigRow({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <div className="flex items-center gap-2 text-xs">
-      <span className="flex-1">{label}</span>
-      <Input
-        type="number"
-        value={value}
-        step={0.1}
-        onChange={(e) => onChange(Number(e.target.value) || 0)}
-        className="h-7 w-16 text-center font-mono"
-      />
-      <span className="text-muted-foreground">%</span>
-    </div>
   );
 }
 
