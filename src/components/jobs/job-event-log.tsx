@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   CheckCircle2,
   FileText,
@@ -49,7 +50,17 @@ function timeAgo(iso: string): string {
 }
 
 export function JobEventLog({ jobId }: { jobId: string }) {
-  const events = useJobEvents((s) => s.forJob(jobId));
+  const allEvents = useJobEvents((s) => s.events);
+  const events = useMemo(
+    () =>
+      allEvents
+        .filter((ev) => ev.jobId === jobId)
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        ),
+    [allEvents, jobId],
+  );
 
   return (
     <Card>
