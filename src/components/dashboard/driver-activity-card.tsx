@@ -29,7 +29,7 @@ export function DriverActivityCard() {
     <Card className="col-span-12 lg:col-span-8">
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <div>
-          <CardTitle>Driver activity</CardTitle>
+          <CardTitle>Foreman activity</CardTitle>
           <CardDescription>
             Live status • {activeDrivers.length} drivers on the road
           </CardDescription>

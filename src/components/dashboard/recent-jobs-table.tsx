@@ -43,7 +43,7 @@ export function RecentJobsTable() {
               <TableHead>Route</TableHead>
               <TableHead className="text-right">CuFt</TableHead>
               <TableHead className="text-right">Miles</TableHead>
-              <TableHead>Driver</TableHead>
+              <TableHead>Foreman</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="pr-5 text-right">Total</TableHead>
             </TableRow>

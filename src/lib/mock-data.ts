@@ -17,7 +17,7 @@ export const drivers: Driver[] = [
     phone: "(305) 555-2031",
     email: "marcus.r@arsemia.co",
     vehicleId: "VEH-204",
-    vehicleName: "26' Box Truck #204",
+    vehicleName: "Truck #04 - ISUZU NPR 20' - 2024 - Foreman Marcus",
     status: "On Job",
     jobsCompleted: 312,
     revenueHandled: 184250,
@@ -35,7 +35,7 @@ export const drivers: Driver[] = [
     phone: "(305) 555-2032",
     email: "sofia.h@arsemia.co",
     vehicleId: "VEH-207",
-    vehicleName: "Sprinter Van #207",
+    vehicleName: "Truck #07 - Mercedes Sprinter 170 - 2023 - Foreman Sofia",
     status: "En Route",
     jobsCompleted: 278,
     revenueHandled: 162100,
@@ -53,7 +53,7 @@ export const drivers: Driver[] = [
     phone: "(305) 555-2033",
     email: "trevon.w@arsemia.co",
     vehicleId: "VEH-211",
-    vehicleName: "20' Box Truck #211",
+    vehicleName: "Truck #11 - Freightliner M2 26' - 2022 - Foreman Trevon",
     status: "Available",
     jobsCompleted: 198,
     revenueHandled: 121800,
@@ -69,7 +69,7 @@ export const drivers: Driver[] = [
     phone: "(305) 555-2034",
     email: "anya.v@arsemia.co",
     vehicleId: "VEH-215",
-    vehicleName: "Cargo Van #215",
+    vehicleName: "Truck #15 - Ford Transit 250 - 2023 - Foreman Anya",
     status: "On Job",
     jobsCompleted: 256,
     revenueHandled: 154300,
@@ -87,7 +87,7 @@ export const drivers: Driver[] = [
     phone: "(305) 555-2035",
     email: "jamal.c@arsemia.co",
     vehicleId: "VEH-220",
-    vehicleName: "26' Box Truck #220",
+    vehicleName: "Truck #20 - ISUZU NPR 26' - 2025 - Foreman Jamal",
     status: "Break",
     jobsCompleted: 410,
     revenueHandled: 241600,
@@ -103,7 +103,7 @@ export const drivers: Driver[] = [
     phone: "(305) 555-2036",
     email: "elena.p@arsemia.co",
     vehicleId: "VEH-224",
-    vehicleName: "Sprinter Van #224",
+    vehicleName: "Truck #24 - Mercedes Sprinter 144 - 2024 - Foreman Elena",
     status: "Available",
     jobsCompleted: 142,
     revenueHandled: 88200,
@@ -119,7 +119,7 @@ export const drivers: Driver[] = [
     phone: "(305) 555-2037",
     email: "ravi.s@arsemia.co",
     vehicleId: "VEH-230",
-    vehicleName: "Tractor Trailer #230",
+    vehicleName: "Truck #30 - Freightliner Cascadia 53' - 2021 - Foreman Ravi",
     status: "Offline",
     jobsCompleted: 89,
     revenueHandled: 96400,
@@ -151,8 +151,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1042",
     driverName: "Marcus Reyes",
     crew: [
-      "Marcus Reyes",
-      "Luis Rivera"
+      "Marcus Reyes"
     ],
     price: 2480,
     payrollStatus: "Pending",
@@ -376,8 +375,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1043",
     driverName: "Sofia Hernandez",
     crew: [
-      "Sofia Hernandez",
-      "Brian Lee"
+      "Sofia Hernandez"
     ],
     price: 4625,
     payrollStatus: "Pending",
@@ -566,8 +564,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1044",
     driverName: "Trevon Walker",
     crew: [
-      "Trevon Walker",
-      "Tomas Quill"
+      "Trevon Walker"
     ],
     price: 1180,
     payrollStatus: "Pending",
@@ -730,9 +727,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1042",
     driverName: "Marcus Reyes",
     crew: [
-      "Marcus Reyes",
-      "Andres Romero",
-      "Diego Soto"
+      "Marcus Reyes"
     ],
     price: 3580,
     payrollStatus: "Pending",
@@ -1007,8 +1002,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1045",
     driverName: "Anya Volkov",
     crew: [
-      "Anya Volkov",
-      "Diego Soto"
+      "Anya Volkov"
     ],
     price: 820,
     payrollStatus: "Pending",
@@ -1181,9 +1175,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1048",
     driverName: "Ravi Shankar",
     crew: [
-      "Ravi Shankar",
-      "Luis Rivera",
-      "Andres Romero"
+      "Ravi Shankar"
     ],
     price: 8950,
     payrollStatus: "Pending",
@@ -1440,8 +1432,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1047",
     driverName: "Elena Park",
     crew: [
-      "Elena Park",
-      "Diego Soto"
+      "Elena Park"
     ],
     price: 1640,
     payrollStatus: "Pending",
@@ -1775,9 +1766,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1046",
     driverName: "Jamal Carter",
     crew: [
-      "Jamal Carter",
-      "Tomas Quill",
-      "Brian Lee"
+      "Jamal Carter"
     ],
     price: 5820,
     payrollStatus: "Pending",
@@ -2074,8 +2063,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1043",
     driverName: "Sofia Hernandez",
     crew: [
-      "Sofia Hernandez",
-      "Brian Lee"
+      "Sofia Hernandez"
     ],
     price: 980,
     payrollStatus: "Pending",
@@ -2372,8 +2360,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1044",
     driverName: "Trevon Walker",
     crew: [
-      "Trevon Walker",
-      "Diego Soto"
+      "Trevon Walker"
     ],
     price: 2180,
     payrollStatus: "Paid",
@@ -2580,9 +2567,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1047",
     driverName: "Elena Park",
     crew: [
-      "Elena Park",
-      "Diego Soto",
-      "Andres Romero"
+      "Elena Park"
     ],
     price: 2980,
     payrollStatus: "Pending",
@@ -2840,8 +2825,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1045",
     driverName: "Anya Volkov",
     crew: [
-      "Anya Volkov",
-      "Brian Lee"
+      "Anya Volkov"
     ],
     price: 1720,
     payrollStatus: "Pending",
@@ -3049,8 +3033,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1046",
     driverName: "Jamal Carter",
     crew: [
-      "Jamal Carter",
-      "Andres Romero"
+      "Jamal Carter"
     ],
     price: 2350,
     payrollStatus: "Pending",
@@ -3276,8 +3259,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1043",
     driverName: "Sofia Hernandez",
     crew: [
-      "Sofia Hernandez",
-      "Diego Soto"
+      "Sofia Hernandez"
     ],
     price: 2080,
     payrollStatus: "Pending",
@@ -3694,9 +3676,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1048",
     driverName: "Ravi Shankar",
     crew: [
-      "Ravi Shankar",
-      "Luis Rivera",
-      "Andre Bell"
+      "Ravi Shankar"
     ],
     price: 4280,
     payrollStatus: "Pending",
@@ -4019,9 +3999,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1046",
     driverName: "Jamal Carter",
     crew: [
-      "Jamal Carter",
-      "Tomas Quill",
-      "Brian Lee"
+      "Jamal Carter"
     ],
     price: 9620,
     payrollStatus: "Pending",
@@ -4377,8 +4355,7 @@ export const jobs: Job[] = [
     driverId: "DRV-1044",
     driverName: "Trevon Walker",
     crew: [
-      "Trevon Walker",
-      "Tomas Quill"
+      "Trevon Walker"
     ],
     price: 720,
     payrollStatus: "Pending",

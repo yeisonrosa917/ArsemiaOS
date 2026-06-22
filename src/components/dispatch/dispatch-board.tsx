@@ -135,7 +135,7 @@ export function DispatchBoard() {
                 options={[...JOB_TYPES]}
               />
               <FilterSelect
-                label="Driver"
+                label="Foreman"
                 value={driverFilter}
                 onChange={setDriverFilter}
                 options={["All Drivers", ...drivers.map((d) => d.name)]}

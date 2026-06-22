@@ -52,7 +52,7 @@ export default function RoutesPage() {
             <div>
               <CardTitle>Today&apos;s active routes</CardTitle>
               <CardDescription>
-                Miami Metro • 4 active vehicles • 13 total stops
+                Miami Metro • 4 active trucks • 13 total stops
               </CardDescription>
             </div>
             <Badge variant="success">
@@ -115,7 +115,7 @@ export default function RoutesPage() {
           <TableHeader>
             <TableRow>
               <TableHead className="pl-5">Route</TableHead>
-              <TableHead>Driver</TableHead>
+              <TableHead>Foreman</TableHead>
               <TableHead>Zone</TableHead>
               <TableHead className="text-right">Stops</TableHead>
               <TableHead className="text-right">Miles</TableHead>

@@ -14,7 +14,7 @@ export default function DispatchPage() {
           <>
             <Button variant="outline" size="sm" className="gap-2">
               <Radio className="h-4 w-4 text-emerald-500" />
-              Live • 7 drivers
+              Live • 7 foremen
             </Button>
             <Button asChild size="sm" className="gap-2">
               <Link href="/quotes?type=job">

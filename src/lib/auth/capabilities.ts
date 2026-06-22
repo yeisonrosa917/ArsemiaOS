@@ -41,6 +41,9 @@ export type CapabilityId =
   | "payroll.view_all"
   | "payroll.approve"
   | "payroll.audit"
+  | "expenses.view_own"
+  | "expenses.view_all"
+  | "expenses.approve"
   | "claims.view"
   | "claims.manage"
   | "analytics.view"
@@ -107,6 +110,10 @@ export const CAPABILITIES: CapabilityMeta[] = [
   { id: "payroll.view_all", group: "Finance", label: "View all payroll", description: "See payroll for every user." },
   { id: "payroll.approve", group: "Finance", label: "Approve payroll", description: "Mark payroll lines approved/paid." },
   { id: "payroll.audit", group: "Finance", label: "Audit payroll", description: "Run audit engine and view variance flags." },
+
+  { id: "expenses.view_own", group: "Finance", label: "View own expenses", description: "See ONLY your own submitted expenses." },
+  { id: "expenses.view_all", group: "Finance", label: "View all expenses", description: "See expenses from every foreman." },
+  { id: "expenses.approve", group: "Finance", label: "Approve / reject expenses", description: "Review expense submissions." },
 
   { id: "claims.view", group: "Claims", label: "View claims", description: "Browse damage / dispute claims." },
   { id: "claims.manage", group: "Claims", label: "Manage claims", description: "Assign and resolve claims." },

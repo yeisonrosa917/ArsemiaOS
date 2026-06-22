@@ -20,6 +20,7 @@ import {
   UserRound,
   Users,
   UserSquare2,
+  Wallet,
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -49,16 +50,17 @@ const primaryNav: NavItem[] = [
 const salesNav: NavItem[] = [
   { label: "Leads", href: "/leads", icon: UserRound },
   { label: "Quotes", href: "/quotes", icon: Briefcase },
+  { label: "Customers", href: "/customers", icon: Users },
 ];
 
 const operationsNav: NavItem[] = [
-  { label: "Drivers", href: "/drivers", icon: UserSquare2 },
-  { label: "Customers", href: "/customers", icon: Users },
+  { label: "Foremen", href: "/drivers", icon: UserSquare2 },
   { label: "Fleet", href: "/fleet", icon: Truck },
 ];
 
 const financeNav: NavItem[] = [
   { label: "Invoices", href: "/invoices", icon: Receipt },
+  { label: "Expenses", href: "/expenses", icon: Wallet },
   { label: "Payroll", href: "/payroll", icon: Coins, badge: "Audit" },
   { label: "Claims", href: "/claims", icon: ShieldAlert },
 ];

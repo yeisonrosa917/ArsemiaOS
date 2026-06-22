@@ -48,10 +48,8 @@ export function QuoteBuilder() {
   const [handlingPicked, setHandlingPicked] = useState<Record<string, boolean>>(
     {},
   );
-  const [openCats, setOpenCats] = useState<Record<string, boolean>>({
-    dis_reas: true,
-    special: true,
-  });
+  // Collapsed by default — open on click.
+  const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
   const [ltaAmount, setLtaAmount] = useState<number>(0);
   const [fromLeadId, setFromLeadId] = useState<string | null>(null);
 

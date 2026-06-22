@@ -3,12 +3,12 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowRight,
   Building2,
   CalendarClock,
   Check,
   ChevronDown,
   ClipboardCheck,
+  Clock,
   DollarSign,
   Mail,
   MapPin,
@@ -17,7 +17,6 @@ import {
   ShieldAlert,
   Trash2,
   Truck,
-  Users,
 } from "lucide-react";
 import {
   Card,
@@ -44,8 +43,19 @@ import { useJobsStore } from "@/lib/store/jobs";
 import { useNotifications } from "@/lib/store/notifications";
 import { useJobEvents } from "@/lib/store/job-events";
 import { JobEventLog } from "./job-event-log";
+import { JobAdjustmentsPanel } from "./job-adjustments-panel";
 import { fmtUSD } from "@/lib/calculator/engine";
 import { cn } from "@/lib/utils";
+
+const CONTRACTOR_COMPANIES: Record<string, { company: string; commissionPct: number }> = {
+  "DRV-1042": { company: "Arsemia LLC", commissionPct: 33.5 },
+  "DRV-1043": { company: "Hernandez Moving Co.", commissionPct: 32 },
+  "DRV-1044": { company: "—", commissionPct: 30 },
+  "DRV-1045": { company: "Volkov Logistics LLC", commissionPct: 33.5 },
+  "DRV-1046": { company: "Carter Bros Movers", commissionPct: 33.5 },
+  "DRV-1047": { company: "—", commissionPct: 30 },
+  "DRV-1048": { company: "Shankar Long Haul LLC", commissionPct: 33.5 },
+};
 
 const STATUS_COLORS: Record<string, string> = {
   Unassigned: "bg-slate-500/15 text-slate-600 border-slate-500/30",
@@ -59,11 +69,18 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function JobDetail({ job: initial }: { job: Job }) {
-  const { updateJob, reassign } = useJobsStore();
+  const updateJob = useJobsStore((s) => s.updateJob);
+  const stageReassignment = useJobsStore((s) => s.stageReassignment);
+  const cancelPending = useJobsStore((s) => s.cancelPending);
+  const confirmPending = useJobsStore((s) => s.confirmPending);
   const currentJob = useJobsStore((s) => s.jobs.find((j) => j.id === initial.id)) ?? initial;
+  const pendingForJob = useJobsStore((s) =>
+    s.pendingReassignments.find((p) => p.jobId === initial.id),
+  );
   const job = currentJob;
   const pushNotif = useNotifications((s) => s.push);
   const pushEvent = useJobEvents((s) => s.push);
+  const contractor = job.driverId ? CONTRACTOR_COMPANIES[job.driverId] : undefined;
 
   const [editingInv, setEditingInv] = useState(false);
 
@@ -82,44 +99,66 @@ export function JobDetail({ job: initial }: { job: Job }) {
     [job.additionalServices],
   );
 
-  const handleReassign = (driverId: string, driverName: string) => {
-    const { from, to } = reassign(job.id, driverId, driverName);
-    if (from !== to) {
-      pushNotif({
-        kind: "job_reassigned",
-        title: `Job ${job.id} reassigned`,
-        body: from
-          ? `${from} → ${to}. The foreman will be notified via the mobile app.`
-          : `Assigned to ${to}. The foreman will be notified via the mobile app.`,
-        href: `/jobs/${job.id}`,
-      });
-      pushEvent({
-        jobId: job.id,
-        type: from ? "reassigned" : "assigned",
-        actor: "Mariana Castro",
-        message: from
-          ? `Reassigned from ${from} to ${to}.`
-          : `Assigned to ${to}.`,
-      });
-    }
+  const handleStageReassign = (driverId: string, driverName: string) => {
+    const staged = stageReassignment(job.id, driverId, driverName, "Mariana Castro");
+    pushNotif({
+      kind: "job_reassigned",
+      title: `Pending reassignment — ${job.id}`,
+      body: staged.fromDriverName
+        ? `${staged.fromDriverName} → ${driverName}. Awaiting confirmation.`
+        : `Staged for ${driverName}. Awaiting confirmation.`,
+      href: `/jobs/${job.id}`,
+    });
+    pushEvent({
+      jobId: job.id,
+      type: "reassigned",
+      actor: "Mariana Castro",
+      message: staged.fromDriverName
+        ? `Staged reassignment: ${staged.fromDriverName} → ${driverName}.`
+        : `Staged assignment to ${driverName}.`,
+    });
   };
 
-  const handleUnassign = () => {
-    const { from } = reassign(job.id, undefined, undefined);
-    if (from) {
-      pushNotif({
-        kind: "job_reassigned",
-        title: `Job ${job.id} unassigned`,
-        body: `Removed from ${from}. Driver notified.`,
-        href: `/jobs/${job.id}`,
-      });
-      pushEvent({
-        jobId: job.id,
-        type: "reassigned",
-        actor: "Mariana Castro",
-        message: `Removed from ${from}. Now unassigned.`,
-      });
-    }
+  const handleStageUnassign = () => {
+    const staged = stageReassignment(job.id, undefined, undefined, "Mariana Castro");
+    pushNotif({
+      kind: "job_reassigned",
+      title: `Pending unassignment — ${job.id}`,
+      body: `Removing ${staged.fromDriverName ?? "current foreman"}. Awaiting confirmation.`,
+      href: `/jobs/${job.id}`,
+    });
+  };
+
+  const handleConfirmPending = () => {
+    const p = confirmPending(job.id);
+    if (!p) return;
+    pushNotif({
+      kind: "job_reassigned",
+      title: `Job ${job.id} reassigned`,
+      body: p.toDriverName
+        ? `${p.fromDriverName ?? "—"} → ${p.toDriverName}. Foreman will be notified via the mobile app.`
+        : `Unassigned from ${p.fromDriverName ?? "—"}.`,
+      href: `/jobs/${job.id}`,
+    });
+    pushEvent({
+      jobId: job.id,
+      type: "reassigned",
+      actor: "Mariana Castro",
+      message: p.toDriverName
+        ? `Reassignment confirmed: ${p.fromDriverName ?? "—"} → ${p.toDriverName}.`
+        : `Unassignment confirmed.`,
+    });
+  };
+
+  const handleCancelPending = () => {
+    if (!pendingForJob) return;
+    cancelPending(job.id);
+    pushEvent({
+      jobId: job.id,
+      type: "reassigned",
+      actor: "Mariana Castro",
+      message: `Pending reassignment cancelled.`,
+    });
   };
 
   const updateBuilding = (which: "pickupBuilding" | "deliveryBuilding", patch: Partial<BuildingDetails>) => {
@@ -407,20 +446,73 @@ export function JobDetail({ job: initial }: { job: Job }) {
               />
             </CardContent>
           </Card>
+
+          {/* On-site adjustments — submitted by foreman */}
+          <JobAdjustmentsPanel jobId={job.id} />
         </div>
 
         <div className="space-y-4">
-          {/* Driver assignment + reassign */}
+          {/* Pending reassignment banner */}
+          {pendingForJob && (
+            <Card className="border-amber-500/50 bg-amber-500/[0.06]">
+              <CardContent className="space-y-3 p-3">
+                <div className="flex items-start gap-2">
+                  <Clock className="mt-0.5 h-4 w-4 text-amber-600" />
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold">Pending reassignment</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      <span className="font-medium">
+                        {pendingForJob.fromDriverName ?? "—"}
+                      </span>{" "}
+                      →{" "}
+                      <span className="font-medium">
+                        {pendingForJob.toDriverName ?? "Unassigned"}
+                      </span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Staged by {pendingForJob.stagedBy} ·{" "}
+                      {new Date(pendingForJob.stagedAt).toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" className="flex-1 gap-1" onClick={handleConfirmPending}>
+                    <Check className="h-3.5 w-3.5" />
+                    Confirm
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleCancelPending}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Foreman + contractor + truck */}
           <Card className="border-primary/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Truck className="h-4 w-4 text-primary" /> Driver & crew
+                <Truck className="h-4 w-4 text-primary" /> Foreman & truck
               </CardTitle>
+              <CardDescription>
+                Single point of contact for this job. Helpers are managed by
+                the contractor company, not the hub.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Assigned driver
+                  Assigned foreman
                 </p>
                 {job.driverName ? (
                   <div className="mt-1 flex items-center justify-between rounded-lg bg-primary/5 px-3 py-2">
@@ -430,19 +522,24 @@ export function JobDetail({ job: initial }: { job: Job }) {
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          disabled={!!pendingForJob}
+                        >
                           Reassign <ChevronDown className="h-3 w-3" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-60">
-                        <DropdownMenuLabel>Reassign to driver</DropdownMenuLabel>
+                        <DropdownMenuLabel>Reassign to foreman</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         {seedDrivers
                           .filter((d) => d.id !== job.driverId)
                           .map((d) => (
                             <DropdownMenuItem
                               key={d.id}
-                              onClick={() => handleReassign(d.id, d.name)}
+                              onClick={() => handleStageReassign(d.id, d.name)}
                               className="flex flex-col items-start gap-0.5"
                             >
                               <p className="text-sm font-semibold">{d.name}</p>
@@ -452,7 +549,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
                             </DropdownMenuItem>
                           ))}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={handleUnassign}>
+                        <DropdownMenuItem onClick={handleStageUnassign}>
                           <span className="text-destructive">Unassign</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -461,17 +558,21 @@ export function JobDetail({ job: initial }: { job: Job }) {
                 ) : (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="mt-1 w-full gap-1">
-                        Assign driver <ChevronDown className="h-3 w-3" />
+                      <Button
+                        variant="outline"
+                        className="mt-1 w-full gap-1"
+                        disabled={!!pendingForJob}
+                      >
+                        Assign foreman <ChevronDown className="h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-60">
-                      <DropdownMenuLabel>Available drivers</DropdownMenuLabel>
+                      <DropdownMenuLabel>Available foremen</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       {seedDrivers.map((d) => (
                         <DropdownMenuItem
                           key={d.id}
-                          onClick={() => handleReassign(d.id, d.name)}
+                          onClick={() => handleStageReassign(d.id, d.name)}
                           className="flex flex-col items-start gap-0.5"
                         >
                           <p className="text-sm font-semibold">{d.name}</p>
@@ -484,27 +585,41 @@ export function JobDetail({ job: initial }: { job: Job }) {
                   </DropdownMenu>
                 )}
               </div>
-              <Separator />
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Crew on this job
-                </p>
-                {job.crew.length === 0 ? (
-                  <p className="mt-1 text-xs text-muted-foreground">No crew assigned yet.</p>
-                ) : (
-                  <div className="mt-1 space-y-1">
-                    {job.crew.map((c) => (
-                      <div
-                        key={c}
-                        className="flex items-center gap-2 rounded-lg bg-muted/30 px-2 py-1.5 text-xs"
-                      >
-                        <Users className="h-3 w-3 text-muted-foreground" />
-                        {c}
-                      </div>
-                    ))}
+              {contractor && (
+                <>
+                  <Separator />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Contractor company
+                      </p>
+                      <p className="mt-0.5 text-xs font-semibold">{contractor.company}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Commission
+                      </p>
+                      <p className="mt-0.5 font-mono text-xs font-semibold">
+                        {contractor.commissionPct}%
+                      </p>
+                    </div>
                   </div>
-                )}
-              </div>
+                </>
+              )}
+
+              {job.driverId && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Truck
+                    </p>
+                    <p className="mt-0.5 text-xs font-semibold">
+                      {seedDrivers.find((d) => d.id === job.driverId)?.vehicleName ?? "—"}
+                    </p>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 

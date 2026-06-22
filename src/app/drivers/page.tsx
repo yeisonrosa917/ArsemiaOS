@@ -29,8 +29,8 @@ export default function DriversPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Drivers & crew"
-        description="Roster, compliance and performance across your dispatch team."
+        title="Foremen & contractors"
+        description="Roster, compliance and performance of the foremen / contractors running your jobs."
         actions={
           <>
             <Button variant="outline" size="sm">
@@ -38,7 +38,7 @@ export default function DriversPage() {
             </Button>
             <Button size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
-              Add driver
+              Add foreman
             </Button>
           </>
         }
@@ -144,7 +144,7 @@ export default function DriversPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="pl-5">Driver</TableHead>
+              <TableHead className="pl-5">Foreman</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Vehicle</TableHead>
               <TableHead>Status</TableHead>

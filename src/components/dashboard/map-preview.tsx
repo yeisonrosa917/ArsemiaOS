@@ -16,7 +16,7 @@ export function MapRoutePreview() {
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <div>
           <CardTitle>Live route map</CardTitle>
-          <CardDescription>Miami Metro • 7 vehicles tracked</CardDescription>
+          <CardDescription>Miami Metro • 7 trucks tracked</CardDescription>
         </div>
         <Button variant="ghost" size="sm" className="gap-1 text-xs">
           Open dispatch
@@ -30,8 +30,8 @@ export function MapRoutePreview() {
             zoom={11}
             center={[25.7617, -80.1918]}
             markers={[
-              { id: "d1", lat: 25.7741, lng: -80.1937, label: "Driver 12 · Pedro", kind: "driver" },
-              { id: "d2", lat: 25.7907, lng: -80.13, label: "Driver 07 · Roberto", kind: "driver" },
+              { id: "d1", lat: 25.7741, lng: -80.1937, label: "Foreman 12 · Pedro", kind: "driver" },
+              { id: "d2", lat: 25.7907, lng: -80.13, label: "Foreman 07 · Roberto", kind: "driver" },
               { id: "p1", lat: 25.795, lng: -80.21, label: "Pickup · 1601 Collins Ave, Miami Beach", kind: "pickup" },
               { id: "v1", lat: 25.74, lng: -80.34, label: "Delivery · 8000 NW 33rd St, Doral", kind: "delivery" },
             ]}
@@ -46,7 +46,7 @@ export function MapRoutePreview() {
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-lg bg-background/90 px-3 py-2 backdrop-blur">
             <div className="flex items-center gap-2 text-xs">
               <Truck className="h-3.5 w-3.5 text-brand-600" />
-              <span className="font-semibold">7 active vehicles</span>
+              <span className="font-semibold">7 active trucks</span>
             </div>
             <span className="text-[11px] text-muted-foreground">
               Updated 12s ago
