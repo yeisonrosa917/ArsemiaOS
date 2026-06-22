@@ -35,14 +35,6 @@ export const SEED_USERS: SeedUser[] = [
     avatarColor: "from-emerald-400 to-emerald-700",
   },
   {
-    id: "u_drv",
-    name: "Pedro Martinez",
-    initials: "PM",
-    email: "driver@arsemia.test",
-    roleId: "driver",
-    avatarColor: "from-cyan-400 to-blue-700",
-  },
-  {
     id: "u_for",
     name: "Roberto Salas",
     initials: "RS",

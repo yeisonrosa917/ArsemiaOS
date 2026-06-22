@@ -51,7 +51,7 @@ export default function LiveMapImpl({
           html: `<div style="width:18px;height:18px;border-radius:9999px;background:${color};border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.35);"></div>`,
         });
       setIcons({
-        driver: mk("#3b62ff"),
+        driver: mk("#2563eb"),
         pickup: mk("#10b981"),
         delivery: mk("#f97316"),
         default: mk("#64748b"),
@@ -85,7 +85,7 @@ export default function LiveMapImpl({
         {route && route.length > 1 && (
           <Polyline
             positions={route}
-            pathOptions={{ color: "#3b62ff", weight: 4, opacity: 0.85 }}
+            pathOptions={{ color: "#2563eb", weight: 4, opacity: 0.85 }}
           />
         )}
         {markers.map((m) => {

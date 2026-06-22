@@ -21,7 +21,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 230 92% 55%;
+    --primary: 217 91% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 30% 96%;
@@ -47,21 +47,21 @@
 
     --border: 220 18% 90%;
     --input: 220 18% 90%;
-    --ring: 230 92% 55%;
+    --ring: 217 91% 53%;
 
     --radius: 0.75rem;
 
     --sidebar: 222 47% 9%;
     --sidebar-foreground: 220 20% 88%;
-    --sidebar-accent: 230 92% 55%;
+    --sidebar-accent: 217 91% 53%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 222 30% 16%;
 
-    /* Brand gradient stops (used by logo + KPI gradients) */
-    --brand-400: #6089ff;
-    --brand-500: #3b62ff;
-    --brand-600: #2546f5;
-    --brand-700: #1c36dd;
+    /* Arsemia blue brand gradient stops — from the calculator. */
+    --brand-400: #5b8bef;
+    --brand-500: #2563eb;
+    --brand-600: #1d4ed8;
+    --brand-700: #1e40af;
   }
 
   .dark {
@@ -74,7 +74,7 @@
     --popover: 222 38% 10%;
     --popover-foreground: 220 20% 96%;
 
-    --primary: 230 92% 62%;
+    --primary: 217 91% 60%;
     --primary-foreground: 222 47% 9%;
 
     --secondary: 222 30% 14%;
@@ -100,11 +100,11 @@
 
     --border: 222 30% 18%;
     --input: 222 30% 18%;
-    --ring: 230 92% 62%;
+    --ring: 217 91% 60%;
 
     --sidebar: 222 50% 7%;
     --sidebar-foreground: 220 16% 80%;
-    --sidebar-accent: 230 92% 62%;
+    --sidebar-accent: 217 91% 60%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 222 32% 14%;
   }

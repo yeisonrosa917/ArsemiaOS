@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { AppearanceCard } from "@/components/settings/appearance-card";
+import { RolesAndPermissionsCard } from "@/components/settings/roles-card";
 
 const SECTIONS = [
   { icon: Building2, label: "Organization", description: "Company profile, branches, time zones" },
@@ -29,6 +30,8 @@ export default function SettingsPage() {
       />
 
       <AppearanceCard />
+
+      <RolesAndPermissionsCard />
 
       <div className="grid grid-cols-12 gap-4">
         <Card className="col-span-12 lg:col-span-4">

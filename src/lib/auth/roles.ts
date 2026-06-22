@@ -1,96 +1,172 @@
+import type { CapabilityId } from "./capabilities";
+
 export type UserRoleId =
   | "owner"
   | "dispatcher"
   | "seller"
-  | "driver"
+  | "foreman"
   | "marketing"
-  | "accountant"
-  | "foreman";
+  | "accountant";
 
 export interface UserRole {
   id: UserRoleId;
   label: string;
   description: string;
-  /** Routes this role can access. Empty array = all. */
-  allowedRoutes: string[];
-  /** Optional landing page after login for this role. */
+  /** Default capabilities granted to this role (can be overridden per workspace). */
+  defaultCapabilities: CapabilityId[];
+  /** Where to send the user after switching to this role. */
   landing: string;
 }
 
 /**
- * STRICT role permissions.
- * - Seller never sees Dispatch / Jobs / Drivers / Fleet / Routes / Claims.
- * - Driver never sees Customers / Invoices / Claims / Fleet / Settings.
- * - Foreman never sees anything financial except their own payroll.
- * - Marketing never sees Dispatch / Jobs / Payroll / Claims.
- * - Accountant never sees Dispatch / Drivers / Fleet / Routes.
- * - Dispatcher never sees Invoices / Payroll / Analytics.
- * - Owner sees everything.
+ * Routes are inferred from capabilities. Each route requires at least one
+ * capability to render in the sidebar.
  */
+export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
+  "/": ["dashboard.view"],
+  "/dispatch": ["dispatch.view"],
+  "/jobs": ["jobs.view"],
+  "/routes": ["routes.view"],
+  "/drivers": ["drivers.view"],
+  "/fleet": ["fleet.view"],
+  "/customers": ["customers.view"],
+  "/invoices": ["invoices.view"],
+  "/payroll": ["payroll.view_own", "payroll.view_all"],
+  "/claims": ["claims.view"],
+  "/analytics": ["analytics.view"],
+  "/settings": ["settings.view"],
+};
+
+const OWNER_CAPS: CapabilityId[] = [
+  "dashboard.view",
+  "dispatch.view", "dispatch.assign",
+  "jobs.view", "jobs.create", "jobs.edit", "jobs.reassign", "jobs.delete",
+  "routes.view", "routes.edit",
+  "drivers.view", "drivers.edit",
+  "fleet.view", "fleet.edit",
+  "customers.view", "customers.edit",
+  "leads.view", "leads.convert",
+  "quotes.view", "quotes.create",
+  "invoices.view", "invoices.create", "invoices.send",
+  "payroll.view_own", "payroll.view_all", "payroll.approve", "payroll.audit",
+  "claims.view", "claims.manage",
+  "analytics.view", "analytics.export",
+  "settings.view", "settings.manage", "roles.manage",
+];
+
 export const ROLES: Record<UserRoleId, UserRole> = {
   owner: {
     id: "owner",
     label: "Owner",
-    description: "Full access across operations, finance and analytics.",
-    allowedRoutes: [],
+    description: "Full access. Can grant or revoke capabilities for any role.",
+    defaultCapabilities: OWNER_CAPS,
     landing: "/",
   },
   dispatcher: {
     id: "dispatcher",
     label: "Dispatcher",
-    description: "Dispatch board, jobs, drivers, fleet, routes.",
-    allowedRoutes: [
-      "/",
-      "/dispatch",
-      "/jobs",
-      "/routes",
-      "/drivers",
-      "/fleet",
-      "/customers",
+    description: "Runs the live operation — dispatch board, jobs, drivers, fleet, routes.",
+    defaultCapabilities: [
+      "dashboard.view",
+      "dispatch.view", "dispatch.assign",
+      "jobs.view", "jobs.create", "jobs.edit", "jobs.reassign",
+      "routes.view", "routes.edit",
+      "drivers.view",
+      "fleet.view",
+      "customers.view",
     ],
     landing: "/dispatch",
   },
   seller: {
     id: "seller",
     label: "Seller / Sales",
-    description: "Customers and own commissions only. (Leads/Quotes coming.)",
-    allowedRoutes: ["/", "/customers", "/payroll"],
+    description: "Quotes customers and tracks own commissions. Can view jobs to follow up.",
+    defaultCapabilities: [
+      "dashboard.view",
+      "jobs.view",
+      "customers.view", "customers.edit",
+      "leads.view", "leads.convert",
+      "quotes.view", "quotes.create",
+      "payroll.view_own",
+    ],
     landing: "/customers",
-  },
-  driver: {
-    id: "driver",
-    label: "Driver",
-    description: "Only personal jobs and personal payroll.",
-    allowedRoutes: ["/", "/jobs", "/payroll"],
-    landing: "/jobs",
   },
   foreman: {
     id: "foreman",
-    label: "Foreman",
-    description: "Same as driver in the web hub. Mobile app comes later.",
-    allowedRoutes: ["/", "/jobs", "/payroll"],
+    label: "Foreman / Driver",
+    description: "Works the assigned jobs in the field. (Foreman = driver — same role in the hub.)",
+    defaultCapabilities: [
+      "dashboard.view",
+      "jobs.view",
+      "routes.view",
+      "payroll.view_own",
+    ],
     landing: "/jobs",
   },
   marketing: {
     id: "marketing",
     label: "Marketing",
-    description: "Analytics and customers.",
-    allowedRoutes: ["/", "/analytics", "/customers"],
+    description: "Analytics, customer base, lead sources.",
+    defaultCapabilities: [
+      "dashboard.view",
+      "customers.view",
+      "leads.view",
+      "analytics.view", "analytics.export",
+    ],
     landing: "/analytics",
   },
   accountant: {
     id: "accountant",
     label: "Accountant",
     description: "Invoices, payroll audit, claims, financial analytics.",
-    allowedRoutes: ["/", "/invoices", "/payroll", "/claims", "/analytics"],
+    defaultCapabilities: [
+      "dashboard.view",
+      "invoices.view", "invoices.create", "invoices.send",
+      "payroll.view_all", "payroll.approve", "payroll.audit",
+      "claims.view",
+      "analytics.view", "analytics.export",
+    ],
     landing: "/payroll",
   },
 };
 
-export function canAccessRoute(roleId: UserRoleId, route: string): boolean {
-  const role = ROLES[roleId];
-  if (!role.allowedRoutes.length) return true;
-  return role.allowedRoutes.some(
-    (r) => r === route || route.startsWith(`${r}/`),
-  );
+export const ROLE_IDS: UserRoleId[] = [
+  "owner",
+  "dispatcher",
+  "seller",
+  "foreman",
+  "marketing",
+  "accountant",
+];
+
+/** Resolve effective capabilities given a role + workspace-level overrides. */
+export function resolveCapabilities(
+  roleId: UserRoleId,
+  overrides?: Partial<Record<UserRoleId, CapabilityId[]>>,
+): CapabilityId[] {
+  if (overrides && overrides[roleId]) return overrides[roleId] as CapabilityId[];
+  return ROLES[roleId].defaultCapabilities;
+}
+
+export function hasCapability(
+  caps: CapabilityId[],
+  required: CapabilityId,
+): boolean {
+  return caps.includes(required);
+}
+
+export function hasAnyCapability(
+  caps: CapabilityId[],
+  required: CapabilityId[],
+): boolean {
+  return required.some((r) => caps.includes(r));
+}
+
+export function canAccessRoute(
+  caps: CapabilityId[],
+  route: string,
+): boolean {
+  const required = ROUTE_REQUIRES[route];
+  if (!required) return true;
+  return hasAnyCapability(caps, required);
 }

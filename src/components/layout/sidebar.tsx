@@ -21,7 +21,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePreferences } from "@/lib/store/preferences";
-import { canAccessRoute, ROLES, type UserRoleId } from "@/lib/auth/roles";
+import {
+  canAccessRoute,
+  resolveCapabilities,
+  ROLES,
+} from "@/lib/auth/roles";
+import type { CapabilityId } from "@/lib/auth/capabilities";
 
 type NavItem = {
   label: string;
@@ -58,14 +63,14 @@ function NavGroup({
   label,
   items,
   pathname,
-  roleId,
+  caps,
 }: {
   label: string;
   items: NavItem[];
   pathname: string;
-  roleId: UserRoleId;
+  caps: CapabilityId[];
 }) {
-  const visible = items.filter((it) => canAccessRoute(roleId, it.href));
+  const visible = items.filter((it) => canAccessRoute(caps, it.href));
   if (visible.length === 0) return null;
   return (
     <div className="px-3">
@@ -124,8 +129,9 @@ function NavGroup({
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { sidebarSide, activeRoleId } = usePreferences();
+  const { sidebarSide, activeRoleId, capabilityOverrides } = usePreferences();
   const role = ROLES[activeRoleId];
+  const caps = resolveCapabilities(activeRoleId, capabilityOverrides);
 
   return (
     <aside
@@ -149,30 +155,10 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin">
-        <NavGroup
-          label="Operate"
-          items={primaryNav}
-          pathname={pathname}
-          roleId={activeRoleId}
-        />
-        <NavGroup
-          label="People & Fleet"
-          items={operationsNav}
-          pathname={pathname}
-          roleId={activeRoleId}
-        />
-        <NavGroup
-          label="Finance"
-          items={financeNav}
-          pathname={pathname}
-          roleId={activeRoleId}
-        />
-        <NavGroup
-          label="Insights"
-          items={insightsNav}
-          pathname={pathname}
-          roleId={activeRoleId}
-        />
+        <NavGroup label="Operate" items={primaryNav} pathname={pathname} caps={caps} />
+        <NavGroup label="People & Fleet" items={operationsNav} pathname={pathname} caps={caps} />
+        <NavGroup label="Finance" items={financeNav} pathname={pathname} caps={caps} />
+        <NavGroup label="Insights" items={insightsNav} pathname={pathname} caps={caps} />
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
@@ -182,9 +168,7 @@ export function Sidebar() {
           </div>
           <div className="leading-tight">
             <p className="text-xs font-semibold text-white">Active role</p>
-            <p className="text-[11px] text-sidebar-foreground/60">
-              {role.label}
-            </p>
+            <p className="text-[11px] text-sidebar-foreground/60">{role.label}</p>
           </div>
         </div>
         <Link

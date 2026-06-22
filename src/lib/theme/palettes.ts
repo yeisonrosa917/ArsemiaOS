@@ -16,8 +16,8 @@ export const PALETTES: PaletteMeta[] = [
   {
     id: "midnight",
     label: "Arsemia Default",
-    description: "Identidad oficial de Arsemia — navy profundo + azul eléctrico.",
-    swatch: ["#0b1220", "#3b62ff", "#6089ff"],
+    description: "Identidad oficial — azul Arsemia #2563eb sobre navy profundo.",
+    swatch: ["#0b1220", "#2563eb", "#5b8bef"],
   },
   {
     id: "charcoal-crimson",
