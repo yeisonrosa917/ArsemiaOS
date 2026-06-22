@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export type JobEventType =
   | "created"
@@ -44,7 +45,7 @@ const SEED: JobEvent[] = [
     jobId: "JOB-10421",
     type: "assigned",
     actor: "Mariana Castro",
-    message: "Assigned to Marcus Reyes (DRV-1042).",
+    message: "Assigned to Marcus Reyes (FM-1042).",
     createdAt: "2026-06-19T08:42:00",
   },
   {
@@ -65,24 +66,32 @@ const SEED: JobEvent[] = [
   },
 ];
 
-export const useJobEvents = create<JobEventsState>((set, get) => ({
-  events: SEED,
-  push: (e) =>
-    set((s) => ({
-      events: [
-        {
-          ...e,
-          id: `ev_${Math.random().toString(36).slice(2, 9)}`,
-          createdAt: new Date().toISOString(),
-        },
-        ...s.events,
-      ],
-    })),
-  forJob: (jobId) =>
-    get()
-      .events.filter((ev) => ev.jobId === jobId)
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      ),
-}));
+export const useJobEvents = create<JobEventsState>()(
+  persist(
+    (set, get) => ({
+      events: SEED,
+      push: (e) =>
+        set((s) => ({
+          events: [
+            {
+              ...e,
+              id: `ev_${Math.random().toString(36).slice(2, 9)}`,
+              createdAt: new Date().toISOString(),
+            },
+            ...s.events,
+          ],
+        })),
+      forJob: (jobId) =>
+        get()
+          .events.filter((ev) => ev.jobId === jobId)
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          ),
+    }),
+    {
+      name: "arsemia.job-events.v1",
+      storage: createJSONStorage(() => localStorage),
+    },
+  ),
+);

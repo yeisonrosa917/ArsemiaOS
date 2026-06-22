@@ -34,11 +34,22 @@ export default function RoutesPage() {
         description="Zone-based planning, drive-time optimization, and live multi-stop tracking."
         actions={
           <>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled
+              title="Route optimization requires Google Maps / OR-Tools — ships in a later phase"
+            >
               <Navigation className="h-4 w-4" />
               Optimize all
             </Button>
-            <Button size="sm" className="gap-2">
+            <Button
+              size="sm"
+              className="gap-2"
+              disabled
+              title="Manual route creation ships with the Routes rebuild"
+            >
               <Plus className="h-4 w-4" />
               New route
             </Button>
@@ -61,8 +72,16 @@ export default function RoutesPage() {
             </Badge>
           </CardHeader>
           <CardContent>
-            <div className="h-[420px] overflow-hidden rounded-xl border">
+            <div className="relative h-[420px] overflow-hidden rounded-xl border">
               <MapPreview />
+              <div className="absolute inset-x-3 bottom-3 rounded-lg border border-amber-500/40 bg-background/95 p-2.5 text-xs shadow-elevated backdrop-blur">
+                <p className="font-semibold">Decorative placeholder</p>
+                <p className="text-muted-foreground">
+                  The live route map ships in a later phase with Google Maps /
+                  Mapbox. The Leaflet preview on the Dashboard is the real one
+                  meanwhile. Routes detail / cards rebuild lands then too.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

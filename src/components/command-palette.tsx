@@ -36,14 +36,19 @@ interface PageItem {
 
 const PAGES: PageItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard, hint: "Home" },
+  { label: "Operations Board", href: "/operations-board", icon: ClipboardList, hint: "Kanban" },
   { label: "Dispatch", href: "/dispatch", icon: Zap, hint: "Live board" },
   { label: "Jobs", href: "/jobs", icon: ClipboardList },
   { label: "Routes", href: "/routes", icon: RouteIcon },
-  { label: "Drivers", href: "/drivers", icon: UserSquare2 },
-  { label: "Customers", href: "/customers", icon: Users },
-  { label: "Fleet", href: "/fleet", icon: Truck },
+  { label: "Activity Log", href: "/activity", icon: ShieldAlert, hint: "Owner" },
+  { label: "Pipeline", href: "/pipeline", icon: Briefcase, hint: "Sales" },
+  { label: "Leads", href: "/leads", icon: Users },
   { label: "Quotes", href: "/quotes", icon: Briefcase, hint: "Calculator" },
+  { label: "Customers", href: "/customers", icon: Users },
+  { label: "Foremen", href: "/foremen", icon: UserSquare2 },
+  { label: "Fleet", href: "/fleet", icon: Truck },
   { label: "Invoices", href: "/invoices", icon: Receipt },
+  { label: "Expenses", href: "/expenses", icon: Receipt },
   { label: "Payroll", href: "/payroll", icon: Coins, hint: "Audit" },
   { label: "Claims", href: "/claims", icon: ShieldAlert },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
@@ -84,7 +89,7 @@ export function CommandPalette({
               <Command.Input
                 value={query}
                 onValueChange={setQuery}
-                placeholder="Search pages, jobs, customers, drivers, invoices..."
+                placeholder="Search pages, jobs, customers, foremen, invoices..."
                 className="h-12 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                 autoFocus
               />
@@ -155,12 +160,12 @@ export function CommandPalette({
                 ))}
               </Command.Group>
 
-              <Command.Group heading="Drivers" className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground">
+              <Command.Group heading="Foremen" className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground">
                 {drivers.slice(0, 10).map((d) => (
                   <Command.Item
                     key={d.id}
-                    value={`driver ${d.name} ${d.vehicleName}`}
-                    onSelect={() => go("/drivers")}
+                    value={`foreman ${d.name} ${d.vehicleName}`}
+                    onSelect={() => go("/foremen")}
                     className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
                   >
                     <UserSquare2 className="h-4 w-4 text-muted-foreground" />

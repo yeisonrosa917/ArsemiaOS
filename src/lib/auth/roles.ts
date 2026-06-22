@@ -24,10 +24,15 @@ export interface UserRole {
  */
 export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
   "/": ["dashboard.view"],
-  "/pipeline": ["jobs.view"],
+  "/operations-board": ["jobs.view"],
+  "/pipeline": ["leads.view"],
   "/dispatch": ["dispatch.view"],
   "/jobs": ["jobs.view"],
   "/routes": ["routes.view"],
+  "/activity": ["roles.manage"],
+  "/foremen": ["drivers.view"],
+  // legacy /drivers redirects to /foremen; keep capability so the redirect chain
+  // works for everyone who could see foremen.
   "/drivers": ["drivers.view"],
   "/fleet": ["fleet.view"],
   "/customers": ["customers.view"],

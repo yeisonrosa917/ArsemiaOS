@@ -29,11 +29,22 @@ export default function ClaimsPage() {
         description="Damage, lost items, late deliveries, and billing disputes — with the photo trail attached."
         actions={
           <>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled
+              title="Filter UI ships with the full Claims rebuild in Phase 7"
+            >
               <Filter className="h-4 w-4" />
               Filter
             </Button>
-            <Button size="sm" className="gap-2">
+            <Button
+              size="sm"
+              className="gap-2"
+              disabled
+              title="Claim creation flow ships in Phase 7 (Claims & Evidence)"
+            >
               <Plus className="h-4 w-4" />
               File claim
             </Button>

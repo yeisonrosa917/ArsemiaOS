@@ -14,11 +14,11 @@ interface Marker {
 
 const DEFAULT_MARKERS: Marker[] = [
   { id: "DEPOT", x: 22, y: 70, label: "Depot", kind: "depot" },
-  { id: "DRV-1042", x: 38, y: 52, label: "M. Reyes", kind: "vehicle", sub: "26' Box #204" },
-  { id: "DRV-1043", x: 64, y: 38, label: "S. Hernandez", kind: "vehicle", sub: "Sprinter #207" },
-  { id: "DRV-1044", x: 30, y: 32, label: "T. Walker", kind: "vehicle", sub: "20' Box #211" },
-  { id: "DRV-1045", x: 72, y: 60, label: "A. Volkov", kind: "vehicle", sub: "Cargo #215" },
-  { id: "DRV-1047", x: 50, y: 78, label: "E. Park", kind: "vehicle", sub: "Sprinter #224" },
+  { id: "FM-1042", x: 38, y: 52, label: "M. Reyes", kind: "vehicle", sub: "26' Box #204" },
+  { id: "FM-1043", x: 64, y: 38, label: "S. Hernandez", kind: "vehicle", sub: "Sprinter #207" },
+  { id: "FM-1044", x: 30, y: 32, label: "T. Walker", kind: "vehicle", sub: "20' Box #211" },
+  { id: "FM-1045", x: 72, y: 60, label: "A. Volkov", kind: "vehicle", sub: "Cargo #215" },
+  { id: "FM-1047", x: 50, y: 78, label: "E. Park", kind: "vehicle", sub: "Sprinter #224" },
   { id: "P-A", x: 44, y: 24, label: "Pickup", kind: "pickup" },
   { id: "D-A", x: 80, y: 22, label: "Delivery", kind: "delivery" },
   { id: "D-B", x: 56, y: 88, label: "Delivery", kind: "delivery" },

@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export type NotificationKind =
   | "job_reassigned"
@@ -59,25 +60,33 @@ const initial: Notification[] = [
   },
 ];
 
-export const useNotifications = create<NotificationsState>((set) => ({
-  items: initial,
-  push: (n) =>
-    set((s) => ({
-      items: [
-        {
-          ...n,
-          id: `n_${Math.random().toString(36).slice(2, 9)}`,
-          createdAt: new Date().toISOString(),
-          read: false,
-        },
-        ...s.items,
-      ],
-    })),
-  markRead: (id) =>
-    set((s) => ({
-      items: s.items.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    })),
-  markAllRead: () =>
-    set((s) => ({ items: s.items.map((n) => ({ ...n, read: true })) })),
-  clear: () => set({ items: [] }),
-}));
+export const useNotifications = create<NotificationsState>()(
+  persist(
+    (set) => ({
+      items: initial,
+      push: (n) =>
+        set((s) => ({
+          items: [
+            {
+              ...n,
+              id: `n_${Math.random().toString(36).slice(2, 9)}`,
+              createdAt: new Date().toISOString(),
+              read: false,
+            },
+            ...s.items,
+          ],
+        })),
+      markRead: (id) =>
+        set((s) => ({
+          items: s.items.map((n) => (n.id === id ? { ...n, read: true } : n)),
+        })),
+      markAllRead: () =>
+        set((s) => ({ items: s.items.map((n) => ({ ...n, read: true })) })),
+      clear: () => set({ items: [] }),
+    }),
+    {
+      name: "arsemia.notifications.v1",
+      storage: createJSONStorage(() => localStorage),
+    },
+  ),
+);

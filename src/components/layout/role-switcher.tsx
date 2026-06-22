@@ -11,14 +11,34 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { usePreferences } from "@/lib/store/preferences";
+import { useActivityLog } from "@/lib/store/activity-log";
 import { ROLES, type UserRoleId } from "@/lib/auth/roles";
 import { SEED_USERS, getUserByRole } from "@/lib/auth/users";
 import { cn } from "@/lib/utils";
 
 export function RoleSwitcher() {
   const { activeRoleId, setActiveRoleId } = usePreferences();
+  const pushActivity = useActivityLog((s) => s.push);
   const user = getUserByRole(activeRoleId);
   const role = ROLES[activeRoleId];
+
+  const handleSwitch = (newRoleId: UserRoleId) => {
+    if (newRoleId === activeRoleId) return;
+    const newUser = getUserByRole(newRoleId);
+    pushActivity({
+      actorId: user.id,
+      actorName: user.name,
+      actorRole: activeRoleId,
+      module: "Permissions",
+      action: "role_switched",
+      objectType: "Session",
+      objectId: user.id,
+      title: "Active role switched",
+      beforeValue: { roleId: activeRoleId, userId: user.id },
+      afterValue: { roleId: newRoleId, userId: newUser.id },
+    });
+    setActiveRoleId(newRoleId);
+  };
 
   return (
     <DropdownMenu>
@@ -57,7 +77,7 @@ export function RoleSwitcher() {
           return (
             <DropdownMenuItem
               key={u.id}
-              onClick={() => setActiveRoleId(u.roleId as UserRoleId)}
+              onClick={() => handleSwitch(u.roleId as UserRoleId)}
               className={cn(
                 "flex items-start gap-3 py-2",
                 active && "bg-accent/60",

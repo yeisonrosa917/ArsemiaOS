@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   BarChart3,
   Boxes,
   Briefcase,
   ClipboardList,
   Coins,
   Compass,
+  KanbanSquare,
   LayoutDashboard,
   LifeBuoy,
   Map,
@@ -41,20 +43,22 @@ type NavItem = {
 
 const primaryNav: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Pipeline", href: "/pipeline", icon: Compass },
+  { label: "Operations Board", href: "/operations-board", icon: KanbanSquare },
   { label: "Dispatch", href: "/dispatch", icon: Zap, badge: "Live" },
   { label: "Jobs", href: "/jobs", icon: ClipboardList },
   { label: "Routes", href: "/routes", icon: RouteIcon },
+  { label: "Activity Log", href: "/activity", icon: Activity },
 ];
 
 const salesNav: NavItem[] = [
+  { label: "Pipeline", href: "/pipeline", icon: Compass },
   { label: "Leads", href: "/leads", icon: UserRound },
   { label: "Quotes", href: "/quotes", icon: Briefcase },
   { label: "Customers", href: "/customers", icon: Users },
 ];
 
 const operationsNav: NavItem[] = [
-  { label: "Foremen", href: "/drivers", icon: UserSquare2 },
+  { label: "Foremen", href: "/foremen", icon: UserSquare2 },
   { label: "Fleet", href: "/fleet", icon: Truck },
 ];
 

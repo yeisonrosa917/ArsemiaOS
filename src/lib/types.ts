@@ -127,8 +127,15 @@ export interface JobAdjustment {
 
 export interface Job {
   id: string;
+  /** Foreign key to Customer. Preferred over substring matching on customer name. */
+  customerId?: string;
   customer: string;
   customerPhone: string;
+  /** Pre-adjustment baseline used by Payroll Audit and adjustment "before" snapshots. */
+  baselineCuFt?: number;
+  baselinePrice?: number;
+  /** Internal commissionable base used by Payroll Audit. */
+  commissionableBase?: number;
   pickup: string;
   delivery: string;
   pickupCity: string;
@@ -226,10 +233,20 @@ export interface Claim {
   openedAt: string;
 }
 
+export type VehicleType =
+  | "ISUZU NPR 20'"
+  | "ISUZU NPR 26'"
+  | "Freightliner M2 26'"
+  | "Mercedes Sprinter 170"
+  | "Mercedes Sprinter 144"
+  | "Ford Transit 250"
+  | "Cargo Van"
+  | "Box Truck";
+
 export interface Vehicle {
   id: string;
   name: string;
-  type: "Box Truck" | "Cargo Van" | "Tractor Trailer" | "Sprinter Van";
+  type: VehicleType;
   vin: string;
   plate: string;
   status: VehicleStatus;
@@ -242,6 +259,10 @@ export interface Vehicle {
   location: string;
 }
 
+/** Alias — moving forward, prefer Foreman over Driver. */
+export type Foreman = Driver;
+export type ForemanStatus = DriverStatus;
+
 export interface Customer {
   id: string;
   name: string;
@@ -252,6 +273,115 @@ export interface Customer {
   lastJobDate: string;
   segment: "Residential" | "Commercial" | "Repeat";
   status: "Active" | "Lead" | "Inactive";
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * Sales Pipeline — distinct from operational job statuses.
+ * ────────────────────────────────────────────────────────── */
+
+export type SalesStage =
+  | "New Lead"
+  | "Contacted"
+  | "Quote Requested"
+  | "Quote Drafted"
+  | "Quote Sent"
+  | "Follow-Up Needed"
+  | "Booked"
+  | "Converted to Job"
+  | "Lost"
+  | "Cancelled";
+
+export interface SalesOpportunity {
+  id: string;
+  customerName: string;
+  email?: string;
+  phone?: string;
+  source: "Website" | "Yelp" | "Google Ads" | "Referral" | "Phone" | "Walk-in";
+  fromCity: string;
+  toCity: string;
+  estimatedCuFt?: number;
+  estimatedValue: number;
+  stage: SalesStage;
+  assignedSeller?: string;
+  createdAt: string;
+  lastTouchAt?: string;
+  notes?: string;
+  quoteId?: string;
+  jobId?: string;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * Activity Log — structured cross-module entries.
+ * ────────────────────────────────────────────────────────── */
+
+export type ActivityModule =
+  | "Jobs"
+  | "Adjustments"
+  | "Quotes"
+  | "Leads"
+  | "Customers"
+  | "Foremen"
+  | "Fleet"
+  | "Payroll"
+  | "Expenses"
+  | "Invoices"
+  | "Claims"
+  | "Settings"
+  | "Permissions"
+  | "Account"
+  | "Privacy"
+  | "Dispatch";
+
+export type ActivityAction =
+  | "created"
+  | "updated"
+  | "deleted"
+  | "edited"
+  | "assigned"
+  | "reassigned"
+  | "status_changed"
+  | "approved"
+  | "rejected"
+  | "paid"
+  | "submitted"
+  | "exported"
+  | "viewed"
+  | "role_switched"
+  | "permission_changed"
+  | "account_deletion_requested"
+  | "account_deletion_completed"
+  | "settings_changed"
+  | "login";
+
+export interface ActivityEntry {
+  id: string;
+  timestamp: string;
+  actorId: string;
+  actorName: string;
+  actorRole: string;
+  module: ActivityModule;
+  action: ActivityAction;
+  objectType: string;
+  objectId: string;
+  title: string;
+  beforeValue?: unknown;
+  afterValue?: unknown;
+  notes?: string;
+  metadata?: Record<string, unknown>;
+  attachments?: string[];
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * Account / Privacy — soft-delete schema.
+ * ────────────────────────────────────────────────────────── */
+
+export interface AccountState {
+  userId: string;
+  deletionRequestedAt?: string;
+  deletionCompletedAt?: string;
+  deletedAt?: string;
+  /** When anonymized, original PII is gone and identity becomes "Deleted Account". */
+  anonymized: boolean;
 }
 
 export interface Invoice {

@@ -43,8 +43,10 @@ export default async function CustomerDetailPage({
   if (!customer) notFound();
 
   // Surface jobs that match by customer name (mock — Phase 3 uses real FK)
-  const customerJobs = jobs.filter((j) =>
-    j.customer.toLowerCase().includes(customer.name.toLowerCase().split(" ")[0]),
+  // Match by customerId FK (preferred). Fall back to exact name match only
+  // for customers that don't yet have a FK populated.
+  const customerJobs = jobs.filter(
+    (j) => j.customerId === customer.id || (!j.customerId && j.customer === customer.name),
   );
 
   const lifetimeFromJobs = customerJobs.reduce((acc, j) => acc + j.price, 0);
@@ -227,13 +229,17 @@ export default async function CustomerDetailPage({
                   New quote for this customer
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <Mail className="h-4 w-4" />
-                Send email
+              <Button asChild variant="outline" className="w-full justify-start gap-2">
+                <a href={`mailto:${customer.email}`}>
+                  <Mail className="h-4 w-4" />
+                  Send email
+                </a>
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <Phone className="h-4 w-4" />
-                Call customer
+              <Button asChild variant="outline" className="w-full justify-start gap-2">
+                <a href={`tel:${customer.phone.replace(/\D/g, "")}`}>
+                  <Phone className="h-4 w-4" />
+                  Call customer
+                </a>
               </Button>
             </CardContent>
           </Card>

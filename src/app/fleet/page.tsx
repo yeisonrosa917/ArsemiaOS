@@ -139,7 +139,7 @@ export default function FleetPage() {
                       )}
                     />
                     <span className="font-medium">
-                      {v.gpsActive ? "GPS streaming" : "GPS offline"}
+                      {v.gpsActive ? "GPS tracking" : "GPS offline"}
                     </span>
                   </div>
                   {v.currentDriver ? (

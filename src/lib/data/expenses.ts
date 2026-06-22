@@ -39,7 +39,7 @@ export const EXPENSES: Expense[] = [
   {
     id: "EXP-2401",
     foremanName: "Marcus Reyes",
-    foremanId: "DRV-1042",
+    foremanId: "FM-1042",
     truckId: "VEH-204",
     truckName: "Truck #04 - ISUZU NPR 20' - 2024 - Foreman Marcus",
     jobId: "JOB-10421",
@@ -55,9 +55,9 @@ export const EXPENSES: Expense[] = [
   {
     id: "EXP-2402",
     foremanName: "Ravi Shankar",
-    foremanId: "DRV-1048",
+    foremanId: "FM-1048",
     truckId: "VEH-230",
-    truckName: "Truck #30 - Freightliner Cascadia 53' - 2021 - Foreman Ravi",
+    truckName: "Truck #30 - Freightliner M2 26' - 2021 - Foreman Ravi",
     jobId: "JOB-10426",
     category: "Hotel",
     amount: 142.5,
@@ -72,7 +72,7 @@ export const EXPENSES: Expense[] = [
   {
     id: "EXP-2403",
     foremanName: "Sofia Hernandez",
-    foremanId: "DRV-1043",
+    foremanId: "FM-1043",
     truckId: "VEH-207",
     truckName: "Truck #07 - Mercedes Sprinter 170 - 2023 - Foreman Sofia",
     jobId: "JOB-10422",
@@ -88,7 +88,7 @@ export const EXPENSES: Expense[] = [
   {
     id: "EXP-2404",
     foremanName: "Trevon Walker",
-    foremanId: "DRV-1044",
+    foremanId: "FM-1044",
     truckId: "VEH-211",
     truckName: "Truck #11 - Freightliner M2 26' - 2022 - Foreman Trevon",
     jobId: "JOB-10423",
@@ -102,7 +102,7 @@ export const EXPENSES: Expense[] = [
   {
     id: "EXP-2405",
     foremanName: "Anya Volkov",
-    foremanId: "DRV-1045",
+    foremanId: "FM-1045",
     truckId: "VEH-215",
     truckName: "Truck #15 - Ford Transit 250 - 2023 - Foreman Anya",
     category: "Truck Repair",
@@ -114,7 +114,7 @@ export const EXPENSES: Expense[] = [
   {
     id: "EXP-2406",
     foremanName: "Jamal Carter",
-    foremanId: "DRV-1046",
+    foremanId: "FM-1046",
     truckId: "VEH-220",
     truckName: "Truck #20 - ISUZU NPR 26' - 2025 - Foreman Jamal",
     jobId: "JOB-10429",
@@ -127,7 +127,7 @@ export const EXPENSES: Expense[] = [
   {
     id: "EXP-2407",
     foremanName: "Elena Park",
-    foremanId: "DRV-1047",
+    foremanId: "FM-1047",
     truckId: "VEH-224",
     truckName: "Truck #24 - Mercedes Sprinter 144 - 2024 - Foreman Elena",
     jobId: "JOB-10427",
@@ -143,7 +143,7 @@ export const EXPENSES: Expense[] = [
   {
     id: "EXP-2408",
     foremanName: "Marcus Reyes",
-    foremanId: "DRV-1042",
+    foremanId: "FM-1042",
     truckId: "VEH-204",
     truckName: "Truck #04 - ISUZU NPR 20' - 2024 - Foreman Marcus",
     category: "Gas",
@@ -158,9 +158,9 @@ export const EXPENSES: Expense[] = [
   {
     id: "EXP-2409",
     foremanName: "Ravi Shankar",
-    foremanId: "DRV-1048",
+    foremanId: "FM-1048",
     truckId: "VEH-230",
-    truckName: "Truck #30 - Freightliner Cascadia 53' - 2021 - Foreman Ravi",
+    truckName: "Truck #30 - Freightliner M2 26' - 2021 - Foreman Ravi",
     category: "Rental Equipment",
     amount: 95.0,
     date: "2026-06-18T10:00:00",
@@ -172,7 +172,7 @@ export const EXPENSES: Expense[] = [
   {
     id: "EXP-2410",
     foremanName: "Sofia Hernandez",
-    foremanId: "DRV-1043",
+    foremanId: "FM-1043",
     truckId: "VEH-207",
     truckName: "Truck #07 - Mercedes Sprinter 170 - 2023 - Foreman Sofia",
     category: "Hotel",

@@ -48,13 +48,13 @@ import { fmtUSD } from "@/lib/calculator/engine";
 import { cn } from "@/lib/utils";
 
 const CONTRACTOR_COMPANIES: Record<string, { company: string; commissionPct: number }> = {
-  "DRV-1042": { company: "Arsemia LLC", commissionPct: 33.5 },
-  "DRV-1043": { company: "Hernandez Moving Co.", commissionPct: 32 },
-  "DRV-1044": { company: "—", commissionPct: 30 },
-  "DRV-1045": { company: "Volkov Logistics LLC", commissionPct: 33.5 },
-  "DRV-1046": { company: "Carter Bros Movers", commissionPct: 33.5 },
-  "DRV-1047": { company: "—", commissionPct: 30 },
-  "DRV-1048": { company: "Shankar Long Haul LLC", commissionPct: 33.5 },
+  "FM-1042": { company: "Arsemia LLC", commissionPct: 33.5 },
+  "FM-1043": { company: "Hernandez Moving Co.", commissionPct: 32 },
+  "FM-1044": { company: "—", commissionPct: 30 },
+  "FM-1045": { company: "Volkov Logistics LLC", commissionPct: 33.5 },
+  "FM-1046": { company: "Carter Bros Movers", commissionPct: 33.5 },
+  "FM-1047": { company: "—", commissionPct: 30 },
+  "FM-1048": { company: "Shankar Long Haul LLC", commissionPct: 33.5 },
 };
 
 const STATUS_COLORS: Record<string, string> = {

@@ -88,7 +88,12 @@ export default function ExpensesPage() {
         title="Expenses"
         description="Foreman-submitted expenses from the field. Reviewed by accounting, reimbursed or deducted."
         actions={
-          <Button size="sm" className="gap-2">
+          <Button
+            size="sm"
+            className="gap-2"
+            disabled
+            title="Manual expense entry ships when the Foreman App is integrated. Until then, expenses flow from the field."
+          >
             <Plus className="h-4 w-4" /> Manual entry
           </Button>
         }

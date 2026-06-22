@@ -26,6 +26,10 @@ import {
 } from "@/lib/store/adjustments";
 import { useNotifications } from "@/lib/store/notifications";
 import { useJobEvents } from "@/lib/store/job-events";
+import { useJobsStore } from "@/lib/store/jobs";
+import { useActivityLog } from "@/lib/store/activity-log";
+import { usePreferences } from "@/lib/store/preferences";
+import { getUserByRole } from "@/lib/auth/users";
 import { fmtUSD } from "@/lib/calculator/engine";
 import { cn } from "@/lib/utils";
 
@@ -66,15 +70,33 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
     adjustments[0]?.id ?? null,
   );
 
+  const applyAdjustment = useJobsStore((s) => s.applyAdjustment);
+  const pushActivity = useActivityLog((s) => s.push);
+  const activeRoleId = usePreferences((s) => s.activeRoleId);
+  const actor = getUserByRole(activeRoleId);
+
   const handleAdvance = (id: string, current: AdjustmentStatus) => {
     const idx = ADJUSTMENT_FLOW.indexOf(current);
     const next = ADJUSTMENT_FLOW[idx + 1];
-    advance(id, "Mariana Castro");
+    advance(id, actor.name);
     pushEvent({
       jobId,
       type: "adjustment_added",
-      actor: "Mariana Castro",
+      actor: actor.name,
       message: `Adjustment ${id}: ${current} → ${next}.`,
+    });
+    pushActivity({
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: activeRoleId,
+      module: "Adjustments",
+      action: "status_changed",
+      objectType: "Adjustment",
+      objectId: id,
+      title: `Adjustment ${id} advanced`,
+      beforeValue: { status: current },
+      afterValue: { status: next },
+      metadata: { jobId },
     });
     pushNotif({
       kind: "info",
@@ -82,17 +104,61 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
       body: `${current} → ${next}.`,
       href: `/jobs/${jobId}`,
     });
+
+    // When advancing INTO "Applied to Job", actually update the job.
+    if (next === "Applied to Job") {
+      const adj = adjustments.find((a) => a.id === id);
+      if (adj) {
+        const updated = applyAdjustment(jobId, {
+          extraCuFt: adj.extraCuFt,
+          extraBill: adj.extraBill,
+          adjustmentId: id,
+        });
+        if (updated) {
+          pushEvent({
+            jobId,
+            type: "edited",
+            actor: actor.name,
+            message: `Job updated by adjustment ${id}: +${adj.extraCuFt} ft³, +${fmtUSD(adj.extraBill)}.`,
+          });
+          pushActivity({
+            actorId: actor.id,
+            actorName: actor.name,
+            actorRole: activeRoleId,
+            module: "Jobs",
+            action: "updated",
+            objectType: "Job",
+            objectId: jobId,
+            title: `Job ${jobId} updated by adjustment ${id}`,
+            beforeValue: { cuFt: adj.beforeCuFt, price: adj.beforeBill },
+            afterValue: { cuFt: adj.afterCuFt, price: adj.afterBill },
+          });
+        }
+      }
+    }
   };
 
   const handleReject = (id: string) => {
     const reason = window.prompt("Reason for rejection:");
     if (!reason) return;
-    reject(id, "Mariana Castro", reason);
+    reject(id, actor.name, reason);
     pushEvent({
       jobId,
       type: "adjustment_added",
-      actor: "Mariana Castro",
+      actor: actor.name,
       message: `Adjustment ${id} rejected: ${reason}`,
+    });
+    pushActivity({
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: activeRoleId,
+      module: "Adjustments",
+      action: "rejected",
+      objectType: "Adjustment",
+      objectId: id,
+      title: `Adjustment ${id} rejected`,
+      notes: reason,
+      metadata: { jobId },
     });
     pushNotif({
       kind: "info",

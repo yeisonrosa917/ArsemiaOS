@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export type AdjustmentStatus =
   | "Requested by Foreman"
@@ -130,8 +131,10 @@ const SEED: Adjustment[] = [
   },
 ];
 
-export const useAdjustments = create<AdjustmentsState>((set, get) => ({
-  items: SEED,
+export const useAdjustments = create<AdjustmentsState>()(
+  persist(
+    (set, get) => ({
+      items: SEED,
   forJob: (jobId) => get().items.filter((a) => a.jobId === jobId),
   advance: (id, by) =>
     set((s) => ({
@@ -165,14 +168,20 @@ export const useAdjustments = create<AdjustmentsState>((set, get) => ({
           : a,
       ),
     })),
-  add: (a) => {
-    const newItem: Adjustment = {
-      ...a,
-      id: `ADJ-${1100 + Math.floor(Math.random() * 900)}`,
-      requestedAt: new Date().toISOString(),
-      status: "Requested by Foreman",
-    };
-    set((s) => ({ items: [newItem, ...s.items] }));
-    return newItem;
-  },
-}));
+      add: (a) => {
+        const newItem: Adjustment = {
+          ...a,
+          id: `ADJ-${1100 + Math.floor(Math.random() * 900)}`,
+          requestedAt: new Date().toISOString(),
+          status: "Requested by Foreman",
+        };
+        set((s) => ({ items: [newItem, ...s.items] }));
+        return newItem;
+      },
+    }),
+    {
+      name: "arsemia.adjustments.v1",
+      storage: createJSONStorage(() => localStorage),
+    },
+  ),
+);

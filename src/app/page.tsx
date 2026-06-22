@@ -52,7 +52,7 @@ export default function DashboardPage() {
           accent="brand"
         />
         <KpiCard
-          label="Active drivers"
+          label="Active foremen"
           value={String(kpiSnapshot.activeDrivers)}
           delta={kpiSnapshot.activeDriversDelta}
           deltaSuffix=""

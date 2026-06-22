@@ -17,63 +17,9 @@ import {
   type JobAuditInput,
 } from "@/lib/payroll/audit";
 import { fmtUSD } from "@/lib/calculator/engine";
+import { useJobsStore } from "@/lib/store/jobs";
 import { cn } from "@/lib/utils";
 
-interface SampleJob extends JobAuditInput {
-  type: string;
-}
-
-const SAMPLE_JOBS: SampleJob[] = [
-  {
-    jobId: "1529981",
-    customer: "Aden Lambert",
-    type: "Local",
-    commissionableBase: 256.25,
-    paidCompanyLine: 85.84,
-  },
-  {
-    jobId: "1415836",
-    customer: "Francis Murray",
-    type: "Local",
-    commissionableBase: 616.25,
-    paidCompanyLine: 206.44,
-  },
-  {
-    jobId: "1505737",
-    customer: "Lisa Mariano",
-    type: "Local + Packing",
-    commissionableBase: 1083.75,
-    paidCompanyLine: 363.06,
-    excluded: { admin: 150, reimbursements: 200 },
-  },
-  {
-    jobId: "1471266",
-    customer: "Cassie Henning",
-    type: "Local",
-    commissionableBase: 365.0,
-    paidCompanyLine: 122.28,
-  },
-  {
-    jobId: "1479260",
-    customer: "Alana Varela",
-    type: "LD Inbound",
-    commissionableBase: 360.25,
-    paidCompanyLine: 120.68,
-    excluded: { admin: 230 },
-  },
-  {
-    jobId: "1449859",
-    customer: "Sam Budney",
-    type: "LD Straight",
-    commissionableBase: 4272.5,
-    paidCompanyLine: 1431.29,
-    excluded: { admin: 963.5, tolls: 150 },
-  },
-];
-
-// Solo se usa cuando el foreman tiene compañía registrada (modelo 33.5%).
-// El crew member es solo el foreman recibiendo el 100% del contractor income;
-// la repartición a helpers/empleados queda fuera del panel y la maneja el owner.
 const FOREMAN_AS_CONTRACTOR: CrewMember[] = [
   {
     id: "c_foreman",
@@ -83,18 +29,41 @@ const FOREMAN_AS_CONTRACTOR: CrewMember[] = [
   },
 ];
 
+interface AuditInputWithMeta extends JobAuditInput {
+  type: string;
+}
+
 export function PayrollAuditPanel() {
   // Toggle: foreman operates as a registered contractor (33.5% model active).
   // When false, payroll is just gross commission to foreman with no company
   // savings split — UI hides the reserve and 33.5% layer.
   const [registeredContractor, setRegisteredContractor] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  // Live jobs from the persistent jobs store — same source of truth as JobDetail
+  // and Operations Board. Filter to those that have a foreman + commissionableBase.
+  const jobs = useJobsStore((s) => s.jobs);
+
+  const SAMPLE_JOBS: AuditInputWithMeta[] = useMemo(
+    () =>
+      jobs
+        .filter((j) => j.driverId && j.commissionableBase && j.commissionableBase > 0)
+        .slice(0, 10)
+        .map((j) => ({
+          jobId: j.id,
+          customer: j.customer,
+          type: j.type,
+          commissionableBase: j.commissionableBase ?? 0,
+          // Mock "paid" line: 33.5% of commissionable base. In Phase 8 this will
+          // come from the actual payroll line from accounting.
+          paidCompanyLine:
+            Math.round((j.commissionableBase ?? 0) * 0.335 * 100) / 100,
+        })),
+    [jobs],
+  );
 
   const config = registeredContractor
     ? DEFAULT_COMMISSION_CONFIG
     : {
-        // Non-registered mode: the foreman receives the gross commission line
-        // straight; there is no "reserve" because there is no LLC behind it.
         companyCommissionPct: DEFAULT_COMMISSION_CONFIG.companyCommissionPct,
         crewPoolPct: DEFAULT_COMMISSION_CONFIG.companyCommissionPct,
         companyReservePct: 0,
@@ -102,7 +71,7 @@ export function PayrollAuditPanel() {
 
   const audits = useMemo(
     () => SAMPLE_JOBS.map((j) => auditJob(j, FOREMAN_AS_CONTRACTOR, [], config)),
-    [config],
+    [SAMPLE_JOBS, config],
   );
 
   const totals = useMemo(() => {
@@ -135,7 +104,7 @@ export function PayrollAuditPanel() {
       okCount,
       flaggedCount,
     };
-  }, [audits]);
+  }, [audits, SAMPLE_JOBS]);
 
   return (
     <div className="space-y-6">

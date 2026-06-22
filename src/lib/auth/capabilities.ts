@@ -64,7 +64,7 @@ export type CapabilityGroup =
   | "Dispatch"
   | "Jobs"
   | "Routes"
-  | "Drivers"
+  | "Foremen"
   | "Fleet"
   | "Customers"
   | "Sales"
@@ -88,8 +88,8 @@ export const CAPABILITIES: CapabilityMeta[] = [
   { id: "routes.view", group: "Routes", label: "View routes", description: "See planned and active routes." },
   { id: "routes.edit", group: "Routes", label: "Edit routes", description: "Plan or optimize routes." },
 
-  { id: "drivers.view", group: "Drivers", label: "View drivers", description: "See driver roster." },
-  { id: "drivers.edit", group: "Drivers", label: "Edit drivers", description: "Update driver records and documents." },
+  { id: "drivers.view", group: "Foremen", label: "View drivers", description: "See driver roster." },
+  { id: "drivers.edit", group: "Foremen", label: "Edit drivers", description: "Update driver records and documents." },
 
   { id: "fleet.view", group: "Fleet", label: "View fleet", description: "See vehicles and maintenance." },
   { id: "fleet.edit", group: "Fleet", label: "Edit fleet", description: "Update vehicle records." },
@@ -131,7 +131,7 @@ export const CAPABILITY_GROUPS: CapabilityGroup[] = [
   "Dispatch",
   "Jobs",
   "Routes",
-  "Drivers",
+  "Foremen",
   "Fleet",
   "Customers",
   "Sales",

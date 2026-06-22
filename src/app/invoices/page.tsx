@@ -38,11 +38,22 @@ export default function InvoicesPage() {
         description="Billing pipeline — drafts, sent, paid, and overdue across the customer book."
         actions={
           <>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled
+              title="CSV export comes in Phase 10 (Analytics + Tax Summary)"
+            >
               <Download className="h-4 w-4" />
               Export
             </Button>
-            <Button size="sm" className="gap-2">
+            <Button
+              size="sm"
+              className="gap-2"
+              disabled
+              title="New invoice form ships in Phase 8 (Payroll + Accounting)"
+            >
               <Plus className="h-4 w-4" />
               New invoice
             </Button>

@@ -1,4 +1,16 @@
-import { Bell, Building2, CreditCard, Lock, Users } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import {
+  Activity,
+  Bell,
+  Building2,
+  Lock,
+  Plug,
+  Settings as SettingsIcon,
+  Shield,
+  UserCircle,
+} from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,29 +24,37 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { AppearanceCard } from "@/components/settings/appearance-card";
 import { RolesAndPermissionsCard } from "@/components/settings/roles-card";
+import { PrivacyDataCard } from "@/components/settings/privacy-card";
+import { useActivityLog } from "@/lib/store/activity-log";
+import { usePreferences } from "@/lib/store/preferences";
+import { getUserByRole } from "@/lib/auth/users";
 
 const SECTIONS = [
-  { icon: Building2, label: "Organization", description: "Company profile, branches, time zones" },
-  { icon: Users, label: "Team", description: "Roles, permissions, dispatcher seats" },
-  { icon: CreditCard, label: "Billing", description: "Plan, invoices, payment methods" },
-  { icon: Bell, label: "Notifications", description: "Email, SMS, in-app alerts" },
-  { icon: Lock, label: "Security", description: "SSO, 2FA, session policies" },
+  { id: "account", icon: UserCircle, label: "Account" },
+  { id: "company", icon: Building2, label: "Company Profile" },
+  { id: "appearance", icon: SettingsIcon, label: "Appearance" },
+  { id: "roles", icon: Shield, label: "Roles & Permissions" },
+  { id: "notifications", icon: Bell, label: "Notifications", comingSoon: true },
+  { id: "activity", icon: Activity, label: "Activity Log Settings", comingSoon: true },
+  { id: "integrations", icon: Plug, label: "Integrations", comingSoon: true },
+  { id: "privacy", icon: Lock, label: "Privacy & Data" },
 ];
 
 export default function SettingsPage() {
+  const [section, setSection] = useState("account");
+  const pushActivity = useActivityLog((s) => s.push);
+  const activeRoleId = usePreferences((s) => s.activeRoleId);
+  const user = getUserByRole(activeRoleId);
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Settings"
-        description="Workspace, team, billing, and integrations for Arsemia Dispatch OS."
+        description="Account, company, permissions, privacy, and integrations."
       />
 
-      <AppearanceCard />
-
-      <RolesAndPermissionsCard />
-
       <div className="grid grid-cols-12 gap-4">
-        <Card className="col-span-12 lg:col-span-4">
+        <Card className="col-span-12 lg:col-span-3">
           <CardHeader>
             <CardTitle>Settings</CardTitle>
             <CardDescription>Browse configuration sections</CardDescription>
@@ -42,19 +62,39 @@ export default function SettingsPage() {
           <CardContent className="space-y-1">
             {SECTIONS.map((s) => {
               const Icon = s.icon;
+              const active = section === s.id;
               return (
                 <button
-                  key={s.label}
-                  className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors hover:bg-muted"
+                  key={s.id}
+                  onClick={() => !s.comingSoon && setSection(s.id)}
+                  disabled={s.comingSoon}
+                  title={s.comingSoon ? "Coming in a future phase" : undefined}
+                  className={
+                    "flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors " +
+                    (active
+                      ? "bg-primary/10"
+                      : s.comingSoon
+                        ? "cursor-not-allowed opacity-50"
+                        : "hover:bg-muted")
+                  }
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-foreground">
+                  <span
+                    className={
+                      "flex h-9 w-9 items-center justify-center rounded-lg " +
+                      (active
+                        ? "bg-primary/20 text-primary"
+                        : "bg-muted text-foreground")
+                    }
+                  >
                     <Icon className="h-4 w-4" />
                   </span>
-                  <span>
+                  <span className="flex-1">
                     <p className="text-sm font-semibold">{s.label}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {s.description}
-                    </p>
+                    {s.comingSoon && (
+                      <p className="text-[10px] text-muted-foreground">
+                        Coming soon
+                      </p>
+                    )}
                   </span>
                 </button>
               );
@@ -62,62 +102,110 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-12 lg:col-span-8">
-          <CardHeader>
-            <CardTitle>Company profile</CardTitle>
-            <CardDescription>
-              Visible on invoices, customer notifications, and driver apps
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Legal name" defaultValue="Arsemia Logistics LLC" />
-              <Field label="DBA" defaultValue="Arsemia Dispatch" />
-              <Field label="DOT number" defaultValue="DOT-3491220" />
-              <Field label="MC number" defaultValue="MC-1180445" />
-              <Field label="Primary phone" defaultValue="(415) 555-0900" />
-              <Field
-                label="Operations email"
-                defaultValue="ops@arsemia.co"
-              />
-            </div>
+        <div className="col-span-12 space-y-4 lg:col-span-9">
+          {section === "account" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCircle className="h-4 w-4 text-primary" /> Account
+                </CardTitle>
+                <CardDescription>
+                  Personal information for the active session.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 md:grid-cols-2">
+                <Field label="Name" defaultValue={user.name} />
+                <Field label="Email" defaultValue={user.email} />
+                <Field label="Role" defaultValue={activeRoleId} disabled />
+                <Field label="User ID" defaultValue={user.id} disabled />
+              </CardContent>
+            </Card>
+          )}
 
-            <Separator />
+          {section === "company" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-primary" /> Company Profile
+                </CardTitle>
+                <CardDescription>
+                  Visible on invoices, customer notifications, and foreman app.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Legal name" defaultValue="Arsemia Logistics LLC" />
+                  <Field label="DBA" defaultValue="Arsemia Dispatch" />
+                  <Field label="DOT number" defaultValue="DOT-3491220" />
+                  <Field label="MC number" defaultValue="MC-1180445" />
+                  <Field label="Primary phone" defaultValue="(305) 555-0900" />
+                  <Field label="Operations email" defaultValue="ops@arsemia.co" />
+                </div>
 
-            <div>
-              <p className="text-sm font-semibold">Operating zones</p>
-              <p className="text-xs text-muted-foreground">
-                Default zones used to auto-route jobs
-              </p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {[
-                  "Downtown Miami",
-                  "Brickell",
-                  "Wynwood",
-                  "North Miami",
-                  "Hialeah",
-                  "Aventura",
-                  "South Dade",
-                  "Long Distance",
-                ].map((z) => (
-                  <span
-                    key={z}
-                    className="rounded-md border border-border bg-background px-2 py-1 text-xs font-medium"
+                <Separator />
+
+                <div>
+                  <p className="text-sm font-semibold">Operating zones</p>
+                  <p className="text-xs text-muted-foreground">
+                    Default zones used to auto-route jobs
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {[
+                      "Downtown Miami",
+                      "Brickell",
+                      "Wynwood",
+                      "North Miami",
+                      "Hialeah",
+                      "Aventura",
+                      "South Dade",
+                      "Coral Gables",
+                      "Coconut Grove",
+                      "Pinecrest",
+                      "Doral",
+                      "Long Distance",
+                    ].map((z) => (
+                      <span
+                        key={z}
+                        className="rounded-md border border-border bg-background px-2 py-1 text-xs font-medium"
+                      >
+                        {z}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline">Cancel</Button>
+                  <Button
+                    onClick={() => {
+                      pushActivity({
+                        actorId: user.id,
+                        actorName: user.name,
+                        actorRole: activeRoleId,
+                        module: "Settings",
+                        action: "settings_changed",
+                        objectType: "CompanyProfile",
+                        objectId: "default",
+                        title: "Company profile saved",
+                        notes: "Field values updated.",
+                      });
+                    }}
                   >
-                    {z}
-                  </span>
-                ))}
-              </div>
-            </div>
+                    Save changes
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-            <Separator />
+          {section === "appearance" && <AppearanceCard />}
 
-            <div className="flex justify-end gap-2">
-              <Button variant="outline">Cancel</Button>
-              <Button>Save changes</Button>
-            </div>
-          </CardContent>
-        </Card>
+          {section === "roles" && <RolesAndPermissionsCard />}
+
+          {section === "privacy" && <PrivacyDataCard />}
+        </div>
       </div>
     </div>
   );
@@ -126,16 +214,18 @@ export default function SettingsPage() {
 function Field({
   label,
   defaultValue,
+  disabled,
 }: {
   label: string;
   defaultValue: string;
+  disabled?: boolean;
 }) {
   return (
     <label className="block">
       <span className="text-xs font-semibold text-muted-foreground">
         {label}
       </span>
-      <Input defaultValue={defaultValue} className="mt-1" />
+      <Input defaultValue={defaultValue} disabled={disabled} className="mt-1" />
     </label>
   );
 }
