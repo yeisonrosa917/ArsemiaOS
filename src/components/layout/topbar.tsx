@@ -2,53 +2,64 @@
 
 import { Bell, CommandIcon, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { RoleSwitcher } from "./role-switcher";
 import { ThemeMenu } from "./theme-menu";
+import {
+  CommandPalette,
+  useCommandPalette,
+} from "@/components/command-palette";
 
 export function Topbar() {
+  const { open, setOpen } = useCommandPalette();
+
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/80 bg-background/85 px-4 backdrop-blur-xl lg:px-8">
-      <div className="hidden flex-1 items-center md:flex">
-        <div className="relative w-full max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search jobs, drivers, customers..."
-            className="h-10 rounded-xl border-border/80 bg-muted/40 pl-9 pr-20 text-sm shadow-none focus-visible:bg-background"
-          />
-          <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 items-center gap-1 rounded-md border border-border/80 bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground md:inline-flex">
-            <CommandIcon className="h-3 w-3" />K
-          </kbd>
+    <>
+      <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/80 bg-background/85 px-4 backdrop-blur-xl lg:px-8">
+        <div className="hidden flex-1 items-center md:flex">
+          <button
+            onClick={() => setOpen(true)}
+            className="group flex h-10 w-full max-w-md items-center gap-2 rounded-xl border border-border/80 bg-muted/40 px-3 text-left text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-background"
+          >
+            <Search className="h-4 w-4" />
+            <span className="flex-1">Search jobs, drivers, customers...</span>
+            <kbd className="hidden items-center gap-1 rounded-md border border-border/80 bg-background px-1.5 py-0.5 text-[10px] font-medium md:inline-flex">
+              <CommandIcon className="h-3 w-3" />K
+            </kbd>
+          </button>
         </div>
-      </div>
 
-      <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
-        <Button
-          variant="default"
-          size="sm"
-          className="h-9 rounded-lg px-3 text-sm"
-        >
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">New Job</span>
-        </Button>
+        <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
+          <Button
+            variant="default"
+            size="sm"
+            className="h-9 rounded-lg px-3 text-sm"
+            asChild
+          >
+            <a href="/quotes">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">New Quote</span>
+            </a>
+          </Button>
 
-        <ThemeMenu />
+          <ThemeMenu />
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-9 w-9 rounded-lg"
-          aria-label="Notifications"
-        >
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-background" />
-        </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative h-9 w-9 rounded-lg"
+            aria-label="Notifications"
+          >
+            <Bell className="h-4 w-4" />
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-background" />
+          </Button>
 
-        <Separator orientation="vertical" className="mx-1 h-6" />
+          <Separator orientation="vertical" className="mx-1 h-6" />
 
-        <RoleSwitcher />
-      </div>
-    </header>
+          <RoleSwitcher />
+        </div>
+      </header>
+      <CommandPalette open={open} setOpen={setOpen} />
+    </>
   );
 }
