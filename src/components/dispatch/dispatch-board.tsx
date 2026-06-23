@@ -51,12 +51,17 @@ const JOB_TYPES = [
   "Commercial",
 ] as const;
 
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function DispatchBoard() {
   const [search, setSearch] = useState("");
   const [zoneFilter, setZoneFilter] = useState<string>("All Zones");
   const [typeFilter, setTypeFilter] = useState<string>("All Types");
   const [statusFilter, setStatusFilter] = useState<JobStatus | "All">("All");
   const [driverFilter, setDriverFilter] = useState<string>("All Foremen");
+  const [selectedDate, setSelectedDate] = useState<string>(todayISO());
   const [selectedJobId, setSelectedJobId] = useState<string | null>(
     jobs[0]?.id ?? null,
   );
@@ -64,8 +69,29 @@ export function DispatchBoard() {
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const user = getUserByRole(activeRoleId);
 
+  const dateStrip = useMemo(() => {
+    const base = new Date(selectedDate);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(base);
+      d.setDate(base.getDate() - 3 + i);
+      return d;
+    });
+  }, [selectedDate]);
+
+  const jobCountByDay = useMemo(() => {
+    const map: Record<string, number> = {};
+    jobs.forEach((j) => {
+      const day = (j.scheduledAt ?? "").slice(0, 10);
+      if (!day) return;
+      map[day] = (map[day] ?? 0) + 1;
+    });
+    return map;
+  }, []);
+
   const filteredJobs = useMemo(() => {
     return jobs.filter((j) => {
+      const jobDay = (j.scheduledAt ?? "").slice(0, 10);
+      if (jobDay && jobDay !== selectedDate) return false;
       if (statusFilter !== "All" && j.status !== statusFilter) return false;
       if (zoneFilter !== "All Zones" && j.zone !== zoneFilter) return false;
       if (typeFilter !== "All Types" && j.type !== typeFilter) return false;
@@ -82,7 +108,7 @@ export function DispatchBoard() {
       }
       return true;
     });
-  }, [search, zoneFilter, typeFilter, statusFilter, driverFilter]);
+  }, [search, zoneFilter, typeFilter, statusFilter, driverFilter, selectedDate]);
 
   const selectedJob =
     filteredJobs.find((j) => j.id === selectedJobId) ??
@@ -97,7 +123,84 @@ export function DispatchBoard() {
   }, []);
 
   return (
-    <div className="grid grid-cols-12 gap-4">
+    <div className="space-y-4">
+      {/* Date strip — easy day navigation */}
+      <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2 shadow-soft">
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-8 w-8 p-0"
+          onClick={() => {
+            const d = new Date(selectedDate);
+            d.setDate(d.getDate() - 1);
+            setSelectedDate(d.toISOString().slice(0, 10));
+          }}
+          aria-label="Previous day"
+        >
+          ‹
+        </Button>
+        <div className="flex flex-1 items-center gap-1 overflow-x-auto">
+          {dateStrip.map((d) => {
+            const iso = d.toISOString().slice(0, 10);
+            const active = iso === selectedDate;
+            const isToday = iso === todayISO();
+            const count = jobCountByDay[iso] ?? 0;
+            return (
+              <button
+                key={iso}
+                onClick={() => setSelectedDate(iso)}
+                className={cn(
+                  "min-w-[64px] shrink-0 rounded-lg border px-2 py-1.5 text-center transition-colors",
+                  active
+                    ? "border-primary bg-primary/10 text-primary shadow-soft"
+                    : "border-border bg-background hover:bg-accent/30",
+                )}
+              >
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {d.toLocaleDateString(undefined, { weekday: "short" })}
+                </p>
+                <p className="text-base font-bold leading-none">
+                  {d.getDate()}
+                </p>
+                <p className="text-[9px] text-muted-foreground">
+                  {isToday ? "today" : `${count} jobs`}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-8 w-8 p-0"
+          onClick={() => {
+            const d = new Date(selectedDate);
+            d.setDate(d.getDate() + 1);
+            setSelectedDate(d.toISOString().slice(0, 10));
+          }}
+          aria-label="Next day"
+        >
+          ›
+        </Button>
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="h-8 rounded-md border border-border bg-background px-2 text-xs"
+        />
+        {selectedDate !== todayISO() && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-xs"
+            onClick={() => setSelectedDate(todayISO())}
+          >
+            Today
+          </Button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-12 gap-4">
       {/* Filters / job list */}
       <aside className="col-span-12 xl:col-span-3">
         <div className="flex h-full flex-col rounded-2xl border bg-card shadow-card">
@@ -470,6 +573,7 @@ export function DispatchBoard() {
           </div>
         </div>
       </aside>
+      </div>
     </div>
   );
 }

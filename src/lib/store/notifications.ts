@@ -4,12 +4,25 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 export type NotificationKind =
-  | "job_reassigned"
-  | "job_updated"
-  | "lead_new"
+  | "expense_pending"
+  | "expense_missing_receipt"
+  | "claim_foreman_response"
+  | "claim_status_changed"
+  | "invoice_overdue"
+  | "invoice_paid"
   | "payroll_flag"
-  | "claim_new"
+  | "payroll_pending"
+  | "fleet_maintenance"
+  | "fleet_insurance"
+  | "fleet_registration"
+  | "job_unassigned"
+  | "job_reassigned"
+  | "adjustment_requested"
+  | "quote_saved"
+  | "settings_reset"
   | "info";
+
+export type NotificationSeverity = "info" | "warning" | "danger";
 
 export interface Notification {
   id: string;
@@ -18,52 +31,32 @@ export interface Notification {
   body: string;
   createdAt: string;
   read: boolean;
-  /** Target route to open when clicked, if any. */
+  severity: NotificationSeverity;
   href?: string;
+  /** Optional role this notification is targeted to. If undefined, visible to all. */
+  audience?: string;
+  /** Optional dedupe key — derived notifications regenerate if this source still applies. */
+  sourceKey?: string;
 }
 
 interface NotificationsState {
   items: Notification[];
   push: (n: Omit<Notification, "id" | "createdAt" | "read">) => void;
   markRead: (id: string) => void;
+  markUnread: (id: string) => void;
   markAllRead: () => void;
+  remove: (id: string) => void;
   clear: () => void;
+  /** Replace all derived items (those with sourceKey) with the supplied batch, preserving read state. */
+  syncDerived: (next: Array<Omit<Notification, "id" | "createdAt" | "read">>) => void;
 }
 
-const initial: Notification[] = [
-  {
-    id: "n_001",
-    kind: "lead_new",
-    title: "New lead from Yelp",
-    body: "Sofia Martinez — Brickell → Coral Gables, ~480 ft³.",
-    href: "/leads",
-    createdAt: new Date(Date.now() - 1000 * 60 * 14).toISOString(),
-    read: false,
-  },
-  {
-    id: "n_002",
-    kind: "payroll_flag",
-    title: "Payroll variance",
-    body: "Job #1479260 underpaid by $35.12 vs expected.",
-    href: "/payroll",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    read: false,
-  },
-  {
-    id: "n_003",
-    kind: "claim_new",
-    title: "Claim opened",
-    body: "Hayward Logistics flagged minor furniture damage.",
-    href: "/claims",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    read: true,
-  },
-];
+const SEED: Notification[] = [];
 
 export const useNotifications = create<NotificationsState>()(
   persist(
     (set) => ({
-      items: initial,
+      items: SEED,
       push: (n) =>
         set((s) => ({
           items: [
@@ -80,12 +73,32 @@ export const useNotifications = create<NotificationsState>()(
         set((s) => ({
           items: s.items.map((n) => (n.id === id ? { ...n, read: true } : n)),
         })),
+      markUnread: (id) =>
+        set((s) => ({
+          items: s.items.map((n) => (n.id === id ? { ...n, read: false } : n)),
+        })),
       markAllRead: () =>
         set((s) => ({ items: s.items.map((n) => ({ ...n, read: true })) })),
+      remove: (id) =>
+        set((s) => ({ items: s.items.filter((n) => n.id !== id) })),
       clear: () => set({ items: [] }),
+      syncDerived: (next) =>
+        set((s) => {
+          const readMap = new Map(
+            s.items.filter((n) => n.sourceKey).map((n) => [n.sourceKey!, n.read]),
+          );
+          const manual = s.items.filter((n) => !n.sourceKey);
+          const derived = next.map((n) => ({
+            ...n,
+            id: `n_d_${n.sourceKey ?? Math.random().toString(36).slice(2, 9)}`,
+            createdAt: new Date().toISOString(),
+            read: n.sourceKey ? (readMap.get(n.sourceKey) ?? false) : false,
+          }));
+          return { items: [...derived, ...manual] };
+        }),
     }),
     {
-      name: "arsemia.notifications.v1",
+      name: "arsemia.notifications.v2",
       storage: createJSONStorage(() => localStorage),
     },
   ),

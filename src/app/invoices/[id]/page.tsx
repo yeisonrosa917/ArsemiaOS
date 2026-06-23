@@ -197,8 +197,10 @@ export default function InvoiceDetailPage({
                   Void Invoice
                 </Button>
               )}
-              <Button size="sm" variant="outline" disabled title="PDF engine ships in a later phase">
-                <FileText className="h-3.5 w-3.5" /> Download PDF
+              <Button asChild size="sm" variant="outline" className="gap-1">
+                <Link href={`/invoices/${invoice.id}/print`} target="_blank">
+                  <FileText className="h-3.5 w-3.5" /> Preview / Download PDF
+                </Link>
               </Button>
             </div>
           </div>
@@ -241,9 +243,41 @@ export default function InvoiceDetailPage({
             </TableBody>
           </Table>
           <Separator />
-          <div className="flex items-center justify-end gap-4 p-3 text-sm font-semibold">
-            <span>Total</span>
-            <span className="font-mono text-lg">{formatCurrency(invoice.total)}</span>
+          <div className="grid gap-3 p-3 md:grid-cols-2">
+            <div className="text-xs">
+              <p className="font-semibold uppercase tracking-wider text-muted-foreground">
+                Charge breakdown
+              </p>
+              <ul className="mt-1 space-y-0.5">
+                {Object.entries(
+                  invoice.lines.reduce<Record<string, number>>((acc, l) => {
+                    acc[l.category] = (acc[l.category] ?? 0) + l.qty * l.unitPrice;
+                    return acc;
+                  }, {}),
+                ).map(([cat, sub]) => (
+                  <li key={cat} className="flex items-center justify-between">
+                    <span>{cat}</span>
+                    <span className="font-mono">{formatCurrency(sub)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="ml-auto w-full max-w-xs space-y-1 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-mono font-semibold">{formatCurrency(invoice.total)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Paid</span>
+                <span className="font-mono font-semibold text-emerald-600">
+                  -{formatCurrency(invoice.paid)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-t pt-1 text-base font-semibold">
+                <span>Balance due</span>
+                <span className="font-mono">{formatCurrency(invoice.balance)}</span>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

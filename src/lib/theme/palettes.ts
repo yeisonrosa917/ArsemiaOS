@@ -3,7 +3,8 @@ export type Palette =
   | "charcoal-crimson"
   | "ocean"
   | "forest"
-  | "amber";
+  | "amber"
+  | "custom";
 
 export interface PaletteMeta {
   id: Palette;
@@ -42,5 +43,11 @@ export const PALETTES: PaletteMeta[] = [
     label: "Amber Sunset",
     description: "Warm orange + chocolate. High-energy, attention-grabbing.",
     swatch: ["#231910", "#f97316", "#fb923c"],
+  },
+  {
+    id: "custom",
+    label: "Custom Palette",
+    description: "Editable theme slot — three swatches you control.",
+    swatch: ["#1a1f2c", "#7c3aed", "#a78bfa"],
   },
 ];

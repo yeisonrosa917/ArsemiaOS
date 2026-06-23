@@ -19,7 +19,14 @@ import { cn } from "@/lib/utils";
 export function AppearanceCard() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const { palette, setPalette, sidebarSide, setSidebarSide } = usePreferences();
+  const {
+    palette,
+    setPalette,
+    sidebarSide,
+    setSidebarSide,
+    customSwatch,
+    setCustomSwatch,
+  } = usePreferences();
 
   useEffect(() => setMounted(true), []);
   const isDark = mounted && resolvedTheme === "dark";
@@ -66,9 +73,10 @@ export function AppearanceCard() {
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Palette
           </p>
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {PALETTES.map((p) => {
               const active = p.id === palette;
+              const swatch = p.id === "custom" ? customSwatch : p.swatch;
               return (
                 <button
                   key={p.id}
@@ -79,7 +87,7 @@ export function AppearanceCard() {
                   )}
                 >
                   <div className="flex h-10 w-16 overflow-hidden rounded-lg border border-border/60 shadow-soft">
-                    {p.swatch.map((c, i) => (
+                    {swatch.map((c, i) => (
                       <div
                         key={i}
                         className="flex-1"
@@ -104,6 +112,36 @@ export function AppearanceCard() {
               );
             })}
           </div>
+
+          {palette === "custom" && (
+            <div className="mt-3 rounded-xl border border-border bg-muted/20 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Custom palette swatches
+              </p>
+              <div className="mt-2 grid grid-cols-3 gap-3">
+                {(["Background", "Brand", "Accent"] as const).map((label, i) => (
+                  <label key={label} className="flex flex-col gap-1 text-xs">
+                    <span className="font-semibold text-muted-foreground">{label}</span>
+                    <input
+                      type="color"
+                      value={customSwatch[i]}
+                      onChange={(e) => {
+                        const next = [...customSwatch] as [string, string, string];
+                        next[i] = e.target.value;
+                        setCustomSwatch(next);
+                      }}
+                      className="h-9 w-full cursor-pointer rounded border border-border bg-transparent"
+                    />
+                    <code className="text-[10px]">{customSwatch[i]}</code>
+                  </label>
+                ))}
+              </div>
+              <p className="mt-2 text-[10px] text-muted-foreground">
+                Swatches are stored per device. Full CSS-variable theming lands
+                when the palette engine ships — for now this is a visual preview slot.
+              </p>
+            </div>
+          )}
         </div>
 
         <Separator />

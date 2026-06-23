@@ -68,6 +68,8 @@ export default function ExpenseDetailPage({
   const markPaid = useExpenses((s) => s.markPaid);
   const markReimbursed = useExpenses((s) => s.markReimbursed);
   const addReviewNote = useExpenses((s) => s.addReviewNote);
+  const setReimbursable = useExpenses((s) => s.setReimbursable);
+  const updateDetection = useExpenses((s) => s.updateDetection);
 
   const pushActivity = useActivityLog((s) => s.push);
   const activeRoleId = usePreferences((s) => s.activeRoleId);
@@ -271,20 +273,143 @@ export default function ExpenseDetailPage({
                 </p>
               </div>
               <div className="rounded-lg border border-border bg-muted/20 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Receipt
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Reimbursable
+                  </p>
+                  <label className="flex items-center gap-1.5 text-[10px]">
+                    <input
+                      type="checkbox"
+                      checked={expense.reimbursable}
+                      onChange={(e) => setReimbursable(expense.id, e.target.checked)}
+                      className="h-3.5 w-3.5"
+                    />
+                    {expense.reimbursable ? "Yes" : "No"}
+                  </label>
+                </div>
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  {expense.paymentMethod === "Foreman Out-of-Pocket"
+                    ? "Foreman paid out of pocket → flows to payroll reimbursements once approved."
+                    : "Company-paid expense — not added to foreman payroll."}
                 </p>
-                {expense.receiptUrl ? (
-                  <p className="mt-0.5 flex items-center gap-1.5 text-xs">
-                    <Receipt className="h-3.5 w-3.5 text-emerald-600" />
-                    <span className="font-mono">{expense.receiptUrl}</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Receipt className="h-4 w-4 text-primary" />
+            Receipt
+          </CardTitle>
+          <CardDescription>
+            Submission requires a receipt. Detection runs through OCR once wired
+            — reviewer can correct any field below.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-12">
+          <div className="md:col-span-5">
+            {expense.receiptUrl ? (
+              <div className="aspect-[4/5] overflow-hidden rounded-xl border border-border bg-gradient-to-b from-muted/40 to-muted/10">
+                <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
+                  <Receipt className="h-10 w-10 text-muted-foreground/60" />
+                  <p className="text-xs font-semibold">Receipt on file</p>
+                  <p className="break-all font-mono text-[10px] text-muted-foreground">
+                    {expense.receiptUrl}
                   </p>
-                ) : (
-                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-amber-600">
-                    <Receipt className="h-3.5 w-3.5" />
-                    No receipt on file
+                  <p className="mt-2 text-[10px] text-muted-foreground">
+                    Image preview lights up once the Foreman App ships and
+                    receipts upload to storage.
                   </p>
-                )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex aspect-[4/5] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-rose-500/50 bg-rose-500/[0.04] p-6 text-center">
+                <Receipt className="h-10 w-10 text-rose-500/70" />
+                <p className="text-xs font-semibold text-rose-600">
+                  Receipt missing
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Use <em>Request receipt</em> to push the foreman an upload
+                  request via the mobile app.
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="md:col-span-7 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <DetectField
+              label="Detected merchant"
+              value={expense.detection?.merchant ?? ""}
+              onChange={(v) => updateDetection(expense.id, { merchant: v })}
+            />
+            <DetectField
+              label="Detected date"
+              value={expense.detection?.date ?? ""}
+              onChange={(v) => updateDetection(expense.id, { date: v })}
+              hint="YYYY-MM-DD"
+            />
+            <DetectField
+              label="Detected total"
+              value={
+                expense.detection?.total != null
+                  ? String(expense.detection.total)
+                  : ""
+              }
+              onChange={(v) =>
+                updateDetection(expense.id, { total: v ? Number(v) : undefined })
+              }
+            />
+            <DetectField
+              label="Detected tax"
+              value={
+                expense.detection?.tax != null
+                  ? String(expense.detection.tax)
+                  : ""
+              }
+              onChange={(v) =>
+                updateDetection(expense.id, { tax: v ? Number(v) : undefined })
+              }
+            />
+            <DetectField
+              label="Detected description"
+              value={expense.detection?.description ?? ""}
+              onChange={(v) => updateDetection(expense.id, { description: v })}
+              full
+            />
+            <div className="rounded-lg border border-border bg-muted/20 p-2 sm:col-span-2">
+              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+                <span>AI confidence</span>
+                <span>
+                  {expense.detection?.confidence != null
+                    ? `${Math.round(expense.detection.confidence * 100)}%`
+                    : "—"}
+                </span>
+              </div>
+              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-emerald-500"
+                  style={{
+                    width: `${(expense.detection?.confidence ?? 0) * 100}%`,
+                  }}
+                />
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+                <span>Duplicate risk</span>
+                <span>
+                  {expense.detection?.duplicateRisk != null
+                    ? `${Math.round(expense.detection.duplicateRisk * 100)}%`
+                    : "—"}
+                </span>
+              </div>
+              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-rose-500"
+                  style={{
+                    width: `${(expense.detection?.duplicateRisk ?? 0) * 100}%`,
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -451,5 +576,29 @@ function Row({ label, value, link }: { label: string; value: string; link?: stri
     </Link>
   ) : (
     <p>{content}</p>
+  );
+}
+
+function DetectField({
+  label,
+  value,
+  onChange,
+  hint,
+  full,
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+  hint?: string;
+  full?: boolean;
+}) {
+  return (
+    <div className={"space-y-1 " + (full ? "sm:col-span-2" : "")}>
+      <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
+      <Input value={value} onChange={(e) => onChange(e.target.value)} />
+      {hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}
+    </div>
   );
 }

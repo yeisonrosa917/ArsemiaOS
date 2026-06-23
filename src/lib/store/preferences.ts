@@ -9,6 +9,8 @@ import type { CapabilityId } from "@/lib/auth/capabilities";
 interface PreferencesState {
   palette: Palette;
   setPalette: (p: Palette) => void;
+  customSwatch: [string, string, string];
+  setCustomSwatch: (s: [string, string, string]) => void;
   sidebarSide: "left" | "right";
   setSidebarSide: (s: "left" | "right") => void;
   sidebarOpen: boolean;
@@ -28,6 +30,8 @@ export const usePreferences = create<PreferencesState>()(
     (set, get) => ({
       palette: "midnight",
       setPalette: (palette) => set({ palette }),
+      customSwatch: ["#1a1f2c", "#7c3aed", "#a78bfa"],
+      setCustomSwatch: (customSwatch) => set({ customSwatch }),
       sidebarSide: "left",
       setSidebarSide: (sidebarSide) => set({ sidebarSide }),
       sidebarOpen: true,

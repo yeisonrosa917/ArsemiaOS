@@ -42,11 +42,14 @@ export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
   "/leads": ["leads.view"],
   "/quotes": ["quotes.view"],
   "/invoices": ["invoices.view"],
+  "/invoices/print": ["invoices.view"],
   "/expenses": ["expenses.view_own", "expenses.view_all"],
   "/payroll": ["payroll.view_own", "payroll.view_all"],
+  "/payroll/tools": ["payroll.audit"],
   "/claims": ["claims.view"],
   "/analytics": ["analytics.view"],
   "/settings": ["settings.view"],
+  "/notifications": ["dashboard.view"],
 };
 
 const OWNER_CAPS: CapabilityId[] = [

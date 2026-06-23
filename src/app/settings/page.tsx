@@ -26,6 +26,8 @@ import { Separator } from "@/components/ui/separator";
 import { AppearanceCard } from "@/components/settings/appearance-card";
 import { RolesAndPermissionsCard } from "@/components/settings/roles-card";
 import { PrivacyDataCard } from "@/components/settings/privacy-card";
+import { NotificationsSettingsCard } from "@/components/settings/notifications-card";
+import { IntegrationsCard } from "@/components/settings/integrations-card";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
@@ -36,8 +38,8 @@ const SECTIONS = [
   { id: "appearance", icon: SettingsIcon, label: "Appearance" },
   { id: "roles", icon: Shield, label: "Roles & Permissions" },
   { id: "audit", icon: Activity, label: "Audit Log", external: "/activity" as const },
-  { id: "notifications", icon: Bell, label: "Notifications", comingSoon: true },
-  { id: "integrations", icon: Plug, label: "Integrations", comingSoon: true },
+  { id: "notifications", icon: Bell, label: "Notifications" },
+  { id: "integrations", icon: Plug, label: "Integrations" },
   { id: "privacy", icon: Lock, label: "Privacy & Data" },
 ];
 
@@ -87,16 +89,10 @@ export default function SettingsPage() {
               return (
                 <button
                   key={s.id}
-                  onClick={() => !s.comingSoon && setSection(s.id)}
-                  disabled={s.comingSoon}
-                  title={s.comingSoon ? "Coming in a future phase" : undefined}
+                  onClick={() => setSection(s.id)}
                   className={
                     "flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors " +
-                    (active
-                      ? "bg-primary/10"
-                      : s.comingSoon
-                        ? "cursor-not-allowed opacity-50"
-                        : "hover:bg-muted")
+                    (active ? "bg-primary/10" : "hover:bg-muted")
                   }
                 >
                   <span
@@ -111,11 +107,6 @@ export default function SettingsPage() {
                   </span>
                   <span className="flex-1">
                     <p className="text-sm font-semibold">{s.label}</p>
-                    {s.comingSoon && (
-                      <p className="text-[10px] text-muted-foreground">
-                        Coming soon
-                      </p>
-                    )}
                   </span>
                 </button>
               );
@@ -224,6 +215,10 @@ export default function SettingsPage() {
           {section === "appearance" && <AppearanceCard />}
 
           {section === "roles" && <RolesAndPermissionsCard />}
+
+          {section === "notifications" && <NotificationsSettingsCard />}
+
+          {section === "integrations" && <IntegrationsCard />}
 
           {section === "privacy" && <PrivacyDataCard />}
         </div>

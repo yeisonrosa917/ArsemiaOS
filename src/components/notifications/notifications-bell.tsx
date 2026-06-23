@@ -5,10 +5,14 @@ import {
   Bell,
   BellOff,
   Briefcase,
+  CheckCheck,
   Coins,
+  FileText,
+  ReceiptText,
   ShieldAlert,
   Truck,
   UserRound,
+  Wrench,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,16 +25,34 @@ import { Button } from "@/components/ui/button";
 import {
   useNotifications,
   type NotificationKind,
+  type NotificationSeverity,
 } from "@/lib/store/notifications";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<NotificationKind, React.ComponentType<{ className?: string }>> = {
-  job_reassigned: Truck,
-  job_updated: Briefcase,
-  lead_new: UserRound,
+  expense_pending: ReceiptText,
+  expense_missing_receipt: ReceiptText,
+  claim_foreman_response: ShieldAlert,
+  claim_status_changed: ShieldAlert,
+  invoice_overdue: FileText,
+  invoice_paid: FileText,
   payroll_flag: Coins,
-  claim_new: ShieldAlert,
+  payroll_pending: Coins,
+  fleet_maintenance: Wrench,
+  fleet_insurance: Truck,
+  fleet_registration: Truck,
+  job_unassigned: Briefcase,
+  job_reassigned: Truck,
+  adjustment_requested: Briefcase,
+  quote_saved: Briefcase,
+  settings_reset: UserRound,
   info: Bell,
+};
+
+const SEVERITY_STYLES: Record<NotificationSeverity, string> = {
+  info: "bg-primary/15 text-primary",
+  warning: "bg-amber-500/15 text-amber-600",
+  danger: "bg-rose-500/15 text-rose-600",
 };
 
 function timeAgo(iso: string): string {
@@ -45,8 +67,11 @@ function timeAgo(iso: string): string {
 }
 
 export function NotificationsBell() {
-  const { items, markRead, markAllRead, clear } = useNotifications();
+  const items = useNotifications((s) => s.items);
+  const markRead = useNotifications((s) => s.markRead);
+  const markAllRead = useNotifications((s) => s.markAllRead);
   const unread = items.filter((n) => !n.read).length;
+  const visible = items.slice(0, 8);
 
   return (
     <DropdownMenu>
@@ -65,43 +90,33 @@ export function NotificationsBell() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 p-0">
+      <DropdownMenuContent align="end" className="w-96 p-0">
         <div className="flex items-center justify-between gap-2 px-3 py-2">
           <DropdownMenuLabel className="px-0 py-0">
-            Notifications
+            Notifications {unread > 0 && <span className="ml-1 text-muted-foreground">· {unread} unread</span>}
           </DropdownMenuLabel>
-          <div className="flex gap-1">
-            <button
-              onClick={markAllRead}
-              disabled={unread === 0}
-              className="text-[10px] font-semibold text-muted-foreground hover:text-foreground disabled:opacity-40"
-            >
-              Mark all read
-            </button>
-            <span className="text-muted-foreground/50">·</span>
-            <button
-              onClick={clear}
-              className="text-[10px] font-semibold text-muted-foreground hover:text-foreground"
-            >
-              Clear
-            </button>
-          </div>
+          <button
+            onClick={markAllRead}
+            disabled={unread === 0}
+            className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground hover:text-foreground disabled:opacity-40"
+          >
+            <CheckCheck className="h-3 w-3" /> Mark all read
+          </button>
         </div>
         <DropdownMenuSeparator className="my-0" />
         <div className="max-h-96 overflow-y-auto scrollbar-thin">
-          {items.length === 0 && (
+          {visible.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-2 px-3 py-10 text-center">
               <BellOff className="h-6 w-6 text-muted-foreground/60" />
-              <p className="text-xs text-muted-foreground">No notifications</p>
+              <p className="text-xs text-muted-foreground">You&apos;re all caught up.</p>
             </div>
           )}
-          {items.map((n) => {
-            const Icon = ICONS[n.kind];
-            const Wrapper = n.href ? Link : "div";
+          {visible.map((n) => {
+            const Icon = ICONS[n.kind] ?? Bell;
             return (
-              <Wrapper
+              <Link
                 key={n.id}
-                href={n.href ?? "#"}
+                href={n.href ?? "/notifications"}
                 onClick={() => markRead(n.id)}
                 className={cn(
                   "flex items-start gap-2.5 border-b border-border/40 px-3 py-2.5 transition-colors last:border-b-0 hover:bg-accent/30",
@@ -111,18 +126,14 @@ export function NotificationsBell() {
                 <span
                   className={cn(
                     "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
-                    !n.read
-                      ? "bg-primary/15 text-primary"
-                      : "bg-muted text-muted-foreground",
+                    !n.read ? SEVERITY_STYLES[n.severity] : "bg-muted text-muted-foreground",
                   )}
                 >
                   <Icon className="h-3.5 w-3.5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold leading-tight">
-                    {n.title}
-                  </p>
-                  <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+                  <p className="text-xs font-semibold leading-tight">{n.title}</p>
+                  <p className="mt-0.5 truncate text-[11px] leading-snug text-muted-foreground">
                     {n.body}
                   </p>
                   <p className="mt-1 text-[10px] text-muted-foreground/70">
@@ -132,10 +143,17 @@ export function NotificationsBell() {
                 {!n.read && (
                   <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                 )}
-              </Wrapper>
+              </Link>
             );
           })}
         </div>
+        <DropdownMenuSeparator className="my-0" />
+        <Link
+          href="/notifications"
+          className="block px-3 py-2 text-center text-[11px] font-semibold text-primary hover:bg-accent/30"
+        >
+          View all notifications →
+        </Link>
       </DropdownMenuContent>
     </DropdownMenu>
   );

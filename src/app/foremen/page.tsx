@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   CheckCircle2,
   FileWarning,
@@ -79,7 +80,8 @@ export default function DriversPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
         {drivers.map((d) => (
-          <Card key={d.id} className="overflow-hidden">
+          <Card key={d.id} className="overflow-hidden transition-colors hover:bg-accent/20">
+            <Link href={`/payroll/foreman/${d.id}`} className="block">
             <div className="flex items-start gap-3 p-5 pb-3">
               <Avatar className="h-12 w-12">
                 <AvatarFallback className={cn("text-base text-white", d.avatarColor)}>
@@ -140,6 +142,7 @@ export default function DriversPage() {
                 </p>
               </div>
             </div>
+            </Link>
           </Card>
         ))}
       </div>
@@ -167,19 +170,19 @@ export default function DriversPage() {
           </TableHeader>
           <TableBody>
             {drivers.map((d) => (
-              <TableRow key={d.id}>
+              <TableRow key={d.id} className="cursor-pointer hover:bg-accent/30">
                 <TableCell className="pl-5">
-                  <div className="flex items-center gap-2">
+                  <Link href={`/payroll/foreman/${d.id}`} className="flex items-center gap-2">
                     <Avatar className="h-7 w-7">
                       <AvatarFallback className={cn("text-white", d.avatarColor)}>
                         {initials(d.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-xs font-semibold">{d.name}</p>
+                      <p className="text-xs font-semibold hover:underline">{d.name}</p>
                       <p className="text-[10px] text-muted-foreground">{d.id}</p>
                     </div>
-                  </div>
+                  </Link>
                 </TableCell>
                 <TableCell className="text-xs">{d.phone}</TableCell>
                 <TableCell className="text-xs">{d.vehicleName}</TableCell>

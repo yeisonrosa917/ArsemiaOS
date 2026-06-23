@@ -103,6 +103,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
     const staged = stageReassignment(job.id, driverId, driverName, "Mariana Castro");
     pushNotif({
       kind: "job_reassigned",
+      severity: "warning",
       title: `Pending reassignment — ${job.id}`,
       body: staged.fromDriverName
         ? `${staged.fromDriverName} → ${driverName}. Awaiting confirmation.`
@@ -122,7 +123,8 @@ export function JobDetail({ job: initial }: { job: Job }) {
   const handleStageUnassign = () => {
     const staged = stageReassignment(job.id, undefined, undefined, "Mariana Castro");
     pushNotif({
-      kind: "job_reassigned",
+      kind: "job_unassigned",
+      severity: "warning",
       title: `Pending unassignment — ${job.id}`,
       body: `Removing ${staged.fromDriverName ?? "current foreman"}. Awaiting confirmation.`,
       href: `/jobs/${job.id}`,
@@ -134,6 +136,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
     if (!p) return;
     pushNotif({
       kind: "job_reassigned",
+      severity: "info",
       title: `Job ${job.id} reassigned`,
       body: p.toDriverName
         ? `${p.fromDriverName ?? "—"} → ${p.toDriverName}. Foreman will be notified via the mobile app.`

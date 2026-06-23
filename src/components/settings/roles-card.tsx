@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { RotateCcw, ShieldCheck, ShieldX } from "lucide-react";
+import { useActivityLog } from "@/lib/store/activity-log";
+import { useNotifications } from "@/lib/store/notifications";
+import { getUserByRole } from "@/lib/auth/users";
 import {
   Card,
   CardContent,
@@ -22,9 +25,41 @@ import { usePreferences } from "@/lib/store/preferences";
 import { cn } from "@/lib/utils";
 
 export function RolesAndPermissionsCard() {
-  const { capabilityOverrides, toggleCapability, resetRoleCapabilities, setRoleCapabilities } =
+  const { capabilityOverrides, toggleCapability, resetRoleCapabilities, setRoleCapabilities, activeRoleId } =
     usePreferences();
   const [selectedRole, setSelectedRole] = useState<UserRoleId>("dispatcher");
+  const pushActivity = useActivityLog((s) => s.push);
+  const pushNotif = useNotifications((s) => s.push);
+  const actor = getUserByRole(activeRoleId);
+
+  const handleRestoreDefaults = () => {
+    if (selectedRole === "owner") return;
+    if (
+      !confirm(
+        `Restore default permissions for ${ROLES[selectedRole].label}? This wipes any custom overrides.`,
+      )
+    ) {
+      return;
+    }
+    resetRoleCapabilities(selectedRole);
+    pushActivity({
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: activeRoleId,
+      module: "Permissions",
+      action: "permission_changed",
+      objectType: "Role",
+      objectId: selectedRole,
+      title: `Permissions restored to defaults for ${ROLES[selectedRole].label}`,
+    });
+    pushNotif({
+      kind: "settings_reset",
+      severity: "info",
+      title: "Permissions restored",
+      body: `${ROLES[selectedRole].label} reset to factory defaults.`,
+      href: "/settings",
+    });
+  };
 
   const role = ROLES[selectedRole];
   const activeCaps = resolveCapabilities(selectedRole, capabilityOverrides);
@@ -100,15 +135,21 @@ export function RolesAndPermissionsCard() {
               {isOverridden && " · custom configuration"}
             </p>
           </div>
-          {isOverridden && (
+          {role.id !== "owner" && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => resetRoleCapabilities(selectedRole)}
+              onClick={handleRestoreDefaults}
+              disabled={!isOverridden}
               className="gap-1.5"
+              title={
+                isOverridden
+                  ? "Wipe custom permissions and restore the factory configuration"
+                  : "Already on default configuration"
+              }
             >
               <RotateCcw className="h-3 w-3" />
-              Reset to defaults
+              Restore default permissions
             </Button>
           )}
         </div>

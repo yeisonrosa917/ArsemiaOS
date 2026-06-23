@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo } from "react";
+import { use, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -29,6 +30,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { drivers, jobs, payrollLines } from "@/lib/mock-data";
+import { useExpenses } from "@/lib/store/expenses";
+import {
+  useForemanProfiles,
+  payoutModelLabel,
+  payoutPercentFor,
+  type PayoutModelKind,
+} from "@/lib/store/foreman-profiles";
+import {
+  weeklyRange,
+  monthlyRange,
+  customRange,
+  inRange,
+  type PayrollRange,
+} from "@/lib/payroll/period";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
@@ -41,26 +56,82 @@ export default function ForemanPayrollPage({
 }) {
   const { id } = use(params);
   const foreman = drivers.find((d) => d.id === id);
+  const expensesAll = useExpenses((s) => s.items);
+  const profiles = useForemanProfiles((s) => s.profiles);
+  const updateProfile = useForemanProfiles((s) => s.update);
   const pushActivity = useActivityLog((s) => s.push);
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const user = getUserByRole(activeRoleId);
+
+  const [rangeKind, setRangeKind] = useState<"weekly" | "monthly" | "custom">("weekly");
+  const [customFrom, setCustomFrom] = useState(weeklyRange().from);
+  const [customTo, setCustomTo] = useState(weeklyRange().to);
+
+  const range: PayrollRange = useMemo(() => {
+    if (rangeKind === "weekly") return weeklyRange();
+    if (rangeKind === "monthly") return monthlyRange();
+    return customRange(customFrom, customTo);
+  }, [rangeKind, customFrom, customTo]);
+
+  const profile = profiles.find((p) => p.id === id);
+  const payoutPercent = payoutPercentFor(profile);
+  const payoutLabel = payoutModelLabel(profile);
 
   const lines = useMemo(() => {
     if (!foreman) return [];
     return payrollLines.filter((p) => {
       const job = jobs.find((j) => j.id === p.jobId);
-      return job?.driverId === foreman.id || job?.driverName === foreman.name;
+      if (!job) return false;
+      if (job.driverId !== foreman.id && job.driverName !== foreman.name) return false;
+      return inRange(job.scheduledAt ?? "", range);
     });
-  }, [foreman]);
+  }, [foreman, range]);
+
+  const reimbursements = useMemo(() => {
+    if (!foreman) return [];
+    return expensesAll.filter(
+      (e) =>
+        e.foremanId === foreman.id &&
+        e.reimbursable &&
+        (e.status === "Approved" || e.status === "Paid" || e.status === "Reimbursed") &&
+        inRange(e.date.slice(0, 10), range),
+    );
+  }, [expensesAll, foreman, range]);
 
   const summary = useMemo(() => {
     const commissionable = lines.reduce((s, p) => s + p.commissionableTotal, 0);
-    const payout = lines.reduce((s, p) => s + p.foremanPayout, 0);
-    const helper = lines.reduce((s, p) => s + p.helperPayout, 0);
-    const deductions = lines.reduce((s, p) => s + p.deductions, 0);
+    const expectedPayout = (commissionable * payoutPercent) / 100;
+    const deductionsList = lines
+      .filter((p) => p.deductions > 0)
+      .map((p) => ({
+        jobId: p.jobId,
+        amount: p.deductions,
+        reason: p.auditFlags[0] ?? "Audit deduction",
+      }));
+    const deductions = deductionsList.reduce((s, d) => s + d.amount, 0);
+    const onHoldList = lines
+      .filter((p) => p.status === "Flagged")
+      .map((p) => ({
+        jobId: p.jobId,
+        amount: p.foremanPayout,
+        reason: p.auditFlags[0] ?? "Pending audit",
+      }));
+    const onHold = onHoldList.reduce((s, h) => s + h.amount, 0);
+    const reimbAmount = reimbursements.reduce((s, e) => s + e.amount, 0);
+    const finalTotal = expectedPayout + reimbAmount - deductions - onHold;
     const flags = lines.flatMap((p) => p.auditFlags);
-    return { commissionable, payout, helper, deductions, flags };
-  }, [lines]);
+    return {
+      commissionable,
+      expectedPayout,
+      deductionsList,
+      deductions,
+      onHoldList,
+      onHold,
+      reimbAmount,
+      finalTotal,
+      flags,
+    };
+  }, [lines, reimbursements, payoutPercent]);
 
   if (!foreman) {
     return (
@@ -104,7 +175,7 @@ export default function ForemanPayrollPage({
 
       <PageHeader
         title={`Payroll · ${foreman.name}`}
-        description={`${foreman.id} · ${foreman.vehicleName}`}
+        description={`${foreman.id} · ${range.label}`}
       />
 
       <Card>
@@ -117,141 +188,275 @@ export default function ForemanPayrollPage({
             </Avatar>
             <div>
               <p className="text-base font-semibold">{foreman.name}</p>
-              <p className="text-xs text-muted-foreground">{foreman.email}</p>
-              <p className="text-xs text-muted-foreground">{foreman.phone}</p>
+              <div className="mt-0.5 flex flex-wrap items-center gap-1">
+                <Badge variant="outline" className="text-[10px]">
+                  {payoutLabel}
+                </Badge>
+                {profile?.contractorCompany && (
+                  <Badge variant="outline" className="text-[10px]">
+                    {profile.contractorCompany}
+                  </Badge>
+                )}
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {foreman.email} · {foreman.phone}
+              </p>
             </div>
           </div>
-          <div className="lg:col-span-7 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Stat
-              label="Jobs"
-              value={String(lines.length)}
-              accent="primary"
-            />
-            <Stat
-              label="Commissionable"
-              value={formatCurrency(summary.commissionable)}
-            />
-            <Stat
-              label="Foreman payout"
-              value={formatCurrency(summary.payout)}
-              accent="success"
-            />
-            <Stat
-              label="Deductions"
-              value={formatCurrency(summary.deductions)}
-              accent={summary.deductions > 0 ? "danger" : undefined}
-            />
+          <div className="lg:col-span-7 flex flex-wrap items-center justify-end gap-2">
+            <RangeButton label="This week" active={rangeKind === "weekly"} onClick={() => setRangeKind("weekly")} />
+            <RangeButton label="This month" active={rangeKind === "monthly"} onClick={() => setRangeKind("monthly")} />
+            <RangeButton label="Custom" active={rangeKind === "custom"} onClick={() => setRangeKind("custom")} />
+            {rangeKind === "custom" && (
+              <div className="flex items-center gap-1">
+                <Input
+                  type="date"
+                  value={customFrom}
+                  onChange={(e) => setCustomFrom(e.target.value)}
+                  className="h-8 w-36 text-xs"
+                />
+                <span className="text-xs text-muted-foreground">→</span>
+                <Input
+                  type="date"
+                  value={customTo}
+                  onChange={(e) => setCustomTo(e.target.value)}
+                  className="h-8 w-36 text-xs"
+                />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
+      <div className="grid gap-3 md:grid-cols-5">
+        <Stat label="Payroll total" value={formatCurrency(summary.expectedPayout)} tone="primary" />
+        <Stat label="Reimbursements" value={formatCurrency(summary.reimbAmount)} tone="success" />
+        <Stat label="Deducted" value={formatCurrency(summary.deductions)} tone="danger" />
+        <Stat label="On hold" value={formatCurrency(summary.onHold)} tone="warning" />
+        <Stat label="Final total" value={formatCurrency(summary.finalTotal)} tone="primary" big />
+      </div>
+
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0">
           <div>
-            <CardTitle className="text-base">Jobs this period</CardTitle>
+            <CardTitle className="text-base">Jobs — {range.label}</CardTitle>
             <CardDescription>
-              {lines.length} payroll line{lines.length !== 1 ? "s" : ""} · helper
-              share {formatCurrency(summary.helper)}
+              {lines.length} job{lines.length !== 1 ? "s" : ""} at {payoutLabel}.
+              Tap any row to open the job.
             </CardDescription>
           </div>
           <div className="flex gap-2">
             <Button
               size="sm"
-              onClick={() => log("approved", `Payroll approved for ${foreman.name}`)}
+              onClick={() => log("approved", `Payroll approved for ${foreman.name} (${range.label})`)}
               className="gap-1"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
-              Approve period
+              Approve
             </Button>
             <Button
               size="sm"
               variant="outline"
-              onClick={() => log("rejected", `Payroll flagged for ${foreman.name}`)}
+              onClick={() => log("rejected", `Payroll flagged for ${foreman.name} (${range.label})`)}
               className="gap-1"
             >
               <XCircle className="h-3.5 w-3.5" />
-              Flag for review
+              Flag
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {lines.length === 0 ? (
             <p className="rounded-lg border border-dashed border-border bg-muted/10 p-6 text-center text-xs text-muted-foreground">
-              No payroll lines this period.
+              No jobs in this date range.
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="pl-5">Job</TableHead>
+                  <TableHead className="pl-5">Date</TableHead>
+                  <TableHead>Job</TableHead>
                   <TableHead>Customer</TableHead>
-                  <TableHead className="text-right">CuFt</TableHead>
-                  <TableHead className="text-right">Miles</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead className="text-right">Commissionable</TableHead>
-                  <TableHead className="text-right">%</TableHead>
+                  <TableHead className="text-right">Model</TableHead>
                   <TableHead className="text-right">Payout</TableHead>
-                  <TableHead className="text-right">Deductions</TableHead>
+                  <TableHead className="text-right">Deduct</TableHead>
                   <TableHead className="pr-5">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {lines.map((p) => (
-                  <TableRow key={p.jobId}>
-                    <TableCell className="pl-5">
-                      <Link
-                        href={`/jobs/${p.jobId}`}
-                        className="font-mono text-xs hover:underline"
-                      >
-                        {p.jobId}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-xs">{p.customer}</TableCell>
-                    <TableCell className="text-right font-mono text-xs">
-                      {p.cuFt}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs">
-                      {p.miles}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs">
-                      {formatCurrency(p.commissionableTotal)}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs">
-                      {p.crewPercent}%
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs font-semibold">
-                      {formatCurrency(p.foremanPayout)}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs">
-                      {p.deductions > 0 ? (
-                        <span className="text-rose-600">
-                          -{formatCurrency(p.deductions)}
-                        </span>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell className="pr-5">
-                      <Badge
-                        variant={
-                          p.status === "Approved"
-                            ? "success"
-                            : p.status === "Paid"
+                {lines.map((p) => {
+                  const job = jobs.find((j) => j.id === p.jobId);
+                  const lineExpected = (p.commissionableTotal * payoutPercent) / 100;
+                  return (
+                    <TableRow key={p.jobId}>
+                      <TableCell className="pl-5 text-[11px] text-muted-foreground">
+                        {job?.scheduledAt?.slice(5, 10) ?? "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Link href={`/jobs/${p.jobId}`} className="font-mono text-xs hover:underline">
+                          {p.jobId}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs">{p.customer}</TableCell>
+                      <TableCell className="text-[11px]">
+                        <Badge variant="outline" className="text-[10px]">
+                          {job?.type ?? "—"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs">
+                        {formatCurrency(p.commissionableTotal)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-[10px] text-muted-foreground">
+                        {payoutPercent}%
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs font-semibold">
+                        {formatCurrency(lineExpected)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs">
+                        {p.deductions > 0 ? (
+                          <span className="text-rose-600">-{formatCurrency(p.deductions)}</span>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell className="pr-5">
+                        <Badge
+                          variant={
+                            p.status === "Approved" || p.status === "Paid"
                               ? "success"
                               : p.status === "Flagged"
                                 ? "danger"
                                 : "outline"
-                        }
-                      >
-                        {p.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          }
+                        >
+                          {p.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
         </CardContent>
       </Card>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Reimbursements</CardTitle>
+            <CardDescription>
+              Out-of-pocket expenses approved in this period.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {reimbursements.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-border bg-muted/10 p-4 text-center text-xs text-muted-foreground">
+                None this period.
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {reimbursements.map((e) => (
+                  <li
+                    key={e.id}
+                    className="flex items-center justify-between rounded-md border border-emerald-500/20 bg-emerald-500/[0.04] px-2 py-1.5 text-xs"
+                  >
+                    <Link href={`/expenses/${e.id}`} className="font-mono hover:underline">
+                      {e.id}
+                    </Link>
+                    <span className="text-muted-foreground">{e.category}</span>
+                    <span className="font-mono font-semibold text-emerald-600">
+                      +{formatCurrency(e.amount)}
+                    </span>
+                  </li>
+                ))}
+                <li className="mt-2 flex items-center justify-between border-t pt-2 text-xs font-semibold">
+                  <span>Subtotal</span>
+                  <span className="font-mono text-emerald-600">
+                    +{formatCurrency(summary.reimbAmount)}
+                  </span>
+                </li>
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Deductions</CardTitle>
+            <CardDescription>Audit deductions tied to jobs.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {summary.deductionsList.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-border bg-muted/10 p-4 text-center text-xs text-muted-foreground">
+                Clean. No deductions.
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {summary.deductionsList.map((d, i) => (
+                  <li
+                    key={i}
+                    className="flex items-center justify-between rounded-md border border-rose-500/20 bg-rose-500/[0.04] px-2 py-1.5 text-xs"
+                  >
+                    <Link href={`/jobs/${d.jobId}`} className="font-mono hover:underline">
+                      {d.jobId}
+                    </Link>
+                    <span className="truncate text-muted-foreground">{d.reason}</span>
+                    <span className="font-mono font-semibold text-rose-600">
+                      -{formatCurrency(d.amount)}
+                    </span>
+                  </li>
+                ))}
+                <li className="mt-2 flex items-center justify-between border-t pt-2 text-xs font-semibold">
+                  <span>Subtotal</span>
+                  <span className="font-mono text-rose-600">
+                    -{formatCurrency(summary.deductions)}
+                  </span>
+                </li>
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">On hold</CardTitle>
+            <CardDescription>Amounts pending audit before release.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {summary.onHoldList.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-border bg-muted/10 p-4 text-center text-xs text-muted-foreground">
+                Nothing held back.
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {summary.onHoldList.map((h, i) => (
+                  <li
+                    key={i}
+                    className="flex items-center justify-between rounded-md border border-amber-500/30 bg-amber-500/[0.04] px-2 py-1.5 text-xs"
+                  >
+                    <Link href={`/jobs/${h.jobId}`} className="font-mono hover:underline">
+                      {h.jobId}
+                    </Link>
+                    <span className="truncate text-muted-foreground">{h.reason}</span>
+                    <span className="font-mono font-semibold text-amber-600">
+                      {formatCurrency(h.amount)}
+                    </span>
+                  </li>
+                ))}
+                <li className="mt-2 flex items-center justify-between border-t pt-2 text-xs font-semibold">
+                  <span>Subtotal</span>
+                  <span className="font-mono text-amber-600">
+                    {formatCurrency(summary.onHold)}
+                  </span>
+                </li>
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>
@@ -261,14 +466,14 @@ export default function ForemanPayrollPage({
           </CardTitle>
           <CardDescription>
             {summary.flags.length === 0
-              ? "No flags this period. Clean run."
+              ? "No flags this period."
               : `${summary.flags.length} flag(s) need review before approval.`}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {summary.flags.length === 0 ? (
             <p className="rounded-lg border border-dashed border-emerald-500/40 bg-emerald-500/[0.04] p-4 text-center text-xs">
-              No discrepancies detected.
+              Clean.
             </p>
           ) : (
             <ul className="space-y-1.5">
@@ -290,46 +495,124 @@ export default function ForemanPayrollPage({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Wallet className="h-4 w-4 text-primary" />
-            Payment method
+            Payout configuration
           </CardTitle>
           <CardDescription>
-            Configured at the foreman profile; final disbursement happens through accounting.
+            Stored on the foreman profile and applied to every payroll line.
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-sm">
-          <p>
-            Disbursement currently routes through{" "}
-            <span className="font-semibold">ACH on Friday</span>. Update the
-            payment plan from the foreman profile when ready.
-          </p>
+        <CardContent className="grid gap-3 md:grid-cols-3">
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Payout model
+            </label>
+            <select
+              value={profile?.payoutModel ?? "crew_30"}
+              onChange={(e) =>
+                updateProfile(foreman.id, {
+                  payoutModel: e.target.value as PayoutModelKind,
+                })
+              }
+              className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+            >
+              <option value="contractor_33_5">Contractor — 33.5%</option>
+              <option value="crew_30">Crew — 30%</option>
+              <option value="custom">Custom %</option>
+            </select>
+          </div>
+          {profile?.payoutModel === "custom" && (
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Custom percent
+              </label>
+              <Input
+                type="number"
+                value={profile?.customPercent ?? 30}
+                onChange={(e) =>
+                  updateProfile(foreman.id, {
+                    customPercent: Number(e.target.value) || 30,
+                  })
+                }
+              />
+            </div>
+          )}
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Contractor company
+            </label>
+            <Input
+              value={profile?.contractorCompany ?? ""}
+              placeholder="e.g. Reyes Moving LLC"
+              onChange={(e) =>
+                updateProfile(foreman.id, { contractorCompany: e.target.value })
+              }
+            />
+          </div>
+          <div className="space-y-1 md:col-span-3">
+            <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Profile notes
+            </label>
+            <Input
+              value={profile?.notes ?? ""}
+              placeholder="Probationary, special rate, payment cadence..."
+              onChange={(e) => updateProfile(foreman.id, { notes: e.target.value })}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>
   );
 }
 
+function RangeButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      size="sm"
+      variant={active ? "default" : "outline"}
+      onClick={onClick}
+      className="h-8 text-xs"
+    >
+      {label}
+    </Button>
+  );
+}
+
 function Stat({
   label,
   value,
-  accent,
+  tone,
+  big,
 }: {
   label: string;
   value: string;
-  accent?: "primary" | "success" | "danger";
+  tone?: "primary" | "success" | "warning" | "danger";
+  big?: boolean;
 }) {
   return (
-    <div
+    <Card
       className={cn(
-        "rounded-lg border border-border bg-muted/20 p-2",
-        accent === "primary" && "border-primary/40 bg-primary/[0.04]",
-        accent === "success" && "border-success/40 bg-success/[0.04]",
-        accent === "danger" && "border-rose-500/40 bg-rose-500/[0.04]",
+        "p-3",
+        tone === "primary" && "border-primary/40 bg-primary/[0.04]",
+        tone === "success" && "border-success/40 bg-success/[0.04]",
+        tone === "warning" && "border-amber-500/40 bg-amber-500/[0.04]",
+        tone === "danger" && "border-rose-500/40 bg-rose-500/[0.04]",
+        big && "ring-2 ring-primary/40",
       )}
     >
       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
-      <p className="mt-0.5 font-mono text-base font-bold">{value}</p>
-    </div>
+      <p className={cn("mt-1 font-mono font-bold", big ? "text-2xl" : "text-lg")}>
+        {value}
+      </p>
+    </Card>
   );
 }

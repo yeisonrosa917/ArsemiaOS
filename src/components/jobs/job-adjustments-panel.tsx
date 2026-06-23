@@ -100,6 +100,7 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
     });
     pushNotif({
       kind: "info",
+      severity: "info",
       title: `Adjustment ${id} advanced`,
       body: `${current} → ${next}.`,
       href: `/jobs/${jobId}`,
@@ -162,6 +163,7 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
     });
     pushNotif({
       kind: "info",
+      severity: "warning",
       title: `Adjustment ${id} rejected`,
       body: reason,
       href: `/jobs/${jobId}`,

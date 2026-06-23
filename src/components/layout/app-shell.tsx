@@ -1,11 +1,13 @@
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { ThemePaletteApplier } from "@/components/theme-palette-applier";
+import { NotificationDeriver } from "@/lib/notifications/derive";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <ThemePaletteApplier />
+      <NotificationDeriver />
       <div className="flex min-h-screen bg-background">
         <Sidebar />
         <div className="order-1 flex min-w-0 flex-1 flex-col">

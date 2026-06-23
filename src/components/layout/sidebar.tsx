@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
+  Bell,
   Briefcase,
   ClipboardList,
   Coins,
@@ -21,6 +22,7 @@ import {
   Wallet,
   Zap,
 } from "lucide-react";
+import { useNotifications } from "@/lib/store/notifications";
 import { ArsemiaLogo } from "@/components/brand/arsemia-logo";
 import { cn } from "@/lib/utils";
 import { usePreferences } from "@/lib/store/preferences";
@@ -71,6 +73,7 @@ const insightsNav: NavItem[] = [
 ];
 
 const adminNav: NavItem[] = [
+  { label: "Notifications", href: "/notifications", icon: Bell },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -87,11 +90,13 @@ function NavGroup({
   items,
   pathname,
   caps,
+  badges,
 }: {
   label: string;
   items: NavItem[];
   pathname: string;
   caps: CapabilityId[];
+  badges?: Record<string, string>;
 }) {
   const visible = items.filter((it) => canAccessRoute(caps, it.href));
   if (visible.length === 0) return null;
@@ -129,16 +134,18 @@ function NavGroup({
                   />
                   {item.label}
                 </span>
-                {item.badge && (
+                {(badges?.[item.href] ?? item.badge) && (
                   <span
                     className={cn(
                       "rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                      active
-                        ? "bg-white/15 text-white"
-                        : "bg-white/10 text-sidebar-foreground/70",
+                      badges?.[item.href]
+                        ? "bg-rose-500 text-white"
+                        : active
+                          ? "bg-white/15 text-white"
+                          : "bg-white/10 text-sidebar-foreground/70",
                     )}
                   >
-                    {item.badge}
+                    {badges?.[item.href] ?? item.badge}
                   </span>
                 )}
               </Link>
@@ -155,6 +162,8 @@ export function Sidebar() {
   const { sidebarSide, activeRoleId, capabilityOverrides } = usePreferences();
   const role = ROLES[activeRoleId];
   const caps = resolveCapabilities(activeRoleId, capabilityOverrides);
+  const unread = useNotifications((s) => s.items.filter((n) => !n.read).length);
+  const adminBadges = unread > 0 ? { "/notifications": unread > 9 ? "9+" : String(unread) } : undefined;
 
   return (
     <aside
@@ -188,7 +197,7 @@ export function Sidebar() {
             <NavGroup label="Finance" items={financeNav} pathname={pathname} caps={caps} />
             <NavGroup label="Risk" items={riskNav} pathname={pathname} caps={caps} />
             <NavGroup label="Insights" items={insightsNav} pathname={pathname} caps={caps} />
-            <NavGroup label="Admin" items={adminNav} pathname={pathname} caps={caps} />
+            <NavGroup label="Admin" items={adminNav} pathname={pathname} caps={caps} badges={adminBadges} />
           </>
         )}
       </nav>

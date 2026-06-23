@@ -52,6 +52,23 @@ export interface ExpenseReviewNote {
   createdAt: string;
 }
 
+/**
+ * AI/OCR placeholder structure. Real fields ship when receipt intelligence is
+ * wired; for now reviewer corrections live in the same shape so the UI is
+ * stable.
+ */
+export interface ExpenseDetection {
+  merchant?: string;
+  date?: string;
+  total?: number;
+  tax?: number;
+  description?: string;
+  /** 0..1 confidence score from the (future) OCR layer. */
+  confidence?: number;
+  /** 0..1 duplicate-risk score. */
+  duplicateRisk?: number;
+}
+
 export interface Expense {
   id: string;
   foremanName: string;
@@ -73,6 +90,9 @@ export interface Expense {
   notes?: string;
   receiptUrl?: string;
   reviewNotes: ExpenseReviewNote[];
+  /** Foreman/contractor billing flag. */
+  reimbursable: boolean;
+  detection?: ExpenseDetection;
 }
 
 function migrateSeed(): Expense[] {
@@ -92,27 +112,54 @@ function migrateSeed(): Expense[] {
     if (status === "Reimbursed") return "Foreman Out-of-Pocket";
     return "Foreman Out-of-Pocket";
   };
-  return SEED_DATA.map((e) => ({
-    id: e.id,
-    foremanName: e.foremanName,
-    foremanId: e.foremanId,
-    truckId: e.truckId,
-    truckName: e.truckName,
-    jobId: e.jobId,
-    category: e.category,
-    vendor: undefined,
-    paymentMethod: inferMethod(e.category, e.status),
-    amount: e.amount,
-    date: e.date,
-    status: oldToNew(e.status),
-    reviewedBy: e.reviewedBy,
-    reviewedAt: e.reviewedAt,
-    reimbursedAt: e.reimbursedAt,
-    paidAt: e.status === "Approved" ? e.reviewedAt : undefined,
-    notes: e.notes,
-    receiptUrl: e.receiptUrl,
-    reviewNotes: [],
-  }));
+  const vendorByCategory: Record<ExpenseCategory, string[]> = {
+    Gas: ["Shell", "Chevron", "Marathon", "Wawa", "Mobil"],
+    Hotel: ["Hampton Inn Tampa", "Best Western I-95", "La Quinta Doral"],
+    Tolls: ["SunPass Reload", "MDX TollPass"],
+    Parking: ["LAZ Parking Coral Gables", "ImPark Brickell"],
+    "Packing Material": ["U-Haul Doral", "ULINE", "Lowe's Hialeah"],
+    "Truck Repair": ["Pep Boys Brickell", "Bridgestone Service", "Doral Truck Center"],
+    "Emergency Supplies": ["Home Depot Wynwood", "Target Coral Gables"],
+    "Rental Equipment": ["Sunbelt Rentals", "Home Depot Tool Rental"],
+  };
+  return SEED_DATA.map((e, idx) => {
+    const method = inferMethod(e.category, e.status);
+    const reimbursable = method === "Foreman Out-of-Pocket";
+    const vendor = vendorByCategory[e.category]?.[idx % 3] ?? undefined;
+    return {
+      id: e.id,
+      foremanName: e.foremanName,
+      foremanId: e.foremanId,
+      truckId: e.truckId,
+      truckName: e.truckName,
+      jobId: e.jobId,
+      category: e.category,
+      vendor,
+      paymentMethod: method,
+      amount: e.amount,
+      date: e.date,
+      status: oldToNew(e.status),
+      reviewedBy: e.reviewedBy,
+      reviewedAt: e.reviewedAt,
+      reimbursedAt: e.reimbursedAt,
+      paidAt: e.status === "Approved" ? e.reviewedAt : undefined,
+      notes: e.notes,
+      receiptUrl: e.receiptUrl,
+      reviewNotes: [],
+      reimbursable,
+      detection: e.receiptUrl
+        ? {
+            merchant: vendor,
+            date: e.date.slice(0, 10),
+            total: e.amount,
+            tax: Number((e.amount * 0.07).toFixed(2)),
+            description: e.notes,
+            confidence: 0.82 + ((idx % 7) * 0.02),
+            duplicateRisk: idx % 4 === 0 ? 0.18 : 0.04,
+          }
+        : undefined,
+    };
+  });
 }
 
 interface ExpensesState {
@@ -124,7 +171,10 @@ interface ExpensesState {
   markPaid: (id: string, by: string) => Expense | undefined;
   markReimbursed: (id: string, by: string) => Expense | undefined;
   addReviewNote: (id: string, note: Omit<ExpenseReviewNote, "id" | "createdAt">) => Expense | undefined;
+  setReimbursable: (id: string, reimbursable: boolean) => Expense | undefined;
+  updateDetection: (id: string, patch: Partial<ExpenseDetection>) => Expense | undefined;
   getById: (id: string) => Expense | undefined;
+  reimbursementsFor: (foremanId: string, from: string, to: string) => Expense[];
 }
 
 export const useExpenses = create<ExpensesState>()(
@@ -265,10 +315,43 @@ export const useExpenses = create<ExpensesState>()(
         }));
         return updated;
       },
+      setReimbursable: (id, reimbursable) => {
+        let updated: Expense | undefined;
+        set((s) => ({
+          items: s.items.map((e) => {
+            if (e.id !== id) return e;
+            updated = { ...e, reimbursable };
+            return updated;
+          }),
+        }));
+        return updated;
+      },
+      updateDetection: (id, patch) => {
+        let updated: Expense | undefined;
+        set((s) => ({
+          items: s.items.map((e) => {
+            if (e.id !== id) return e;
+            updated = { ...e, detection: { ...(e.detection ?? {}), ...patch } };
+            return updated;
+          }),
+        }));
+        return updated;
+      },
       getById: (id) => get().items.find((e) => e.id === id),
+      reimbursementsFor: (foremanId, from, to) => {
+        const fromTs = new Date(from).getTime();
+        const toTs = new Date(to).getTime();
+        return get().items.filter((e) => {
+          if (e.foremanId !== foremanId) return false;
+          if (!e.reimbursable) return false;
+          if (e.status !== "Approved" && e.status !== "Paid" && e.status !== "Reimbursed") return false;
+          const t = new Date(e.date).getTime();
+          return t >= fromTs && t <= toTs;
+        });
+      },
     }),
     {
-      name: "arsemia.expenses.v1",
+      name: "arsemia.expenses.v2",
       storage: createJSONStorage(() => localStorage),
     },
   ),
