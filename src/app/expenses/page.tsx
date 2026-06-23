@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Filter, Plus, Receipt, Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -20,37 +21,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { EXPENSES, type ExpenseStatus } from "@/lib/data/expenses";
-import { fmtUSD } from "@/lib/calculator/engine";
-import { cn } from "@/lib/utils";
+import { useExpenses, EXPENSE_STATUSES, type ExpenseStatus } from "@/lib/store/expenses";
+import { cn, formatCurrency } from "@/lib/utils";
 
 const STATUS_STYLES: Record<ExpenseStatus, string> = {
   Submitted: "bg-blue-500/15 text-blue-600 border-blue-500/30",
+  "Needs Receipt": "bg-warning/15 text-warning border-warning/30",
   "Under Review": "bg-amber-500/15 text-amber-600 border-amber-500/30",
   Approved: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
   Rejected: "bg-rose-500/15 text-rose-600 border-rose-500/30",
+  Duplicate: "bg-slate-500/15 text-slate-600 border-slate-500/30",
+  Paid: "bg-cyan-500/15 text-cyan-600 border-cyan-500/30",
   Reimbursed: "bg-success/15 text-success border-success/30",
-  Deducted: "bg-violet-500/15 text-violet-600 border-violet-500/30",
-  "Needs Receipt": "bg-warning/15 text-warning border-warning/30",
+  "On Hold": "bg-orange-500/15 text-orange-600 border-orange-500/30",
 };
 
-const STATUSES: ("All" | ExpenseStatus)[] = [
-  "All",
-  "Submitted",
-  "Under Review",
-  "Approved",
-  "Reimbursed",
-  "Rejected",
-  "Needs Receipt",
-  "Deducted",
-];
+const STATUSES: ("All" | ExpenseStatus)[] = ["All", ...EXPENSE_STATUSES];
 
 export default function ExpensesPage() {
+  const items = useExpenses((s) => s.items);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<(typeof STATUSES)[number]>("All");
 
   const filtered = useMemo(() => {
-    return EXPENSES.filter((e) => {
+    return items.filter((e) => {
       if (filter !== "All" && e.status !== filter) return false;
       if (!query) return true;
       const q = query.toLowerCase();
@@ -62,37 +56,39 @@ export default function ExpensesPage() {
         (e.jobId?.toLowerCase().includes(q) ?? false)
       );
     });
-  }, [filter, query]);
+  }, [items, filter, query]);
 
   const totals = useMemo(() => {
-    const submitted = EXPENSES.filter((e) =>
-      ["Submitted", "Under Review", "Needs Receipt"].includes(e.status),
+    const pending = items.filter((e) =>
+      ["Submitted", "Under Review", "Needs Receipt", "On Hold"].includes(e.status),
     );
-    const approved = EXPENSES.filter((e) =>
-      ["Approved", "Reimbursed"].includes(e.status),
+    const approved = items.filter((e) =>
+      ["Approved", "Paid", "Reimbursed"].includes(e.status),
     );
-    const reimbursed = EXPENSES.filter((e) => e.status === "Reimbursed");
-    const deducted = EXPENSES.filter((e) => e.status === "Deducted");
+    const reimbursed = items.filter((e) => e.status === "Reimbursed");
+    const rejected = items.filter((e) =>
+      ["Rejected", "Duplicate"].includes(e.status),
+    );
     return {
-      submittedCount: submitted.length,
-      submittedSum: submitted.reduce((s, e) => s + e.amount, 0),
+      pendingCount: pending.length,
+      pendingSum: pending.reduce((s, e) => s + e.amount, 0),
       approvedSum: approved.reduce((s, e) => s + e.amount, 0),
       reimbursedSum: reimbursed.reduce((s, e) => s + e.amount, 0),
-      deductedSum: deducted.reduce((s, e) => s + e.amount, 0),
+      rejectedSum: rejected.reduce((s, e) => s + e.amount, 0),
     };
-  }, []);
+  }, [items]);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Expenses"
-        description="Foreman-submitted expenses from the field. Reviewed by accounting, reimbursed or deducted."
+        description="Foreman-submitted expenses from the field. Each row opens a working detail page with approve/reject/paid actions."
         actions={
           <Button
             size="sm"
             className="gap-2"
             disabled
-            title="Manual expense entry ships when the Foreman App is integrated. Until then, expenses flow from the field."
+            title="Manual expense entry ships with the Foreman App. Until then, expenses flow from the field."
           >
             <Plus className="h-4 w-4" /> Manual entry
           </Button>
@@ -102,23 +98,23 @@ export default function ExpensesPage() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
           label="Pending review"
-          count={totals.submittedCount}
-          value={fmtUSD(totals.submittedSum)}
+          count={totals.pendingCount}
+          value={formatCurrency(totals.pendingSum)}
           accent="amber"
         />
         <Stat
-          label="Approved this period"
-          value={fmtUSD(totals.approvedSum)}
+          label="Approved / Paid"
+          value={formatCurrency(totals.approvedSum)}
           accent="primary"
         />
         <Stat
           label="Reimbursed"
-          value={fmtUSD(totals.reimbursedSum)}
+          value={formatCurrency(totals.reimbursedSum)}
           accent="success"
         />
         <Stat
-          label="Deducted from payroll"
-          value={fmtUSD(totals.deductedSum)}
+          label="Rejected / duplicate"
+          value={formatCurrency(totals.rejectedSum)}
           accent="violet"
         />
       </div>
@@ -131,8 +127,8 @@ export default function ExpensesPage() {
               All expenses
             </CardTitle>
             <CardDescription>
-              {filtered.length} of {EXPENSES.length} ·{" "}
-              {fmtUSD(filtered.reduce((s, e) => s + e.amount, 0))} filtered total
+              {filtered.length} of {items.length} ·{" "}
+              {formatCurrency(filtered.reduce((s, e) => s + e.amount, 0))} filtered total
             </CardDescription>
           </div>
         </CardHeader>
@@ -182,12 +178,22 @@ export default function ExpensesPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((e) => (
-                  <TableRow key={e.id}>
-                    <TableCell className="pl-5 font-mono text-xs">
-                      {e.id}
+                  <TableRow key={e.id} className="cursor-pointer hover:bg-accent/30">
+                    <TableCell className="pl-5">
+                      <Link
+                        href={`/expenses/${e.id}`}
+                        className="font-mono text-xs hover:underline"
+                      >
+                        {e.id}
+                      </Link>
                     </TableCell>
-                    <TableCell className="text-xs font-semibold">
-                      {e.foremanName}
+                    <TableCell>
+                      <Link
+                        href={`/expenses/${e.id}`}
+                        className="text-xs font-semibold hover:underline"
+                      >
+                        {e.foremanName}
+                      </Link>
                     </TableCell>
                     <TableCell className="text-xs">
                       <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold">
@@ -201,7 +207,7 @@ export default function ExpensesPage() {
                       {e.jobId ?? "—"}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs font-semibold">
-                      {fmtUSD(e.amount)}
+                      {formatCurrency(e.amount)}
                     </TableCell>
                     <TableCell className="text-[11px] text-muted-foreground">
                       {new Date(e.date).toLocaleDateString(undefined, {
@@ -221,6 +227,13 @@ export default function ExpensesPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {filtered.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={8} className="p-8 text-center text-sm text-muted-foreground">
+                      No expenses match your filters.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>

@@ -123,6 +123,66 @@ export function humanizeActivity(entry: ActivityEntry): string {
     }
   }
 
+  // Expense flow
+  if (module === "Expenses" && action === "status_changed") {
+    const from = (beforeValue as { status?: string } | undefined)?.status;
+    const to = (afterValue as { status?: string } | undefined)?.status;
+    if (from && to) {
+      return `Expense ${objectId} moved from ${from} to ${to}.`;
+    }
+  }
+  if (module === "Expenses" && action === "approved") {
+    return `Expense ${objectId} approved.`;
+  }
+  if (module === "Expenses" && action === "rejected") {
+    return `Expense ${objectId} rejected${entry.notes ? `: ${entry.notes}` : "."}`;
+  }
+  if (module === "Expenses" && action === "paid") {
+    return `Expense ${objectId} marked paid / reimbursed.`;
+  }
+
+  // Fleet edits
+  if (module === "Fleet" && action === "edited") {
+    return `Vehicle ${objectId} updated.`;
+  }
+  if (module === "Fleet" && action === "status_changed") {
+    const from = (beforeValue as { status?: string } | undefined)?.status;
+    const to = (afterValue as { status?: string } | undefined)?.status;
+    if (from && to) {
+      return `Vehicle ${objectId} status ${from} → ${to}.`;
+    }
+  }
+
+  // Invoice flow
+  if (module === "Invoices" && action === "status_changed") {
+    const from = (beforeValue as { status?: string } | undefined)?.status;
+    const to = (afterValue as { status?: string } | undefined)?.status;
+    if (from && to) {
+      return `Invoice ${objectId} status ${from} → ${to}.`;
+    }
+  }
+  if (module === "Invoices" && action === "paid") {
+    const a = afterValue as { amount?: number } | undefined;
+    return `Invoice ${objectId} marked paid${a?.amount ? ` (${fmtMoney(a.amount)})` : "."}`;
+  }
+  if (module === "Invoices" && action === "rejected") {
+    return `Invoice ${objectId} voided.`;
+  }
+
+  // Dispatch assignment
+  if (module === "Dispatch" && action === "assigned") {
+    const a = afterValue as { foreman?: string } | undefined;
+    if (a?.foreman) return `${a.foreman} assigned to ${objectId} from dispatch.`;
+  }
+
+  // Payroll period actions
+  if (module === "Payroll" && action === "approved") {
+    return `Payroll period approved for ${objectId}.`;
+  }
+  if (module === "Payroll" && action === "rejected") {
+    return `Payroll period flagged for ${objectId}.`;
+  }
+
   // Fallback
   return title.endsWith(".") ? title : `${title}.`;
 }

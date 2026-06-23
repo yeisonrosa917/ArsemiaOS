@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator, Info, Table2 } from "lucide-react";
+import { Calculator, Info, Table2, Users } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { PayrollTable } from "@/components/payroll/payroll-table";
 import { PayrollAuditPanel } from "@/components/payroll/payroll-audit-panel";
+import { PayrollForemanList } from "@/components/payroll/foreman-list";
 import { cn } from "@/lib/utils";
 
 const RULES = [
@@ -34,23 +35,35 @@ const RULES = [
   },
 ];
 
-type Tab = "audit" | "table";
+type Tab = "foremen" | "audit" | "table";
 
 export default function PayrollPage() {
-  const [tab, setTab] = useState<Tab>("audit");
+  const [tab, setTab] = useState<Tab>("foremen");
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Payroll"
-        description="Commission engine + audit. Cross-checks app totals against internal commissionable base and flags discrepancies."
+        description="Foreman-first payroll. Open any foreman to see their period, audit flags, and approve their payout."
         actions={
           <>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled
+              title="Recompute hooks into the audit engine; ships next sprint."
+            >
               <Calculator className="h-4 w-4" />
               Recompute period
             </Button>
-            <Button size="sm">Run payroll</Button>
+            <Button
+              size="sm"
+              disabled
+              title="Bulk payroll run ships once ACH disbursement is wired."
+            >
+              Run payroll
+            </Button>
           </>
         }
       />
@@ -82,6 +95,18 @@ export default function PayrollPage() {
 
       <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1 sm:w-fit">
         <button
+          onClick={() => setTab("foremen")}
+          className={cn(
+            "flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+            tab === "foremen"
+              ? "bg-background text-foreground shadow-soft"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <Users className="h-3.5 w-3.5" />
+          Foremen
+        </button>
+        <button
           onClick={() => setTab("audit")}
           className={cn(
             "flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
@@ -107,7 +132,9 @@ export default function PayrollPage() {
         </button>
       </div>
 
-      {tab === "audit" ? <PayrollAuditPanel /> : <PayrollTable />}
+      {tab === "foremen" && <PayrollForemanList />}
+      {tab === "audit" && <PayrollAuditPanel />}
+      {tab === "table" && <PayrollTable />}
     </div>
   );
 }

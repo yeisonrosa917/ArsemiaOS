@@ -1,3 +1,6 @@
+"use client";
+
+import Link from "next/link";
 import {
   Fuel,
   Gauge,
@@ -21,22 +24,35 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { VehicleStatusBadge } from "@/components/shared/status-badge";
-import { vehicles } from "@/lib/mock-data";
+import { useFleet } from "@/lib/store/fleet";
 import { cn, formatNumber } from "@/lib/utils";
 
 export default function FleetPage() {
+  const vehicles = useFleet((s) => s.vehicles);
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Fleet"
-        description="Vehicles, maintenance, telematics and document compliance across the fleet."
+        description="Trucks, maintenance, telematics and document compliance across the fleet. Click any vehicle to edit."
         actions={
           <>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled
+              title="Maintenance scheduling ships in a later phase."
+            >
               <Wrench className="h-4 w-4" />
               Schedule maintenance
             </Button>
-            <Button size="sm" className="gap-2">
+            <Button
+              size="sm"
+              className="gap-2"
+              disabled
+              title="Vehicle onboarding ships with the Foreman App."
+            >
               <Plus className="h-4 w-4" />
               Add vehicle
             </Button>
@@ -66,7 +82,8 @@ export default function FleetPage() {
           label="Avg mileage"
           value={formatNumber(
             Math.round(
-              vehicles.reduce((s, v) => s + v.mileage, 0) / vehicles.length,
+              vehicles.reduce((s, v) => s + v.mileage, 0) /
+                Math.max(1, vehicles.length),
             ),
           )}
           helper="miles"
@@ -77,80 +94,85 @@ export default function FleetPage() {
         {vehicles.map((v) => {
           const lifePct = Math.min(100, (v.mileage / 200000) * 100);
           return (
-            <Card key={v.id} className="overflow-hidden">
-              <div className="flex items-start justify-between gap-3 p-5 pb-3">
-                <div>
-                  <p className="text-xs font-mono text-muted-foreground">
-                    {v.id} • {v.plate}
-                  </p>
-                  <p className="text-base font-semibold">{v.name}</p>
-                  <p className="text-xs text-muted-foreground">{v.type}</p>
-                </div>
-                <VehicleStatusBadge status={v.status} />
-              </div>
-
-              <div className="space-y-3 px-5 pb-4">
-                <div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-1.5 text-muted-foreground">
-                      <Gauge className="h-3.5 w-3.5" />
-                      Odometer
-                    </span>
-                    <span className="font-semibold">
-                      {formatNumber(v.mileage)} mi
-                    </span>
+            <Card key={v.id} className="overflow-hidden transition-colors hover:bg-accent/20">
+              <Link href={`/fleet/${v.id}`} className="block">
+                <div className="flex items-start justify-between gap-3 p-5 pb-3">
+                  <div>
+                    <p className="text-xs font-mono text-muted-foreground">
+                      {v.id} • {v.plate}
+                    </p>
+                    <p className="text-base font-semibold">{v.name}</p>
+                    <p className="text-xs text-muted-foreground">{v.type}</p>
                   </div>
-                  <Progress
-                    value={lifePct}
-                    className="mt-1.5 h-1.5"
-                    indicatorClassName={cn(
-                      lifePct > 75
-                        ? "bg-rose-500"
-                        : lifePct > 50
-                          ? "bg-amber-500"
-                          : "bg-emerald-500",
-                    )}
-                  />
+                  <VehicleStatusBadge status={v.status} />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <Info icon={Wrench} label="Next service" value={v.nextMaintenance} />
-                  <Info
-                    icon={ShieldCheck}
-                    label="Insurance"
-                    value={v.insuranceExpiry}
-                  />
-                  <Info
-                    icon={Fuel}
-                    label="Registration"
-                    value={v.registrationExpiry}
-                  />
-                  <Info icon={MapPin} label="Location" value={v.location} />
-                </div>
-
-                <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        "flex h-2 w-2 rounded-full",
-                        v.gpsActive
-                          ? "animate-pulse-dot bg-emerald-500"
-                          : "bg-rose-500",
+                <div className="space-y-3 px-5 pb-4">
+                  <div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <Gauge className="h-3.5 w-3.5" />
+                        Odometer
+                      </span>
+                      <span className="font-semibold">
+                        {formatNumber(v.mileage)} mi
+                      </span>
+                    </div>
+                    <Progress
+                      value={lifePct}
+                      className="mt-1.5 h-1.5"
+                      indicatorClassName={cn(
+                        lifePct > 75
+                          ? "bg-rose-500"
+                          : lifePct > 50
+                            ? "bg-amber-500"
+                            : "bg-emerald-500",
                       )}
                     />
-                    <span className="font-medium">
-                      {v.gpsActive ? "GPS tracking" : "GPS offline"}
-                    </span>
                   </div>
-                  {v.currentDriver ? (
-                    <span className="text-muted-foreground">
-                      Driver: <span className="font-semibold text-foreground">{v.currentDriver}</span>
-                    </span>
-                  ) : (
-                    <Badge variant="slate">No driver</Badge>
-                  )}
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <Info icon={Wrench} label="Next service" value={v.nextMaintenance} />
+                    <Info
+                      icon={ShieldCheck}
+                      label="Insurance"
+                      value={v.insuranceExpiry}
+                    />
+                    <Info
+                      icon={Fuel}
+                      label="Registration"
+                      value={v.registrationExpiry}
+                    />
+                    <Info icon={MapPin} label="Location" value={v.location} />
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "flex h-2 w-2 rounded-full",
+                          v.gpsActive
+                            ? "animate-pulse-dot bg-emerald-500"
+                            : "bg-rose-500",
+                        )}
+                      />
+                      <span className="font-medium">
+                        {v.gpsActive ? "GPS tracking" : "GPS offline"}
+                      </span>
+                    </div>
+                    {v.currentDriver ? (
+                      <span className="text-muted-foreground">
+                        Foreman:{" "}
+                        <span className="font-semibold text-foreground">
+                          {v.currentDriver}
+                        </span>
+                      </span>
+                    ) : (
+                      <Badge variant="slate">No foreman</Badge>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </Link>
             </Card>
           );
         })}
@@ -171,18 +193,20 @@ export default function FleetPage() {
               <TableHead>Next service</TableHead>
               <TableHead>Registration</TableHead>
               <TableHead>Insurance</TableHead>
-              <TableHead>Current driver</TableHead>
+              <TableHead>Current foreman</TableHead>
               <TableHead className="pr-5">GPS</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {vehicles.map((v) => (
-              <TableRow key={v.id}>
+              <TableRow key={v.id} className="cursor-pointer hover:bg-accent/30">
                 <TableCell className="pl-5">
-                  <p className="text-xs font-semibold">{v.name}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {v.id} • {v.plate}
-                  </p>
+                  <Link href={`/fleet/${v.id}`} className="hover:underline">
+                    <p className="text-xs font-semibold">{v.name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {v.id} • {v.plate}
+                    </p>
+                  </Link>
                 </TableCell>
                 <TableCell className="text-xs">{v.type}</TableCell>
                 <TableCell>

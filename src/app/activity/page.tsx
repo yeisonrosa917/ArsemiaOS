@@ -17,42 +17,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { usePreferences } from "@/lib/store/preferences";
 import { humanizeActivity } from "@/lib/activity/humanize";
 import type { ActivityModule } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useState as useReactState } from "react";
-
-function TechnicalDetails({ entry }: { entry: { beforeValue?: unknown; afterValue?: unknown } }) {
-  const [open, setOpen] = useReactState(false);
-  return (
-    <div className="mt-1">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
-      >
-        {open ? "Hide" : "View"} technical details
-      </button>
-      {open && (
-        <div className="mt-1 grid gap-1 text-[10px] sm:grid-cols-2">
-          {entry.beforeValue !== undefined && entry.beforeValue !== null && (
-            <code className="block rounded bg-rose-500/10 px-2 py-1 text-rose-700">
-              before: {JSON.stringify(entry.beforeValue)}
-            </code>
-          )}
-          {entry.afterValue !== undefined && entry.afterValue !== null && (
-            <code className="block rounded bg-emerald-500/10 px-2 py-1 text-emerald-700">
-              after: {JSON.stringify(entry.afterValue)}
-            </code>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 const MODULES: ("All" | ActivityModule)[] = [
   "All",
@@ -81,6 +51,7 @@ const ROLE_COLORS: Record<string, string> = {
   foreman: "bg-rose-500/15 text-rose-700",
   marketing: "bg-violet-500/15 text-violet-700",
   accountant: "bg-slate-500/15 text-slate-700",
+  claims: "bg-cyan-500/15 text-cyan-700",
 };
 
 export default function ActivityLogPage() {
@@ -108,15 +79,15 @@ export default function ActivityLogPage() {
   if (activeRoleId !== "owner") {
     return (
       <div className="space-y-6">
-        <PageHeader title="Activity Log" description="Cross-module audit trail." />
+        <PageHeader title="Audit Log" description="Cross-module audit trail." />
         <Card className="border-warning/40">
           <CardContent className="flex items-center gap-3 p-6">
             <Shield className="h-6 w-6 text-warning" />
             <div>
               <p className="text-sm font-semibold">Owner-only area</p>
               <p className="text-xs text-muted-foreground">
-                Switch to the Owner role from the top-right avatar to view the global
-                activity log.
+                Switch to the Owner role from the top-right avatar to view the
+                audit log.
               </p>
             </div>
           </CardContent>
@@ -128,24 +99,19 @@ export default function ActivityLogPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Activity Log"
-        description="Cross-module audit trail. Every important action across the hub, with actor, role, before/after values."
+        title="Audit Log"
+        description="Every important action across the hub, in plain language. Lives in Admin so daily operations aren't cluttered."
       />
 
       <Card>
-        <CardHeader className="flex-row items-center justify-between space-y-0">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ActivityIcon className="h-4 w-4 text-primary" />
-              {filtered.length} entries
-            </CardTitle>
-            <CardDescription>
-              Filtered from {entries.length} total · sorted newest first
-            </CardDescription>
-          </div>
-          <Button variant="outline" size="sm" disabled title="CSV export comes in Phase 10">
-            Export CSV
-          </Button>
+        <CardHeader className="space-y-1">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ActivityIcon className="h-4 w-4 text-primary" />
+            {filtered.length} entries
+          </CardTitle>
+          <CardDescription>
+            Filtered from {entries.length} total · sorted newest first
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -205,15 +171,6 @@ export default function ActivityLogPage() {
                     <ArrowRight className="h-2.5 w-2.5" />
                     <span className="font-mono">{e.objectId}</span>
                   </p>
-                  {e.notes && humanizeActivity(e) !== `${e.notes}.` && (
-                    <p className="mt-1 text-[11px] italic text-muted-foreground">
-                      {e.notes}
-                    </p>
-                  )}
-                  {/* Owner-only "technical details" drawer */}
-                  {(e.beforeValue !== undefined || e.afterValue !== undefined) && (
-                    <TechnicalDetails entry={e} />
-                  )}
                 </div>
                 <div className="col-span-12 sm:col-span-3">
                   <p className="flex items-center gap-1 text-xs font-medium">

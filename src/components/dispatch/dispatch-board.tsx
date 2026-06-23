@@ -1,15 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   CalendarDays,
   Filter,
   MapPin,
-  Maximize2,
-  Navigation,
   Phone,
-  Plus,
-  Route as RouteIcon,
   Search,
   Truck,
   UserPlus,
@@ -20,6 +17,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   JobStatusBadge,
   DriverStatusBadge,
@@ -32,6 +35,9 @@ import {
   zones,
 } from "@/lib/mock-data";
 import type { JobStatus } from "@/lib/types";
+import { useActivityLog } from "@/lib/store/activity-log";
+import { usePreferences } from "@/lib/store/preferences";
+import { getUserByRole } from "@/lib/auth/users";
 import { cn, formatCurrency, initials } from "@/lib/utils";
 
 const JOB_TYPES = [
@@ -50,17 +56,20 @@ export function DispatchBoard() {
   const [zoneFilter, setZoneFilter] = useState<string>("All Zones");
   const [typeFilter, setTypeFilter] = useState<string>("All Types");
   const [statusFilter, setStatusFilter] = useState<JobStatus | "All">("All");
-  const [driverFilter, setDriverFilter] = useState<string>("All Drivers");
+  const [driverFilter, setDriverFilter] = useState<string>("All Foremen");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(
     jobs[0]?.id ?? null,
   );
+  const pushActivity = useActivityLog((s) => s.push);
+  const activeRoleId = usePreferences((s) => s.activeRoleId);
+  const user = getUserByRole(activeRoleId);
 
   const filteredJobs = useMemo(() => {
     return jobs.filter((j) => {
       if (statusFilter !== "All" && j.status !== statusFilter) return false;
       if (zoneFilter !== "All Zones" && j.zone !== zoneFilter) return false;
       if (typeFilter !== "All Types" && j.type !== typeFilter) return false;
-      if (driverFilter !== "All Drivers" && j.driverName !== driverFilter)
+      if (driverFilter !== "All Foremen" && j.driverName !== driverFilter)
         return false;
       if (search) {
         const q = search.toLowerCase();
@@ -138,7 +147,7 @@ export function DispatchBoard() {
                 label="Foreman"
                 value={driverFilter}
                 onChange={setDriverFilter}
-                options={["All Drivers", ...drivers.map((d) => d.name)]}
+                options={["All Foremen", ...drivers.map((d) => d.name)]}
               />
             </div>
 
@@ -268,25 +277,46 @@ export function DispatchBoard() {
             <div>
               <p className="text-sm font-semibold">Live dispatch map</p>
               <p className="text-xs text-muted-foreground">
-                7 vehicles • 4 active routes • Updated 12s ago
+                {drivers.length} foremen • {jobs.length} jobs in scope
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                <Navigation className="h-3.5 w-3.5" />
-                Optimize Route
-              </Button>
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                <UserPlus className="h-3.5 w-3.5" />
-                Assign Driver
-              </Button>
-              <Button size="sm" className="gap-1.5 text-xs">
-                <Plus className="h-3.5 w-3.5" />
-                Create Job
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Maximize2 className="h-4 w-4" />
-              </Button>
+              {selectedJob && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                      <UserPlus className="h-3.5 w-3.5" />
+                      Assign Foreman
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="max-h-72 overflow-y-auto">
+                    {drivers.map((d) => (
+                      <DropdownMenuItem
+                        key={d.id}
+                        onClick={() => {
+                          pushActivity({
+                            actorId: user.id,
+                            actorName: user.name,
+                            actorRole: activeRoleId,
+                            module: "Dispatch",
+                            action: "assigned",
+                            objectType: "Job",
+                            objectId: selectedJob.id,
+                            title: `Foreman ${d.name} assigned to ${selectedJob.id}`,
+                            beforeValue: { foreman: selectedJob.driverName ?? null },
+                            afterValue: { foreman: d.name, foremanId: d.id },
+                          });
+                        }}
+                      >
+                        {d.name}{" "}
+                        <span className="ml-2 text-[10px] text-muted-foreground">
+                          {d.status}
+                        </span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
 
@@ -311,11 +341,17 @@ export function DispatchBoard() {
                   </h3>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="gap-1.5">
-                    <Phone className="h-3.5 w-3.5" />
-                    Call
+                  {selectedJob.customerPhone && (
+                    <Button asChild variant="outline" size="sm" className="gap-1.5">
+                      <a href={`tel:${selectedJob.customerPhone.replace(/[^0-9+]/g, "")}`}>
+                        <Phone className="h-3.5 w-3.5" />
+                        Call
+                      </a>
+                    </Button>
+                  )}
+                  <Button asChild size="sm">
+                    <Link href={`/jobs/${selectedJob.id}`}>View Details</Link>
                   </Button>
-                  <Button size="sm">View Details</Button>
                 </div>
               </div>
 
@@ -360,15 +396,12 @@ export function DispatchBoard() {
           <div className="border-b p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold">Drivers on duty</p>
+                <p className="text-sm font-semibold">Foremen on duty</p>
                 <p className="text-xs text-muted-foreground">
                   {drivers.filter((d) => d.status !== "Offline").length} active
                   • {drivers.length} total
                 </p>
               </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <RouteIcon className="h-4 w-4" />
-              </Button>
             </div>
           </div>
 
@@ -428,9 +461,11 @@ export function DispatchBoard() {
           </ScrollArea>
 
           <div className="border-t p-3">
-            <Button variant="outline" className="w-full gap-2 text-xs">
-              <Truck className="h-3.5 w-3.5" />
-              View fleet board
+            <Button asChild variant="outline" className="w-full gap-2 text-xs">
+              <Link href="/fleet">
+                <Truck className="h-3.5 w-3.5" />
+                View fleet board
+              </Link>
             </Button>
           </div>
         </div>

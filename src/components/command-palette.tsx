@@ -11,7 +11,6 @@ import {
   Coins,
   LayoutDashboard,
   Receipt,
-  Route as RouteIcon,
   Search,
   Settings,
   ShieldAlert,
@@ -36,11 +35,8 @@ interface PageItem {
 
 const PAGES: PageItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard, hint: "Home" },
-  { label: "Operations Board", href: "/operations-board", icon: ClipboardList, hint: "Kanban" },
   { label: "Dispatch", href: "/dispatch", icon: Zap, hint: "Live board" },
   { label: "Jobs", href: "/jobs", icon: ClipboardList },
-  { label: "Routes", href: "/routes", icon: RouteIcon },
-  { label: "Activity Log", href: "/activity", icon: ShieldAlert, hint: "Owner" },
   { label: "Pipeline", href: "/pipeline", icon: Briefcase, hint: "Sales" },
   { label: "Leads", href: "/leads", icon: Users },
   { label: "Quotes", href: "/quotes", icon: Briefcase, hint: "Calculator" },
@@ -53,6 +49,7 @@ const PAGES: PageItem[] = [
   { label: "Claims", href: "/claims", icon: ShieldAlert },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Audit Log", href: "/activity", icon: ShieldAlert, hint: "Owner" },
 ];
 
 export function CommandPalette({

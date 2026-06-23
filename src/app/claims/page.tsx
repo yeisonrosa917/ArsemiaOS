@@ -1,7 +1,12 @@
-import { Camera, Filter, Plus, ShieldAlert } from "lucide-react";
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { Camera, Filter, Plus, Search, ShieldAlert } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -11,172 +16,188 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ClaimStatusBadge } from "@/components/shared/status-badge";
-import { claims } from "@/lib/mock-data";
-import { cn, formatCurrency, initials } from "@/lib/utils";
+import { useClaims, CLAIM_STATUSES, type ClaimStatus } from "@/lib/store/claims";
+import { cn, formatCurrency } from "@/lib/utils";
+
+const STATUS_STYLES: Record<ClaimStatus, string> = {
+  New: "bg-blue-500/15 text-blue-600 border-blue-500/30",
+  "Under Review": "bg-amber-500/15 text-amber-600 border-amber-500/30",
+  "Waiting for Evidence": "bg-orange-500/15 text-orange-600 border-orange-500/30",
+  "Foreman Response Needed": "bg-rose-500/15 text-rose-600 border-rose-500/30",
+  "Insurance Review": "bg-violet-500/15 text-violet-600 border-violet-500/30",
+  Approved: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+  Rejected: "bg-rose-500/15 text-rose-600 border-rose-500/30",
+  Reimbursed: "bg-success/15 text-success border-success/30",
+  Deducted: "bg-cyan-500/15 text-cyan-600 border-cyan-500/30",
+  Closed: "bg-slate-500/15 text-slate-600 border-slate-500/30",
+};
+
+const FILTERS: ("All" | ClaimStatus)[] = ["All", ...CLAIM_STATUSES];
 
 export default function ClaimsPage() {
-  const totalAtRisk = claims.reduce((s, c) => s + c.amountAtRisk, 0);
-  const openCount = claims.filter(
-    (c) => !["Approved", "Denied", "Closed"].includes(c.status),
-  ).length;
+  const items = useClaims((s) => s.items);
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
+
+  const filtered = useMemo(
+    () =>
+      items
+        .filter((c) => filter === "All" || c.status === filter)
+        .filter((c) => {
+          if (!query) return true;
+          const q = query.toLowerCase();
+          return (
+            c.customerName.toLowerCase().includes(q) ||
+            c.jobId.toLowerCase().includes(q) ||
+            c.foremanName.toLowerCase().includes(q) ||
+            c.id.toLowerCase().includes(q) ||
+            c.claimType.toLowerCase().includes(q)
+          );
+        }),
+    [items, query, filter],
+  );
+
+  const totals = useMemo(() => {
+    const open = items.filter(
+      (c) =>
+        !["Approved", "Rejected", "Reimbursed", "Deducted", "Closed"].includes(
+          c.status,
+        ),
+    );
+    const atRisk = open.reduce((s, c) => s + c.claimAmount, 0);
+    const reimbursed = items
+      .filter((c) => c.status === "Reimbursed")
+      .reduce((s, c) => s + (c.reimbursedAmount ?? c.claimAmount), 0);
+    return {
+      openCount: open.length,
+      total: items.length,
+      atRisk,
+      reimbursed,
+    };
+  }, [items]);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Claims & evidence"
-        description="Damage, lost items, late deliveries, and billing disputes — with the photo trail attached."
+        description="Damage, lost items, late deliveries. Each claim is clickable and has a full evidence trail."
         actions={
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              disabled
-              title="Filter UI ships with the full Claims rebuild in Phase 7"
-            >
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
-            <Button
-              size="sm"
-              className="gap-2"
-              disabled
-              title="Claim creation flow ships in Phase 7 (Claims & Evidence)"
-            >
+          <Button asChild size="sm" className="gap-2">
+            <Link href="/claims/new">
               <Plus className="h-4 w-4" />
               File claim
-            </Button>
-          </>
+            </Link>
+          </Button>
         }
       />
 
       <div className="grid gap-3 md:grid-cols-4">
-        <SummaryCard label="Open claims" value={String(openCount)} tone="warning" />
-        <SummaryCard label="Total claims" value={String(claims.length)} />
+        <SummaryCard label="Open claims" value={String(totals.openCount)} tone="warning" />
+        <SummaryCard label="Total claims" value={String(totals.total)} />
         <SummaryCard
           label="Amount at risk"
-          value={formatCurrency(totalAtRisk)}
+          value={formatCurrency(totals.atRisk)}
           tone="danger"
         />
         <SummaryCard
-          label="Avg resolution"
-          value="3.8 days"
-          helper="last 30 days"
+          label="Reimbursed (lifetime)"
+          value={formatCurrency(totals.reimbursed)}
+          tone="success"
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-        {claims.slice(0, 3).map((c) => (
-          <Card key={c.id} className="overflow-hidden">
-            <div className="flex items-start justify-between gap-3 p-5 pb-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-mono text-xs text-muted-foreground">
-                    {c.id}
-                  </p>
-                  <Badge variant="outline">{c.damageType}</Badge>
-                </div>
-                <p className="mt-1 text-base font-semibold">{c.customer}</p>
-                <p className="text-xs text-muted-foreground">
-                  Linked to {c.jobId} • opened {c.openedAt}
-                </p>
-              </div>
-              <ClaimStatusBadge status={c.status} />
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 px-5 pb-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="relative flex aspect-square items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900"
-                >
-                  <Camera className="h-5 w-5 text-muted-foreground" />
-                  <span className="absolute bottom-1 right-1 rounded-md bg-background/80 px-1 py-0.5 text-[9px] font-semibold backdrop-blur">
-                    EVID-{i + 1}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <p className="px-5 pb-3 text-xs text-muted-foreground">
-              + {Math.max(0, c.evidenceCount - 3)} more attachments
-            </p>
-
-            <div className="grid grid-cols-2 border-t bg-muted/30 px-5 py-3 text-xs">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Manager
-                </p>
-                <div className="mt-1 flex items-center gap-2">
-                  <Avatar className="h-6 w-6">
-                    <AvatarFallback className="bg-violet-500/15 text-[9px] text-violet-700 dark:text-violet-300">
-                      {initials(c.assignedManager)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium text-foreground">
-                    {c.assignedManager}
-                  </span>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  At risk
-                </p>
-                <p className="text-base font-semibold text-rose-600 dark:text-rose-400">
-                  {formatCurrency(c.amountAtRisk)}
-                </p>
-              </div>
-            </div>
-            <p className="border-t bg-background px-5 py-3 text-xs italic text-muted-foreground">
-              {c.notes}
-            </p>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="overflow-hidden">
-        <div className="flex items-center gap-2 border-b p-4">
-          <ShieldAlert className="h-4 w-4 text-rose-500" />
-          <p className="text-sm font-semibold">All claims</p>
+      <Card>
+        <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by customer, job, foreman, claim ID..."
+              className="pl-9"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-1 overflow-x-auto rounded-lg border border-border bg-muted/30 p-1">
+            <Filter className="ml-1 h-3.5 w-3.5 text-muted-foreground" />
+            {FILTERS.map((s) => (
+              <button
+                key={s}
+                onClick={() => setFilter(s)}
+                className={cn(
+                  "shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors",
+                  filter === s
+                    ? "bg-background text-foreground shadow-soft"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="pl-5">Claim</TableHead>
-              <TableHead>Job</TableHead>
               <TableHead>Customer</TableHead>
+              <TableHead>Job · Foreman</TableHead>
               <TableHead>Damage type</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Evidence</TableHead>
-              <TableHead>Manager</TableHead>
-              <TableHead className="pr-5 text-right">At risk</TableHead>
+              <TableHead className="pr-5 text-right">Amount</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {claims.map((c) => (
-              <TableRow key={c.id}>
-                <TableCell className="pl-5 font-mono text-xs">{c.id}</TableCell>
-                <TableCell className="font-mono text-xs">{c.jobId}</TableCell>
-                <TableCell className="font-medium">{c.customer}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{c.damageType}</Badge>
+            {filtered.map((c) => (
+              <TableRow
+                key={c.id}
+                className="cursor-pointer hover:bg-accent/30"
+              >
+                <TableCell className="pl-5">
+                  <Link href={`/claims/${c.id}`} className="font-mono text-xs hover:underline">
+                    {c.id}
+                  </Link>
                 </TableCell>
                 <TableCell>
-                  <ClaimStatusBadge status={c.status} />
+                  <Link href={`/claims/${c.id}`} className="font-medium hover:underline">
+                    {c.customerName}
+                  </Link>
+                </TableCell>
+                <TableCell className="text-xs">
+                  <p className="font-mono text-muted-foreground">{c.jobId}</p>
+                  <p>{c.foremanName}</p>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{c.claimType}</Badge>
+                </TableCell>
+                <TableCell>
+                  <span
+                    className={cn(
+                      "inline-flex rounded-md border px-2 py-0.5 text-[10px] font-semibold",
+                      STATUS_STYLES[c.status],
+                    )}
+                  >
+                    {c.status}
+                  </span>
                 </TableCell>
                 <TableCell className="text-xs">
                   <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 font-semibold">
                     <Camera className="h-3 w-3" />
-                    {c.evidenceCount}
+                    {c.evidence.length}
                   </span>
                 </TableCell>
-                <TableCell className="text-xs">{c.assignedManager}</TableCell>
                 <TableCell className="pr-5 text-right font-semibold">
-                  {formatCurrency(c.amountAtRisk)}
+                  {formatCurrency(c.claimAmount)}
                 </TableCell>
               </TableRow>
             ))}
+            {filtered.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="p-8 text-center text-sm text-muted-foreground">
+                  No claims match your filters.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </Card>
@@ -187,13 +208,11 @@ export default function ClaimsPage() {
 function SummaryCard({
   label,
   value,
-  helper,
   tone,
 }: {
   label: string;
   value: string;
-  helper?: string;
-  tone?: "warning" | "danger";
+  tone?: "warning" | "danger" | "success";
 }) {
   return (
     <Card className="p-4">
@@ -205,13 +224,11 @@ function SummaryCard({
           "mt-1 text-2xl font-semibold tracking-tight",
           tone === "warning" && "text-amber-600 dark:text-amber-400",
           tone === "danger" && "text-rose-600 dark:text-rose-400",
+          tone === "success" && "text-emerald-600 dark:text-emerald-400",
         )}
       >
         {value}
       </p>
-      {helper && (
-        <p className="text-[11px] text-muted-foreground">{helper}</p>
-      )}
     </Card>
   );
 }

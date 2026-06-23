@@ -3,18 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Activity,
   BarChart3,
   Briefcase,
   ClipboardList,
   Coins,
   Compass,
-  KanbanSquare,
   LayoutDashboard,
   LifeBuoy,
   Map,
   Receipt,
-  Route as RouteIcon,
   Settings,
   ShieldAlert,
   Truck,
@@ -43,12 +40,8 @@ type NavItem = {
 
 const primaryNav: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Foreman Portal", href: "/foreman-portal", icon: KanbanSquare },
-  { label: "Operations Board", href: "/operations-board", icon: KanbanSquare },
   { label: "Dispatch", href: "/dispatch", icon: Zap, badge: "Live" },
   { label: "Jobs", href: "/jobs", icon: ClipboardList },
-  { label: "Routes", href: "/routes", icon: RouteIcon },
-  { label: "Activity Log", href: "/activity", icon: Activity },
 ];
 
 const salesNav: NavItem[] = [
@@ -66,13 +59,27 @@ const operationsNav: NavItem[] = [
 const financeNav: NavItem[] = [
   { label: "Invoices", href: "/invoices", icon: Receipt },
   { label: "Expenses", href: "/expenses", icon: Wallet },
-  { label: "Payroll", href: "/payroll", icon: Coins, badge: "Audit" },
+  { label: "Payroll", href: "/payroll", icon: Coins },
+];
+
+const riskNav: NavItem[] = [
   { label: "Claims", href: "/claims", icon: ShieldAlert },
 ];
 
 const insightsNav: NavItem[] = [
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
+];
+
+const adminNav: NavItem[] = [
   { label: "Settings", href: "/settings", icon: Settings },
+];
+
+/** Foreman-only sidebar — completely separate from the admin hub. */
+const foremanPortalNav: NavItem[] = [
+  { label: "Foreman Portal", href: "/foreman-portal", icon: LayoutDashboard },
+  { label: "My Jobs", href: "/jobs", icon: ClipboardList },
+  { label: "My Payroll", href: "/payroll", icon: Coins },
+  { label: "My Expenses", href: "/expenses", icon: Wallet },
 ];
 
 function NavGroup({
@@ -171,11 +178,19 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin">
-        <NavGroup label="Operate" items={primaryNav} pathname={pathname} caps={caps} />
-        <NavGroup label="Sales" items={salesNav} pathname={pathname} caps={caps} />
-        <NavGroup label="People & Fleet" items={operationsNav} pathname={pathname} caps={caps} />
-        <NavGroup label="Finance" items={financeNav} pathname={pathname} caps={caps} />
-        <NavGroup label="Insights" items={insightsNav} pathname={pathname} caps={caps} />
+        {activeRoleId === "foreman" ? (
+          <NavGroup label="My Portal" items={foremanPortalNav} pathname={pathname} caps={caps} />
+        ) : (
+          <>
+            <NavGroup label="Operate" items={primaryNav} pathname={pathname} caps={caps} />
+            <NavGroup label="Sales" items={salesNav} pathname={pathname} caps={caps} />
+            <NavGroup label="People & Assets" items={operationsNav} pathname={pathname} caps={caps} />
+            <NavGroup label="Finance" items={financeNav} pathname={pathname} caps={caps} />
+            <NavGroup label="Risk" items={riskNav} pathname={pathname} caps={caps} />
+            <NavGroup label="Insights" items={insightsNav} pathname={pathname} caps={caps} />
+            <NavGroup label="Admin" items={adminNav} pathname={pathname} caps={caps} />
+          </>
+        )}
       </nav>
 
       <div className="border-t border-sidebar-border p-3">

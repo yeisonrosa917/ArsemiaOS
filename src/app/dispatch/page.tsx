@@ -9,10 +9,10 @@ export default function DispatchPage() {
     <div className="space-y-6">
       <PageHeader
         title="Dispatch board"
-        description="Real-time control room — assign drivers, optimize routes, and monitor every move in flight."
+        description="Real-time control room — assign foremen, monitor jobs in flight, call customers from the live feed."
         actions={
           <>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2" disabled>
               <Radio className="h-4 w-4 text-emerald-500" />
               Live • 7 foremen
             </Button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Activity,
   Bell,
@@ -34,8 +35,8 @@ const SECTIONS = [
   { id: "company", icon: Building2, label: "Company Profile" },
   { id: "appearance", icon: SettingsIcon, label: "Appearance" },
   { id: "roles", icon: Shield, label: "Roles & Permissions" },
+  { id: "audit", icon: Activity, label: "Audit Log", external: "/activity" as const },
   { id: "notifications", icon: Bell, label: "Notifications", comingSoon: true },
-  { id: "activity", icon: Activity, label: "Activity Log Settings", comingSoon: true },
   { id: "integrations", icon: Plug, label: "Integrations", comingSoon: true },
   { id: "privacy", icon: Lock, label: "Privacy & Data" },
 ];
@@ -63,6 +64,26 @@ export default function SettingsPage() {
             {SECTIONS.map((s) => {
               const Icon = s.icon;
               const active = section === s.id;
+              // External links (e.g. Audit Log → /activity)
+              if ("external" in s && s.external) {
+                return (
+                  <Link
+                    key={s.id}
+                    href={s.external}
+                    className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors hover:bg-muted"
+                  >
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-foreground">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span className="flex-1">
+                      <p className="text-sm font-semibold">{s.label}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        Owner-only · opens in this tab
+                      </p>
+                    </span>
+                  </Link>
+                );
+              }
               return (
                 <button
                   key={s.id}
