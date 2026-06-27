@@ -39,6 +39,7 @@ export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
   "/customers": ["customers.view"],
   "/leads": ["leads.view"],
   "/quotes": ["quotes.view"],
+  "/quotes/print": ["quotes.view"],
   "/invoices": ["invoices.view"],
   "/invoices/print": ["invoices.view"],
   "/expenses": ["expenses.view_own", "expenses.view_all"],

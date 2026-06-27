@@ -28,6 +28,7 @@ import {
   PRESET_ITEMS,
   type HandlingItem,
 } from "@/lib/calculator/catalog";
+import { useCompanyConfig } from "@/lib/store/company-config";
 import {
   calculateQuote,
   fmtCuft,
@@ -57,6 +58,33 @@ export function QuoteBuilder() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Company-config-driven presets. When the catalog/pricing changes in
+  // Settings → Calculator & Pricing, this component re-renders with the new
+  // catalog + rates without any extra wiring.
+  const companyCatalog = useCompanyConfig((s) => s.catalog);
+  const companyPricing = useCompanyConfig((s) => s.pricing);
+  const enabledModes = useCompanyConfig((s) => s.enabledModes);
+
+  // Built-in presets stay as the fallback (covers items the catalog hasn't
+  // been customized to include yet). Active catalog items take priority on
+  // duplicates so company overrides win.
+  const activeCatalog = useMemo(
+    () => companyCatalog.filter((c) => c.active),
+    [companyCatalog],
+  );
+  const mergedPresets = useMemo(() => {
+    const catalogAsPresets = activeCatalog.map((c) => ({
+      name: c.name,
+      cuft: c.defaultCuFt,
+      aliases: c.aliases,
+    }));
+    const seenNames = new Set(catalogAsPresets.map((p) => p.name.toLowerCase()));
+    const fallback = PRESET_ITEMS.filter(
+      (p) => !seenNames.has(p.name.toLowerCase()),
+    ).map((p) => ({ ...p, aliases: [] as string[] }));
+    return [...catalogAsPresets, ...fallback];
+  }, [activeCatalog]);
+
   // Form state
   const [jobType, setJobType] = useState<JobType>("Local Move");
   const [otherDescription, setOtherDescription] = useState("");
@@ -73,6 +101,16 @@ export function QuoteBuilder() {
   const [internalMileageRate, setInternalMileageRate] = useState<number>(
     DEFAULT_INTERNAL_MILEAGE_RATE,
   );
+  // Seed rates from Company Config on first render.
+  useEffect(() => {
+    setCustomerMileageRate((r) =>
+      r === DEFAULT_CUSTOMER_MILEAGE_RATE ? companyPricing.customerMileageRate : r,
+    );
+    setInternalMileageRate((r) =>
+      r === DEFAULT_INTERNAL_MILEAGE_RATE ? companyPricing.internalMileageRate : r,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [stairsFlights, setStairsFlights] = useState<number>(0);
 
   // Estimated CuFt — used when the quote has no itemized inventory yet.
@@ -135,11 +173,14 @@ export function QuoteBuilder() {
 
   const filteredPresets = useMemo(() => {
     const q = search.toLowerCase().trim();
-    if (!q) return PRESET_ITEMS.slice(0, 12);
-    return PRESET_ITEMS.filter((it) =>
-      it.name.toLowerCase().includes(q),
-    ).slice(0, 25);
-  }, [search]);
+    if (!q) return mergedPresets.slice(0, 12);
+    return mergedPresets
+      .filter((it) => {
+        const hay = [it.name, ...(it.aliases ?? [])].join(" ").toLowerCase();
+        return hay.includes(q);
+      })
+      .slice(0, 25);
+  }, [search, mergedPresets]);
 
   const addPreset = (name: string, cuft: number) => {
     setInventory((prev) => {
@@ -190,6 +231,7 @@ export function QuoteBuilder() {
     [inventory],
   );
 
+  // Rates come from Company Config — customer-facing vs internal stay separate.
   const result = useMemo(
     () =>
       calculateQuote({
@@ -198,9 +240,23 @@ export function QuoteBuilder() {
         miles,
         stairsFlights,
         handlingItems: pickedHandling,
-        rates: { milesShortRate: internalMileageRate, milesLongRate: internalMileageRate },
+        rates: {
+          cuftRateCustomer: companyPricing.customerCuFtRate,
+          cuftRateInternal: companyPricing.internalCuFtRate,
+          milesShortRate: internalMileageRate,
+          milesLongRate: internalMileageRate,
+        },
       }),
-    [inventory, estimatedCuFt, miles, stairsFlights, pickedHandling, internalMileageRate],
+    [
+      inventory,
+      estimatedCuFt,
+      miles,
+      stairsFlights,
+      pickedHandling,
+      internalMileageRate,
+      companyPricing.customerCuFtRate,
+      companyPricing.internalCuFtRate,
+    ],
   );
 
   const customerMileageCharge = miles * customerMileageRate;
@@ -371,6 +427,13 @@ export function QuoteBuilder() {
                   </option>
                 ))}
               </select>
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                Quote modes enabled by the company:{" "}
+                {enabledModes.length === 0
+                  ? "none"
+                  : enabledModes.join(", ").replace(/_/g, " ")}
+                . Manage in Settings → Calculator & Pricing.
+              </p>
             </Field>
             {jobType === "Other" && (
               <Field label="Custom description (required)">

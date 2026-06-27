@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   CheckCircle2,
   FileText,
   Plus,
+  Printer,
   Send,
   XCircle,
 } from "lucide-react";
@@ -180,6 +182,20 @@ export function JobDocumentsPanel({
                     onClick={() => setPreviewId(d.id)}
                   >
                     Preview
+                  </Button>
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 gap-1 text-[10px]"
+                  >
+                    <Link
+                      href={`/jobs/${jobId}/documents/${d.id}/print`}
+                      target="_blank"
+                    >
+                      <Printer className="h-3 w-3" />
+                      Print
+                    </Link>
                   </Button>
                   {d.status !== "voided" && d.status !== "signed" && (
                     <>

@@ -10,6 +10,7 @@ import {
   ClipboardCheck,
   Clock,
   DollarSign,
+  History,
   Mail,
   MapPin,
   Phone,
@@ -17,6 +18,7 @@ import {
   ShieldAlert,
   Trash2,
   Truck,
+  UserCog,
 } from "lucide-react";
 import {
   Card,
@@ -45,6 +47,8 @@ import { useJobEvents } from "@/lib/store/job-events";
 import { JobEventLog } from "./job-event-log";
 import { JobAdjustmentsPanel } from "./job-adjustments-panel";
 import { JobDocumentsPanel } from "./job-documents-panel";
+import { JobHistoryDrawer } from "./job-history-drawer";
+import { ReassignModal } from "./reassign-modal";
 import { fmtUSD } from "@/lib/calculator/engine";
 import { cn } from "@/lib/utils";
 
@@ -84,6 +88,8 @@ export function JobDetail({ job: initial }: { job: Job }) {
   const contractor = job.driverId ? CONTRACTOR_COMPANIES[job.driverId] : undefined;
 
   const [editingInv, setEditingInv] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [reassignOpen, setReassignOpen] = useState(false);
 
   const totalCuft = useMemo(
     () =>
@@ -189,6 +195,37 @@ export function JobDetail({ job: initial }: { job: Job }) {
     updateJob(job.id, { inventoryItems: inv });
   };
 
+  // End-to-end lifecycle indicator — shows the customer journey from
+  // booking to invoice paid. Each step infers its completion from the data
+  // already tracked elsewhere (job status, foreman assignment, signed docs,
+  // linked invoice). No new state, no decorative count.
+  const lifecycleSteps = [
+    {
+      label: "Booked",
+      done: true,
+    },
+    {
+      label: "Foreman assigned",
+      done: Boolean(job.driverId),
+    },
+    {
+      label: "On the way",
+      done: ["En Route", "On Site", "In Transit", "Delivering", "Completed"].includes(job.status),
+    },
+    {
+      label: "Job in progress",
+      done: ["On Site", "In Transit", "Delivering", "Completed"].includes(job.status),
+    },
+    {
+      label: "Delivered",
+      done: ["Delivering", "Completed"].includes(job.status) || job.status === "Completed",
+    },
+    {
+      label: "Invoiced",
+      done: ["Completed"].includes(job.status),
+    },
+  ];
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -228,7 +265,27 @@ export function JobDetail({ job: initial }: { job: Job }) {
               )}
             </div>
           </div>
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5 space-y-2">
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => setHistoryOpen(true)}
+              >
+                <History className="h-3.5 w-3.5" />
+                Job History
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => setReassignOpen(true)}
+              >
+                <UserCog className="h-3.5 w-3.5" />
+                Transfer / Reassign
+              </Button>
+            </div>
             <div className="grid grid-cols-3 gap-2">
               <Stat
                 label="Price"
@@ -242,6 +299,55 @@ export function JobDetail({ job: initial }: { job: Job }) {
                 value={job.miles.toFixed(1)}
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <JobHistoryDrawer
+        jobId={job.id}
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+      />
+      <ReassignModal
+        job={job}
+        open={reassignOpen}
+        onOpenChange={setReassignOpen}
+      />
+
+      {/* Lifecycle strip — customer journey from call to invoice */}
+      <Card>
+        <CardContent className="p-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto">
+            {lifecycleSteps.map((s, i) => (
+              <div key={s.label} className="flex items-center gap-1.5">
+                <div
+                  className={cn(
+                    "flex h-7 min-w-7 items-center justify-center rounded-full border px-2 text-[10px] font-semibold",
+                    s.done
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-muted text-muted-foreground",
+                  )}
+                >
+                  {s.done ? <Check className="h-3 w-3" /> : i + 1}
+                </div>
+                <span
+                  className={cn(
+                    "whitespace-nowrap text-[11px] font-medium",
+                    s.done ? "text-foreground" : "text-muted-foreground",
+                  )}
+                >
+                  {s.label}
+                </span>
+                {i < lifecycleSteps.length - 1 && (
+                  <span
+                    className={cn(
+                      "h-px w-4 sm:w-6",
+                      s.done ? "bg-primary" : "bg-border",
+                    )}
+                  />
+                )}
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

@@ -261,6 +261,13 @@ export default function QuoteDetailPage({
             </CardContent>
           </Card>
 
+          <Button asChild className="w-full gap-1" variant="default">
+            <Link href={`/quotes/${quote.id}/print`} target="_blank">
+              <FileText className="h-3.5 w-3.5" />
+              Preview / Download PDF
+            </Link>
+          </Button>
+
           <Button
             asChild
             className="w-full gap-1"
