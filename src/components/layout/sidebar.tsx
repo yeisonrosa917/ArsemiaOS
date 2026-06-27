@@ -23,7 +23,6 @@ import {
   Zap,
 } from "lucide-react";
 import { useNotifications } from "@/lib/store/notifications";
-import { ArsemiaLogo } from "@/components/brand/arsemia-logo";
 import { cn } from "@/lib/utils";
 import { usePreferences } from "@/lib/store/preferences";
 import {
@@ -175,13 +174,17 @@ export function Sidebar() {
       )}
     >
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 via-brand-500 to-brand-700 shadow-elevated">
-          <ArsemiaLogo size={22} color="white" />
-        </div>
+        <img
+          src="/brand/arsemia-mark.svg"
+          alt="Arsemia"
+          width={36}
+          height={36}
+          className="rounded-xl shadow-elevated"
+        />
         <div className="leading-tight">
           <p className="text-sm font-semibold text-white">Arsemia</p>
           <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/55">
-            Moving & Storage
+            Moving Hub
           </p>
         </div>
       </div>

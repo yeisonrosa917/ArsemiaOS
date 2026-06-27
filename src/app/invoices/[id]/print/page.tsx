@@ -73,18 +73,27 @@ export default function InvoicePrintPage({
 
       <div className="mx-auto max-w-[820px] p-10 print:p-6">
         <div className="flex items-start justify-between border-b border-slate-200 pb-6">
-          <div>
-            <p className="text-2xl font-bold tracking-tight">{COMPANY.dba}</p>
-            <p className="text-xs text-slate-500">{COMPANY.name}</p>
-            <p className="mt-2 text-xs leading-relaxed text-slate-600">
-              {COMPANY.address}
-              <br />
-              {COMPANY.phone}
-              <br />
-              {COMPANY.email}
-              <br />
-              {COMPANY.dot} · {COMPANY.mc}
-            </p>
+          <div className="flex items-start gap-4">
+            <img
+              src="/brand/arsemia-mark.svg"
+              alt="Arsemia"
+              width={64}
+              height={64}
+              className="rounded-xl"
+            />
+            <div>
+              <p className="text-2xl font-bold tracking-tight">{COMPANY.dba}</p>
+              <p className="text-xs text-slate-500">{COMPANY.name}</p>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                {COMPANY.address}
+                <br />
+                {COMPANY.phone}
+                <br />
+                {COMPANY.email}
+                <br />
+                {COMPANY.dot} · {COMPANY.mc}
+              </p>
+            </div>
           </div>
           <div className="text-right">
             <p className="text-3xl font-bold uppercase tracking-wider text-slate-900">

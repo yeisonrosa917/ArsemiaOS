@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 240" role="img" aria-label="Arsemia">
+  <g>
+    <rect x="0" y="0" width="240" height="240" rx="52" ry="52" fill="#1aa3ff"/>
+    <g fill="#ffffff" transform="translate(0,0)">
+      <path d="M120 38 L158 110 L82 110 Z"/>
+      <path d="M70 124 L170 124 L186 154 L54 154 Z"/>
+      <path d="M44 168 L196 168 L216 206 L24 206 Z"/>
+    </g>
+  </g>
+  <text x="272" y="158" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="128" font-weight="700" fill="#1aa3ff">Arsemia</text>
+</svg>

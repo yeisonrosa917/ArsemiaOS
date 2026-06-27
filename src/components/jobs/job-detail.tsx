@@ -44,6 +44,7 @@ import { useNotifications } from "@/lib/store/notifications";
 import { useJobEvents } from "@/lib/store/job-events";
 import { JobEventLog } from "./job-event-log";
 import { JobAdjustmentsPanel } from "./job-adjustments-panel";
+import { JobDocumentsPanel } from "./job-documents-panel";
 import { fmtUSD } from "@/lib/calculator/engine";
 import { cn } from "@/lib/utils";
 
@@ -725,6 +726,12 @@ export function JobDetail({ job: initial }: { job: Job }) {
               )}
             </CardContent>
           </Card>
+
+          <JobDocumentsPanel
+            jobId={job.id}
+            customerName={job.customer}
+            foremanName={job.driverName}
+          />
 
           <JobEventLog jobId={job.id} />
         </div>

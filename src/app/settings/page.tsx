@@ -6,6 +6,7 @@ import {
   Activity,
   Bell,
   Building2,
+  Calculator,
   Lock,
   Plug,
   Settings as SettingsIcon,
@@ -28,6 +29,7 @@ import { RolesAndPermissionsCard } from "@/components/settings/roles-card";
 import { PrivacyDataCard } from "@/components/settings/privacy-card";
 import { NotificationsSettingsCard } from "@/components/settings/notifications-card";
 import { IntegrationsCard } from "@/components/settings/integrations-card";
+import { CompanyConfigCard } from "@/components/settings/company-config-card";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
@@ -35,6 +37,7 @@ import { getUserByRole } from "@/lib/auth/users";
 const SECTIONS = [
   { id: "account", icon: UserCircle, label: "Account" },
   { id: "company", icon: Building2, label: "Company Profile" },
+  { id: "calculator", icon: Calculator, label: "Calculator & Pricing" },
   { id: "appearance", icon: SettingsIcon, label: "Appearance" },
   { id: "roles", icon: Shield, label: "Roles & Permissions" },
   { id: "audit", icon: Activity, label: "Audit Log", external: "/activity" as const },
@@ -211,6 +214,8 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
           )}
+
+          {section === "calculator" && <CompanyConfigCard />}
 
           {section === "appearance" && <AppearanceCard />}
 

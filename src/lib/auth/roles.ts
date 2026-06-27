@@ -28,7 +28,6 @@ export interface UserRole {
  */
 export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
   "/": ["dashboard.view"],
-  "/operations-board": ["jobs.view"],
   "/pipeline": ["leads.view"],
   "/dispatch": ["dispatch.view"],
   "/foreman-portal": ["jobs.view"],
@@ -36,7 +35,6 @@ export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
   "/routes": ["routes.view"],
   "/activity": ["roles.manage"],
   "/foremen": ["drivers.view"],
-  "/drivers": ["drivers.view"],
   "/fleet": ["fleet.view"],
   "/customers": ["customers.view"],
   "/leads": ["leads.view"],

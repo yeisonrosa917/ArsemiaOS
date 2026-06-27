@@ -4,16 +4,17 @@ interface LogoProps {
   /** Size in pixels — applied to both width and height. */
   size?: number;
   className?: string;
-  /** Override fill color. Defaults to currentColor so it adopts text color. */
+  /** Override fill color of the stacked "A" shapes. Defaults to currentColor. */
   color?: string;
   /** Background tile + rounded corners (for use as an app icon). */
   withTile?: boolean;
 }
 
 /**
- * Arsemia "A" mark — concentric triangle motif rendered as an SVG so it scales
- * crisply and can be tinted via CSS color. Use across the sidebar, login,
- * generated documents, etc. Do not import a raster file.
+ * Arsemia "A" mark — three stacked triangular/trapezoidal bands forming the A.
+ * Rendered as inline SVG so it scales crisply and can be tinted via CSS color.
+ * The canonical asset version (blue tile + white mark) lives at
+ * `/brand/arsemia-mark.svg` and is used by documents/PDFs via `<ArsemiaIcon />`.
  */
 export function ArsemiaLogo({
   size = 32,
@@ -31,19 +32,12 @@ export function ArsemiaLogo({
       aria-label="Arsemia"
       role="img"
     >
-      {/* Outer A: large triangle with the apex at the top, ends in two angled feet */}
-      <path
-        d="M100 18 L188 178 L132 178 L100 119 L68 178 L12 178 Z"
-        fill={color}
-      />
-      {/* Inner A: smaller triangle inset, forming the negative-space "A" */}
-      <path
-        d="M100 76 L160 178 L40 178 L70 122 L130 122 L100 67"
-        fill={color}
-        fillOpacity="0.92"
-      />
-      {/* Crossbar slot — the white V between feet */}
-      <path d="M82 154 L118 154 L100 122 Z" fill="white" />
+      {/* Top cap — apex of the A */}
+      <path d="M100 24 L132 86 L68 86 Z" fill={color} />
+      {/* Middle band */}
+      <path d="M62 96 L138 96 L150 122 L50 122 Z" fill={color} />
+      {/* Bottom band — foot of the A */}
+      <path d="M44 134 L156 134 L176 176 L24 176 Z" fill={color} />
     </svg>
   );
 
@@ -51,12 +45,12 @@ export function ArsemiaLogo({
     return (
       <div
         className={cn(
-          "flex items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-elevated",
+          "flex items-center justify-center rounded-2xl bg-[#1aa3ff] text-white shadow-elevated",
           className,
         )}
         style={{ width: size + 8, height: size + 8 }}
       >
-        {svg}
+        <ArsemiaLogo size={size} color="white" />
       </div>
     );
   }
@@ -64,7 +58,30 @@ export function ArsemiaLogo({
   return <span className={className}>{svg}</span>;
 }
 
-/** Logo + wordmark — for headers, login screens. */
+/**
+ * Canonical icon — references the SVG asset directly. Use this in documents,
+ * PDFs, invoice headers, login screens — anywhere we want the exact brand
+ * asset rather than a tinted inline copy.
+ */
+export function ArsemiaIcon({
+  size = 56,
+  className,
+}: {
+  size?: number;
+  className?: string;
+}) {
+  return (
+    <img
+      src="/brand/arsemia-mark.svg"
+      alt="Arsemia"
+      width={size}
+      height={size}
+      className={cn("inline-block", className)}
+    />
+  );
+}
+
+/** Logo + wordmark — for headers, login screens, marketing surfaces. */
 export function ArsemiaLogomark({
   size = 28,
   className,
@@ -75,7 +92,7 @@ export function ArsemiaLogomark({
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
       <ArsemiaLogo size={size} color="currentColor" />
-      <span className="text-lg font-bold tracking-tight">ARSEMIA</span>
+      <span className="text-lg font-bold tracking-tight">Arsemia</span>
     </span>
   );
 }
