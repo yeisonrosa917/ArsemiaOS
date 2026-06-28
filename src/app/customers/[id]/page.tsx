@@ -209,7 +209,7 @@ export default async function CustomerDetailPage({
                           <span>{j.deliveryCity}</span>
                         </div>
                         <p className="text-[10px] text-muted-foreground">
-                          {new Date(j.scheduledAt).toLocaleDateString(undefined, {
+                          {new Date(j.scheduledAt).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "short",
                             day: "numeric",

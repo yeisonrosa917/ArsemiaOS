@@ -38,10 +38,10 @@ export function weeklyRange(anchor: Date = new Date()): PayrollRange {
     kind: "weekly",
     from: isoDay(start),
     to: isoDay(end),
-    label: `${start.toLocaleDateString(undefined, {
+    label: `${start.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-    })} – ${end.toLocaleDateString(undefined, {
+    })} – ${end.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
     })}`,
@@ -55,7 +55,7 @@ export function monthlyRange(anchor: Date = new Date()): PayrollRange {
     kind: "monthly",
     from: isoDay(start),
     to: isoDay(end),
-    label: start.toLocaleDateString(undefined, {
+    label: start.toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
     }),

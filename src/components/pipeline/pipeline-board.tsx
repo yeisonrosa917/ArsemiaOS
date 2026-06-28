@@ -171,7 +171,7 @@ function JobCard({
         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
           <CalendarClock className="h-2.5 w-2.5 shrink-0" />
           <span className="truncate">
-            {new Date(job.scheduledAt).toLocaleString(undefined, {
+            {new Date(job.scheduledAt).toLocaleString("en-US", {
               month: "short",
               day: "numeric",
               hour: "numeric",

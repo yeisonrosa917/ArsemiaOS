@@ -1,5 +1,6 @@
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
+import { RouteGuard } from "./route-guard";
 import { ThemePaletteApplier } from "@/components/theme-palette-applier";
 import { NotificationDeriver } from "@/lib/notifications/derive";
 
@@ -14,7 +15,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Topbar />
           <main className="flex-1 overflow-x-hidden">
             <div className="mx-auto w-full max-w-[1500px] px-4 py-6 lg:px-8 lg:py-8">
-              {children}
+              <RouteGuard>{children}</RouteGuard>
             </div>
           </main>
         </div>

@@ -187,10 +187,6 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
             On-site requests from the foreman that change CuFt and bill.
           </CardDescription>
         </div>
-        <Button variant="outline" size="sm" className="gap-1" disabled>
-          <Plus className="h-3.5 w-3.5" />
-          Manual entry
-        </Button>
       </CardHeader>
       <CardContent className="space-y-2">
         {adjustments.length === 0 ? (
@@ -240,7 +236,7 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
                       </p>
                       <p className="text-[10px] text-muted-foreground">
                         Requested by {a.requestedBy} ·{" "}
-                        {new Date(a.requestedAt).toLocaleString(undefined, {
+                        {new Date(a.requestedAt).toLocaleString("en-US", {
                           month: "short",
                           day: "numeric",
                           hour: "numeric",
@@ -401,7 +397,7 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
 
 function timeOf(iso?: string): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleString(undefined, {
+  return new Date(iso).toLocaleString("en-US", {
     month: "short",
     day: "numeric",
     hour: "numeric",

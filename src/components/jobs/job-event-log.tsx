@@ -103,7 +103,7 @@ export function JobEventLog({ jobId }: { jobId: string }) {
                     <p className="mt-0.5 text-[10px] text-muted-foreground">
                       <span className="font-medium">{ev.actor}</span> ·{" "}
                       {timeAgo(ev.createdAt)} ·{" "}
-                      {new Date(ev.createdAt).toLocaleString(undefined, {
+                      {new Date(ev.createdAt).toLocaleString("en-US", {
                         month: "short",
                         day: "numeric",
                         hour: "numeric",

@@ -48,7 +48,16 @@ export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
   "/claims": ["claims.view"],
   "/analytics": ["analytics.view"],
   "/settings": ["settings.view"],
-  "/notifications": ["dashboard.view"],
+  // Any role gets their own notifications center — gated by ANY role-relevant cap.
+  "/notifications": [
+    "dashboard.view",
+    "leads.view",
+    "claims.view",
+    "jobs.view",
+    "invoices.view",
+    "payroll.view_own",
+    "expenses.view_own",
+  ],
 };
 
 const OWNER_CAPS: CapabilityId[] = [

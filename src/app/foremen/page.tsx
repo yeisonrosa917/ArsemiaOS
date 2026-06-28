@@ -5,12 +5,10 @@ import {
   Mail,
   MapPin,
   Phone,
-  Plus,
   Star,
   Truck,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -32,27 +30,6 @@ export default function DriversPage() {
       <PageHeader
         title="Foremen & contractors"
         description="Foreman Directory, compliance and performance of the foremen / contractors running your jobs."
-        actions={
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled
-              title="Shift scheduling ships in a later phase"
-            >
-              Schedule shifts
-            </Button>
-            <Button
-              size="sm"
-              className="gap-2"
-              disabled
-              title="Foreman add/edit form ships in Phase 2 (Detail Drawers)"
-            >
-              <Plus className="h-4 w-4" />
-              Add foreman
-            </Button>
-          </>
-        }
       />
 
       <div className="grid gap-3 md:grid-cols-4">

@@ -156,7 +156,7 @@ export default function ActivityLogPage() {
                     {e.module}
                   </Badge>
                   <p className="mt-1 text-[10px] text-muted-foreground">
-                    {new Date(e.timestamp).toLocaleString(undefined, {
+                    {new Date(e.timestamp).toLocaleString("en-US", {
                       month: "short",
                       day: "numeric",
                       hour: "numeric",

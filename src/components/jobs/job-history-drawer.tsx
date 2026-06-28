@@ -36,8 +36,8 @@ function timeFmt(iso: string): string {
     d.getMonth() === today.getMonth() &&
     d.getDate() === today.getDate();
   return sameDay
-    ? `Today · ${d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}`
-    : d.toLocaleString(undefined, {
+    ? `Today · ${d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`
+    : d.toLocaleString("en-US", {
         month: "short",
         day: "numeric",
         hour: "2-digit",

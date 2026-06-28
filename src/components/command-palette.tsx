@@ -6,6 +6,7 @@ import { Command } from "cmdk";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   BarChart3,
+  Bell,
   Briefcase,
   ClipboardList,
   Coins,
@@ -17,20 +18,28 @@ import {
   Truck,
   Users,
   UserSquare2,
+  Wallet,
   Zap,
 } from "lucide-react";
+import { customers, drivers, jobs, invoices } from "@/lib/data";
+import { useInvoices } from "@/lib/store/invoices";
+import { useClaims } from "@/lib/store/claims";
+import { useExpenses } from "@/lib/store/expenses";
+import { useFleet } from "@/lib/store/fleet";
+import { usePreferences } from "@/lib/store/preferences";
 import {
-  customers,
-  drivers,
-  jobs,
-  invoices,
-} from "@/lib/data";
+  canAccessRouteWithFallback,
+  resolveCapabilities,
+} from "@/lib/auth/roles";
+import type { CapabilityId } from "@/lib/auth/capabilities";
 
 interface PageItem {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   hint?: string;
+  /** Owner route — only shown if guard allows. */
+  guardPath?: string;
 }
 
 const PAGES: PageItem[] = [
@@ -44,10 +53,11 @@ const PAGES: PageItem[] = [
   { label: "Foremen", href: "/foremen", icon: UserSquare2 },
   { label: "Fleet", href: "/fleet", icon: Truck },
   { label: "Invoices", href: "/invoices", icon: Receipt },
-  { label: "Expenses", href: "/expenses", icon: Receipt },
-  { label: "Payroll", href: "/payroll", icon: Coins, hint: "Audit" },
+  { label: "Expenses", href: "/expenses", icon: Wallet },
+  { label: "Payroll", href: "/payroll", icon: Coins },
   { label: "Claims", href: "/claims", icon: ShieldAlert },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "Notifications", href: "/notifications", icon: Bell },
   { label: "Settings", href: "/settings", icon: Settings },
   { label: "Audit Log", href: "/activity", icon: ShieldAlert, hint: "Owner" },
 ];
@@ -62,6 +72,17 @@ export function CommandPalette({
   const router = useRouter();
   const [query, setQuery] = useState("");
 
+  const activeRoleId = usePreferences((s) => s.activeRoleId);
+  const overrides = usePreferences((s) => s.capabilityOverrides);
+  const caps: CapabilityId[] = resolveCapabilities(activeRoleId, overrides);
+  const can = (path: string) => canAccessRouteWithFallback(caps, path);
+
+  // Live stores for record-level navigation
+  const invoiceItems = useInvoices((s) => s.items);
+  const claimItems = useClaims((s) => s.items);
+  const expenseItems = useExpenses((s) => s.items);
+  const vehicleItems = useFleet((s) => s.vehicles);
+
   useEffect(() => {
     if (!open) setQuery("");
   }, [open]);
@@ -70,6 +91,8 @@ export function CommandPalette({
     setOpen(false);
     router.push(href);
   };
+
+  const visiblePages = PAGES.filter((p) => can(p.href));
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -99,8 +122,8 @@ export function CommandPalette({
                 No results for &ldquo;{query}&rdquo;
               </Command.Empty>
 
-              <Command.Group heading="Pages" className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground">
-                {PAGES.map((p) => {
+              <Group heading="Pages">
+                {visiblePages.map((p) => {
                   const Icon = p.icon;
                   return (
                     <Command.Item
@@ -119,84 +142,171 @@ export function CommandPalette({
                     </Command.Item>
                   );
                 })}
-              </Command.Group>
+              </Group>
 
-              <Command.Group heading="Jobs" className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground">
-                {jobs.slice(0, 12).map((j) => (
-                  <Command.Item
-                    key={j.id}
-                    value={`job ${j.id} ${j.customer} ${j.pickupCity} ${j.deliveryCity}`}
-                    onSelect={() => go("/jobs")}
-                    className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
-                  >
-                    <ClipboardList className="h-4 w-4 text-muted-foreground" />
-                    <span className="flex-1">
-                      <span className="font-semibold">{j.id}</span> · {j.customer}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {j.status}
-                    </span>
-                  </Command.Item>
-                ))}
-              </Command.Group>
+              {can("/jobs") && (
+                <Group heading="Jobs">
+                  {jobs.slice(0, 12).map((j) => (
+                    <Command.Item
+                      key={j.id}
+                      value={`job ${j.id} ${j.customer} ${j.pickupCity} ${j.deliveryCity}`}
+                      onSelect={() => go(`/jobs/${j.id}`)}
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
+                    >
+                      <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1">
+                        <span className="font-semibold">{j.id}</span> · {j.customer}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {j.status}
+                      </span>
+                    </Command.Item>
+                  ))}
+                </Group>
+              )}
 
-              <Command.Group heading="Customers" className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground">
-                {customers.slice(0, 12).map((c) => (
-                  <Command.Item
-                    key={c.id}
-                    value={`customer ${c.name} ${c.email}`}
-                    onSelect={() => go("/customers")}
-                    className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
-                  >
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="flex-1">{c.name}</span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {c.segment}
-                    </span>
-                  </Command.Item>
-                ))}
-              </Command.Group>
+              {can("/customers") && (
+                <Group heading="Customers">
+                  {customers.slice(0, 12).map((c) => (
+                    <Command.Item
+                      key={c.id}
+                      value={`customer ${c.name} ${c.email}`}
+                      onSelect={() => go(`/customers/${c.id}`)}
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
+                    >
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1">{c.name}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {c.segment}
+                      </span>
+                    </Command.Item>
+                  ))}
+                </Group>
+              )}
 
-              <Command.Group heading="Foremen" className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground">
-                {drivers.slice(0, 10).map((d) => (
-                  <Command.Item
-                    key={d.id}
-                    value={`foreman ${d.name} ${d.vehicleName}`}
-                    onSelect={() => go("/foremen")}
-                    className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
-                  >
-                    <UserSquare2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="flex-1">{d.name}</span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {d.vehicleName}
-                    </span>
-                  </Command.Item>
-                ))}
-              </Command.Group>
+              {can("/foremen") && (
+                <Group heading="Foremen">
+                  {drivers.slice(0, 10).map((d) => (
+                    <Command.Item
+                      key={d.id}
+                      value={`foreman ${d.name} ${d.vehicleName}`}
+                      onSelect={() => go(`/payroll/foreman/${d.id}`)}
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
+                    >
+                      <UserSquare2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1">{d.name}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {d.vehicleName}
+                      </span>
+                    </Command.Item>
+                  ))}
+                </Group>
+              )}
 
-              <Command.Group heading="Invoices" className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground">
-                {invoices.slice(0, 10).map((inv) => (
-                  <Command.Item
-                    key={inv.id}
-                    value={`invoice ${inv.id} ${inv.customer}`}
-                    onSelect={() => go("/invoices")}
-                    className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
-                  >
-                    <Receipt className="h-4 w-4 text-muted-foreground" />
-                    <span className="flex-1">
-                      <span className="font-semibold">{inv.id}</span> · {inv.customer}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {inv.status}
-                    </span>
-                  </Command.Item>
-                ))}
-              </Command.Group>
+              {can("/invoices") && (
+                <Group heading="Invoices">
+                  {(invoiceItems.length > 0 ? invoiceItems : invoices)
+                    .slice(0, 10)
+                    .map((inv) => (
+                      <Command.Item
+                        key={inv.id}
+                        value={`invoice ${inv.id} ${"customerName" in inv ? inv.customerName : inv.customer}`}
+                        onSelect={() => go(`/invoices/${inv.id}`)}
+                        className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
+                      >
+                        <Receipt className="h-4 w-4 text-muted-foreground" />
+                        <span className="flex-1">
+                          <span className="font-semibold">{inv.id}</span> ·{" "}
+                          {"customerName" in inv ? inv.customerName : inv.customer}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {inv.status}
+                        </span>
+                      </Command.Item>
+                    ))}
+                </Group>
+              )}
+
+              {can("/expenses") && (
+                <Group heading="Expenses">
+                  {expenseItems.slice(0, 8).map((e) => (
+                    <Command.Item
+                      key={e.id}
+                      value={`expense ${e.id} ${e.foremanName} ${e.category}`}
+                      onSelect={() => go(`/expenses/${e.id}`)}
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
+                    >
+                      <Wallet className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1">
+                        <span className="font-semibold">{e.id}</span> ·{" "}
+                        {e.foremanName} · {e.category}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {e.status}
+                      </span>
+                    </Command.Item>
+                  ))}
+                </Group>
+              )}
+
+              {can("/claims") && (
+                <Group heading="Claims">
+                  {claimItems.slice(0, 8).map((c) => (
+                    <Command.Item
+                      key={c.id}
+                      value={`claim ${c.id} ${c.customerName} ${c.claimType}`}
+                      onSelect={() => go(`/claims/${c.id}`)}
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
+                    >
+                      <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1">
+                        <span className="font-semibold">{c.id}</span> ·{" "}
+                        {c.customerName}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {c.status}
+                      </span>
+                    </Command.Item>
+                  ))}
+                </Group>
+              )}
+
+              {can("/fleet") && (
+                <Group heading="Fleet">
+                  {vehicleItems.slice(0, 8).map((v) => (
+                    <Command.Item
+                      key={v.id}
+                      value={`fleet vehicle ${v.id} ${v.name} ${v.plate}`}
+                      onSelect={() => go(`/fleet/${v.id}`)}
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
+                    >
+                      <Truck className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1">
+                        <span className="font-semibold">{v.id}</span> · {v.name}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {v.status}
+                      </span>
+                    </Command.Item>
+                  ))}
+                </Group>
+              )}
             </Command.List>
           </Command>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  );
+}
+
+function Group({ heading, children }: { heading: string; children: React.ReactNode }) {
+  return (
+    <Command.Group
+      heading={heading}
+      className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground"
+    >
+      {children}
+    </Command.Group>
   );
 }
 

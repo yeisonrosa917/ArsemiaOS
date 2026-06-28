@@ -157,7 +157,7 @@ export function DispatchBoard() {
                 )}
               >
                 <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {d.toLocaleDateString(undefined, { weekday: "short" })}
+                  {d.toLocaleDateString("en-US", { weekday: "short" })}
                 </p>
                 <p className="text-base font-bold leading-none">
                   {d.getDate()}

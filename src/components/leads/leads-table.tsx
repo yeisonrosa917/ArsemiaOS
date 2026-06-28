@@ -193,7 +193,7 @@ export function LeadsTable() {
                       </span>
                     </td>
                     <td className="p-2.5 text-[10px] text-muted-foreground">
-                      {new Date(l.createdAt).toLocaleDateString(undefined, {
+                      {new Date(l.createdAt).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                       })}

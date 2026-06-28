@@ -37,3 +37,45 @@ export function initials(name: string) {
     .join("")
     .toUpperCase();
 }
+
+/**
+ * Locale-locked date/time formatters. Using `undefined` as the locale causes
+ * SSR/client hydration mismatches (server picks en-US, client picks the user's
+ * system locale). Always use these helpers for any date string rendered during
+ * SSR — never call toLocaleDateString/toLocaleString/toLocaleTimeString with
+ * `undefined` directly.
+ */
+const SSR_LOCALE = "en-US";
+
+export function fmtDate(
+  iso: string | Date,
+  opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" },
+): string {
+  return new Date(iso).toLocaleDateString(SSR_LOCALE, opts);
+}
+
+export function fmtDateTime(
+  iso: string | Date,
+  opts: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  },
+): string {
+  return new Date(iso).toLocaleString(SSR_LOCALE, opts);
+}
+
+export function fmtTime(
+  iso: string | Date,
+  opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" },
+): string {
+  return new Date(iso).toLocaleTimeString(SSR_LOCALE, opts);
+}
+
+export function fmtWeekday(
+  iso: string | Date,
+  variant: "short" | "long" = "short",
+): string {
+  return new Date(iso).toLocaleDateString(SSR_LOCALE, { weekday: variant });
+}

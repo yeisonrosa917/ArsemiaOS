@@ -250,7 +250,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
               </span>
               <span className="flex items-center gap-1.5">
                 <CalendarClock className="h-3 w-3" />
-                {new Date(job.scheduledAt).toLocaleString(undefined, {
+                {new Date(job.scheduledAt).toLocaleString("en-US", {
                   weekday: "short",
                   month: "short",
                   day: "numeric",
@@ -581,7 +581,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
                     </p>
                     <p className="text-[10px] text-muted-foreground">
                       Staged by {pendingForJob.stagedBy} ·{" "}
-                      {new Date(pendingForJob.stagedAt).toLocaleString(undefined, {
+                      {new Date(pendingForJob.stagedAt).toLocaleString("en-US", {
                         month: "short",
                         day: "numeric",
                         hour: "numeric",
@@ -1029,7 +1029,7 @@ function ConfirmRow({
           <p className="text-xs font-semibold">{label}</p>
           {at && (
             <p className="text-[10px] text-muted-foreground">
-              {new Date(at).toLocaleString(undefined, {
+              {new Date(at).toLocaleString("en-US", {
                 month: "short",
                 day: "numeric",
                 hour: "numeric",

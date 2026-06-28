@@ -2,17 +2,21 @@
 
 import Link from "next/link";
 import {
+  Bell,
+  Briefcase,
+  Building2,
   ChevronDown,
+  ClipboardList,
   CommandIcon,
+  Phone,
   Plus,
+  Receipt,
   Search,
+  ShieldAlert,
   Truck,
   UserPlus,
   UserRound,
   Wallet,
-  Briefcase,
-  Receipt,
-  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -32,8 +36,81 @@ import {
   useCommandPalette,
 } from "@/components/command-palette";
 import { usePreferences } from "@/lib/store/preferences";
+import type { UserRoleId } from "@/lib/auth/roles";
 
-type CtaItem = { label: string; href: string; icon: React.ComponentType<{ className?: string }> };
+type CtaItem = {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+/**
+ * Role-specific quick actions. Strict by design — every entry below must
+ * navigate to a real working page. If a role has no actions, the CTA is
+ * hidden. Decorative or wrong-role entries belong nowhere.
+ */
+const ROLE_ACTIONS: Record<UserRoleId, { label: string; items: CtaItem[] }> = {
+  owner: {
+    label: "Owner quick actions",
+    items: [
+      { label: "New Lead", href: "/leads", icon: UserRound },
+      { label: "New Quote", href: "/quotes", icon: Briefcase },
+      { label: "Add Foreman", href: "/foremen", icon: UserPlus },
+      { label: "Add Vehicle", href: "/fleet", icon: Truck },
+      { label: "Review Payroll", href: "/payroll", icon: Wallet },
+      { label: "Review Claims", href: "/claims", icon: ShieldAlert },
+      { label: "View Notifications", href: "/notifications", icon: Bell },
+      { label: "Company Settings", href: "/settings", icon: Building2 },
+    ],
+  },
+  seller: {
+    label: "Sales actions",
+    items: [
+      { label: "New Lead", href: "/leads", icon: UserRound },
+      { label: "New Quote", href: "/quotes", icon: Briefcase },
+      { label: "View Pipeline", href: "/pipeline", icon: ClipboardList },
+      { label: "View Customers", href: "/customers", icon: UserRound },
+    ],
+  },
+  dispatcher: {
+    label: "Dispatch actions",
+    items: [
+      { label: "Today's Jobs", href: "/jobs", icon: ClipboardList },
+      { label: "Dispatch Board", href: "/dispatch", icon: Truck },
+      { label: "Foremen on duty", href: "/foremen", icon: Phone },
+    ],
+  },
+  accountant: {
+    label: "Accounting actions",
+    items: [
+      { label: "Review Payroll", href: "/payroll", icon: Wallet },
+      { label: "Review Expenses", href: "/expenses", icon: Receipt },
+      { label: "View Invoices", href: "/invoices", icon: Receipt },
+    ],
+  },
+  claims: {
+    label: "Claims actions",
+    items: [
+      { label: "Open Claims", href: "/claims", icon: ShieldAlert },
+      { label: "File Claim", href: "/claims", icon: Plus },
+    ],
+  },
+  marketing: {
+    label: "Marketing actions",
+    items: [
+      { label: "Leads", href: "/leads", icon: UserRound },
+      { label: "Pipeline", href: "/pipeline", icon: ClipboardList },
+    ],
+  },
+  foreman: {
+    label: "Foreman portal",
+    items: [
+      { label: "My Portal", href: "/foreman-portal", icon: ClipboardList },
+      { label: "My Jobs", href: "/jobs", icon: Briefcase },
+      { label: "My Expenses", href: "/expenses", icon: Wallet },
+    ],
+  },
+};
 
 export function Topbar() {
   const { open, setOpen } = useCommandPalette();
@@ -72,66 +149,53 @@ export function Topbar() {
   );
 }
 
-function RoleAwareCta({ activeRoleId }: { activeRoleId: string }) {
-  // Owner: dropdown with all quick actions
-  if (activeRoleId === "owner") {
-    const items: CtaItem[] = [
-      { label: "New Quote", href: "/quotes", icon: Briefcase },
-      { label: "New Lead", href: "/leads", icon: UserRound },
-      { label: "New Job", href: "/quotes?type=job", icon: Plus },
-      { label: "Add Foreman", href: "/foremen?add=1", icon: UserPlus },
-      { label: "Add Vehicle", href: "/fleet?add=1", icon: Truck },
-      { label: "File Claim", href: "/claims?add=1", icon: ShieldAlert },
-      { label: "Add Expense", href: "/expenses?add=1", icon: Wallet },
-    ];
+function RoleAwareCta({ activeRoleId }: { activeRoleId: UserRoleId }) {
+  const cfg = ROLE_ACTIONS[activeRoleId];
+  if (!cfg || cfg.items.length === 0) return null;
+
+  // Single action — render flat button (no dropdown chrome)
+  if (cfg.items.length === 1) {
+    const it = cfg.items[0];
+    const Icon = it.icon;
     return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="default" size="sm" className="h-9 rounded-lg gap-1 px-3 text-sm">
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Quick Action</span>
-            <ChevronDown className="h-3 w-3" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-52">
-          <DropdownMenuLabel>Owner quick actions</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {items.map((it) => {
-            const Icon = it.icon;
-            return (
-              <DropdownMenuItem key={it.label} asChild>
-                <Link href={it.href} className="flex items-center gap-2">
-                  <Icon className="h-3.5 w-3.5" />
-                  {it.label}
-                </Link>
-              </DropdownMenuItem>
-            );
-          })}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Button asChild variant="default" size="sm" className="h-9 rounded-lg px-3 text-sm">
+        <Link href={it.href}>
+          <Icon className="h-4 w-4" />
+          <span className="hidden sm:inline">{it.label}</span>
+        </Link>
+      </Button>
     );
   }
 
-  // Per-role single CTA
-  const ROLE_CTA: Record<string, CtaItem | null> = {
-    seller: { label: "New Quote", href: "/quotes", icon: Briefcase },
-    dispatcher: { label: "Assign Job", href: "/dispatch", icon: Truck },
-    accountant: { label: "Payroll Review", href: "/payroll", icon: Receipt },
-    claims: { label: "File Claim", href: "/claims?add=1", icon: ShieldAlert },
-    marketing: null,
-    foreman: null,
-  };
-
-  const cta = ROLE_CTA[activeRoleId];
-  if (!cta) return null;
-  const Icon = cta.icon;
-
+  // Multiple actions — dropdown
   return (
-    <Button variant="default" size="sm" className="h-9 rounded-lg px-3 text-sm" asChild>
-      <Link href={cta.href}>
-        <Icon className="h-4 w-4" />
-        <span className="hidden sm:inline">{cta.label}</span>
-      </Link>
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="default"
+          size="sm"
+          className="h-9 rounded-lg gap-1 px-3 text-sm"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Quick Action</span>
+          <ChevronDown className="h-3 w-3" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel>{cfg.label}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {cfg.items.map((it) => {
+          const Icon = it.icon;
+          return (
+            <DropdownMenuItem key={it.label} asChild>
+              <Link href={it.href} className="flex items-center gap-2">
+                <Icon className="h-3.5 w-3.5" />
+                {it.label}
+              </Link>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

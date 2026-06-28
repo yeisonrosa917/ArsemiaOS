@@ -5,13 +5,11 @@ import {
   Fuel,
   Gauge,
   MapPin,
-  Plus,
   Radio,
   ShieldCheck,
   Wrench,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -35,29 +33,6 @@ export default function FleetPage() {
       <PageHeader
         title="Fleet"
         description="Trucks, maintenance, telematics and document compliance across the fleet. Click any vehicle to edit."
-        actions={
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              disabled
-              title="Maintenance scheduling ships in a later phase."
-            >
-              <Wrench className="h-4 w-4" />
-              Schedule maintenance
-            </Button>
-            <Button
-              size="sm"
-              className="gap-2"
-              disabled
-              title="Vehicle onboarding ships with the Foreman App."
-            >
-              <Plus className="h-4 w-4" />
-              Add vehicle
-            </Button>
-          </>
-        }
       />
 
       <div className="grid gap-3 md:grid-cols-4">

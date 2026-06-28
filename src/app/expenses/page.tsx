@@ -83,16 +83,6 @@ export default function ExpensesPage() {
       <PageHeader
         title="Expenses"
         description="Foreman-submitted expenses from the field. Each row opens a working detail page with approve/reject/paid actions."
-        actions={
-          <Button
-            size="sm"
-            className="gap-2"
-            disabled
-            title="Manual expense entry ships with the Foreman App. Until then, expenses flow from the field."
-          >
-            <Plus className="h-4 w-4" /> Manual entry
-          </Button>
-        }
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -210,7 +200,7 @@ export default function ExpensesPage() {
                       {formatCurrency(e.amount)}
                     </TableCell>
                     <TableCell className="text-[11px] text-muted-foreground">
-                      {new Date(e.date).toLocaleDateString(undefined, {
+                      {new Date(e.date).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                       })}
