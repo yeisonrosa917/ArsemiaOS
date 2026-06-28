@@ -25,6 +25,8 @@ import {
   type NotificationKind,
   type NotificationSeverity,
 } from "@/lib/store/notifications";
+import { usePreferences } from "@/lib/store/preferences";
+import { filterNotificationsForRole } from "@/lib/notifications/audience";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<NotificationKind, React.ComponentType<{ className?: string }>> = {
@@ -75,12 +77,19 @@ function timeAgo(iso: string): string {
 }
 
 export default function NotificationsPage() {
-  const items = useNotifications((s) => s.items);
+  const allItems = useNotifications((s) => s.items);
   const markRead = useNotifications((s) => s.markRead);
   const markUnread = useNotifications((s) => s.markUnread);
   const markAllRead = useNotifications((s) => s.markAllRead);
   const remove = useNotifications((s) => s.remove);
+  const activeRoleId = usePreferences((s) => s.activeRoleId);
   const [filter, setFilter] = useState<FilterValue>("all");
+
+  // Only this role's notifications — Marketing never sees fleet/payroll, etc.
+  const items = useMemo(
+    () => filterNotificationsForRole(allItems, activeRoleId),
+    [allItems, activeRoleId],
+  );
 
   const filtered = useMemo(() => {
     return items.filter((n) => {

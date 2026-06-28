@@ -6,6 +6,7 @@ import { ArrowLeft, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useJobDocuments } from "@/lib/store/job-documents";
 import { useJobsStore } from "@/lib/store/jobs";
+import { formatDateStable, formatDateTimeStable } from "@/lib/dates";
 
 const COMPANY = {
   name: "Arsemia Logistics LLC",
@@ -55,8 +56,8 @@ export default function JobDocumentPrintPage({
     customer,
     foreman,
     jobId: id,
-    date: new Date(doc.generatedAt).toLocaleDateString(),
-    timestamp: new Date(doc.generatedAt).toLocaleString(),
+    date: formatDateStable(doc.generatedAt),
+    timestamp: formatDateTimeStable(doc.generatedAt),
     validDays: "14",
     amount: "TBD",
     claimId: "—",
@@ -101,7 +102,7 @@ export default function JobDocumentPrintPage({
             </p>
             <p className="font-mono text-[11px] text-slate-600">Job {id}</p>
             <p className="text-[10px] text-slate-500">
-              v{1} · Generated {new Date(doc.generatedAt).toLocaleDateString()}
+              v{1} · Generated {formatDateStable(doc.generatedAt)}
             </p>
             <p className="mt-1 inline-block rounded-md border border-slate-300 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
               {doc.status.replace(/_/g, " ")}
@@ -140,7 +141,7 @@ export default function JobDocumentPrintPage({
                 <div className="mt-6 border-b border-slate-400" />
                 <p className="mt-1 text-[10px] text-slate-500">
                   {doc.signatures.find((s) => s.role === "customer")
-                    ? `Signed by ${doc.signatures.find((s) => s.role === "customer")?.name} on ${new Date(doc.signatures.find((s) => s.role === "customer")!.signedAt).toLocaleDateString()}`
+                    ? `Signed by ${doc.signatures.find((s) => s.role === "customer")?.name} on ${formatDateStable(doc.signatures.find((s) => s.role === "customer")!.signedAt)}`
                     : "Sign on move day."}
                 </p>
               </div>
@@ -153,7 +154,7 @@ export default function JobDocumentPrintPage({
                 <div className="mt-6 border-b border-slate-400" />
                 <p className="mt-1 text-[10px] text-slate-500">
                   {doc.signatures.find((s) => s.role === "foreman")
-                    ? `Signed by ${doc.signatures.find((s) => s.role === "foreman")?.name} on ${new Date(doc.signatures.find((s) => s.role === "foreman")!.signedAt).toLocaleDateString()}`
+                    ? `Signed by ${doc.signatures.find((s) => s.role === "foreman")?.name} on ${formatDateStable(doc.signatures.find((s) => s.role === "foreman")!.signedAt)}`
                     : "Sign on move day."}
                 </p>
               </div>

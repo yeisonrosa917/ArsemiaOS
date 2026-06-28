@@ -51,6 +51,7 @@ import { JobHistoryDrawer } from "./job-history-drawer";
 import { ReassignModal } from "./reassign-modal";
 import { fmtUSD } from "@/lib/calculator/engine";
 import { cn } from "@/lib/utils";
+import { formatDateStable } from "@/lib/dates";
 
 const CONTRACTOR_COMPANIES: Record<string, { company: string; commissionPct: number }> = {
   "FM-1042": { company: "Arsemia LLC", commissionPct: 33.5 },
@@ -824,7 +825,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
                         </span>
                       </div>
                       <p className="mt-0.5 text-[10px] text-muted-foreground">
-                        {a.appliedBy} · {new Date(a.appliedAt).toLocaleDateString()}
+                        {a.appliedBy} · {formatDateStable(a.appliedAt)}
                       </p>
                     </div>
                   ))}

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -22,9 +24,39 @@ import {
 } from "@/components/ui/table";
 import { DriverStatusBadge } from "@/components/shared/status-badge";
 import { drivers } from "@/lib/mock-data";
+import { usePreferences } from "@/lib/store/preferences";
+import { resolveCapabilities } from "@/lib/auth/roles";
 import { cn, formatCurrency, initials } from "@/lib/utils";
 
+/** Renders a Link when href is set, otherwise a plain wrapper (no navigation). */
+function LinkMaybe({
+  href,
+  className,
+  children,
+}: {
+  href?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    );
+  }
+  return <div className={className}>{children}</div>;
+}
+
 export default function DriversPage() {
+  const activeRoleId = usePreferences((s) => s.activeRoleId);
+  // Only payroll-capable roles get the link into the payroll breakdown.
+  const canSeePayroll = resolveCapabilities(activeRoleId).includes(
+    "payroll.view_all",
+  );
+  const payrollHref = (id: string) =>
+    canSeePayroll ? `/payroll/foreman/${id}` : undefined;
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -58,7 +90,7 @@ export default function DriversPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
         {drivers.map((d) => (
           <Card key={d.id} className="overflow-hidden transition-colors hover:bg-accent/20">
-            <Link href={`/payroll/foreman/${d.id}`} className="block">
+            <LinkMaybe href={payrollHref(d.id)} className="block">
             <div className="flex items-start gap-3 p-5 pb-3">
               <Avatar className="h-12 w-12">
                 <AvatarFallback className={cn("text-base text-white", d.avatarColor)}>
@@ -119,7 +151,7 @@ export default function DriversPage() {
                 </p>
               </div>
             </div>
-            </Link>
+            </LinkMaybe>
           </Card>
         ))}
       </div>
@@ -149,7 +181,7 @@ export default function DriversPage() {
             {drivers.map((d) => (
               <TableRow key={d.id} className="cursor-pointer hover:bg-accent/30">
                 <TableCell className="pl-5">
-                  <Link href={`/payroll/foreman/${d.id}`} className="flex items-center gap-2">
+                  <LinkMaybe href={payrollHref(d.id)} className="flex items-center gap-2">
                     <Avatar className="h-7 w-7">
                       <AvatarFallback className={cn("text-white", d.avatarColor)}>
                         {initials(d.name)}
@@ -159,7 +191,7 @@ export default function DriversPage() {
                       <p className="text-xs font-semibold hover:underline">{d.name}</p>
                       <p className="text-[10px] text-muted-foreground">{d.id}</p>
                     </div>
-                  </Link>
+                  </LinkMaybe>
                 </TableCell>
                 <TableCell className="text-xs">{d.phone}</TableCell>
                 <TableCell className="text-xs">{d.vehicleName}</TableCell>

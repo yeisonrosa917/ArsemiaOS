@@ -31,6 +31,8 @@ export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
   "/pipeline": ["leads.view"],
   "/dispatch": ["dispatch.view"],
   "/foreman-portal": ["jobs.view"],
+  // Self-scoped foreman payroll — only the active foreman's own records.
+  "/foreman-portal/payroll": ["payroll.view_own"],
   "/jobs": ["jobs.view"],
   "/routes": ["routes.view"],
   "/activity": ["roles.manage"],
@@ -43,7 +45,10 @@ export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
   "/invoices": ["invoices.view"],
   "/invoices/print": ["invoices.view"],
   "/expenses": ["expenses.view_own", "expenses.view_all"],
-  "/payroll": ["payroll.view_own", "payroll.view_all"],
+  // Owner/Accounting payroll dashboard — NEVER the foreman. Foremen are routed
+  // to /foreman-portal/payroll (payroll.view_own) instead.
+  "/payroll": ["payroll.view_all"],
+  "/payroll/foreman": ["payroll.view_all"],
   "/payroll/tools": ["payroll.audit"],
   "/claims": ["claims.view"],
   "/analytics": ["analytics.view"],
@@ -245,8 +250,16 @@ export function canAccessRouteWithFallback(
   caps: CapabilityId[],
   route: string,
 ): boolean {
+  // An explicit entry is AUTHORITATIVE — enforce it strictly and never fall
+  // back to a more permissive parent. Otherwise a self-scoped child route like
+  // /foreman-portal/payroll (payroll.view_own) could be reached by anyone who
+  // can access its parent /foreman-portal (jobs.view).
+  const exact = ROUTE_REQUIRES[route];
+  if (exact) return hasAnyCapability(caps, exact);
+
   if (canAccessRoute(caps, route)) return true;
-  // Strip the last segment and re-check (handles /foo/[id] → /foo).
+  // Route not explicitly listed → inherit the top-level parent's requirement
+  // (handles detail pages like /jobs/[id] → /jobs).
   const parent = "/" + route.split("/").filter(Boolean).slice(0, 1).join("/");
   if (parent !== route) {
     const required = ROUTE_REQUIRES[parent];

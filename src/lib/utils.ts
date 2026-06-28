@@ -29,13 +29,16 @@ export function formatPercent(value: number, fractionDigits = 1) {
 }
 
 export function initials(name: string) {
-  return name
-    .split(" ")
+  const result = (name ?? "")
+    .trim()
+    .split(/\s+/)
     .map((part) => part[0])
     .filter(Boolean)
     .slice(0, 2)
     .join("")
     .toUpperCase();
+  // Never return a blank avatar — fall back to a neutral glyph.
+  return result || "?";
 }
 
 /**

@@ -22,10 +22,12 @@ import {
   Zap,
 } from "lucide-react";
 import { customers, drivers, jobs, invoices } from "@/lib/data";
+import { LEADS } from "@/lib/data/leads";
 import { useInvoices } from "@/lib/store/invoices";
 import { useClaims } from "@/lib/store/claims";
 import { useExpenses } from "@/lib/store/expenses";
 import { useFleet } from "@/lib/store/fleet";
+import { useQuotesStore } from "@/lib/store/quotes";
 import { usePreferences } from "@/lib/store/preferences";
 import {
   canAccessRouteWithFallback,
@@ -82,6 +84,7 @@ export function CommandPalette({
   const claimItems = useClaims((s) => s.items);
   const expenseItems = useExpenses((s) => s.items);
   const vehicleItems = useFleet((s) => s.vehicles);
+  const quoteItems = useQuotesStore((s) => s.quotes);
 
   useEffect(() => {
     if (!open) setQuery("");
@@ -184,7 +187,50 @@ export function CommandPalette({
                 </Group>
               )}
 
-              {can("/foremen") && (
+              {can("/leads") && (
+                <Group heading="Leads">
+                  {LEADS.slice(0, 10).map((l) => (
+                    <Command.Item
+                      key={l.id}
+                      value={`lead ${l.id} ${l.name} ${l.source}`}
+                      onSelect={() => go(`/leads/${l.id}`)}
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
+                    >
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1">
+                        <span className="font-semibold">{l.id}</span> · {l.name}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {l.status}
+                      </span>
+                    </Command.Item>
+                  ))}
+                </Group>
+              )}
+
+              {can("/quotes") && quoteItems.length > 0 && (
+                <Group heading="Quotes">
+                  {quoteItems.slice(0, 10).map((q) => (
+                    <Command.Item
+                      key={q.id}
+                      value={`quote ${q.id} ${q.customerName}`}
+                      onSelect={() => go(`/quotes/${q.id}`)}
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm aria-selected:bg-accent"
+                    >
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1">
+                        <span className="font-semibold">{q.id}</span> ·{" "}
+                        {q.customerName}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {q.status}
+                      </span>
+                    </Command.Item>
+                  ))}
+                </Group>
+              )}
+
+              {can("/payroll") && (
                 <Group heading="Foremen">
                   {drivers.slice(0, 10).map((d) => (
                     <Command.Item

@@ -21,7 +21,10 @@ import {
 } from "@/components/shared/status-badge";
 import { jobs, jobStatuses } from "@/lib/mock-data";
 import type { JobStatus, JobType } from "@/lib/types";
+import { usePreferences } from "@/lib/store/preferences";
+import { getActiveForemanId, getUserByRole } from "@/lib/auth/users";
 import { cn, formatCurrency, initials } from "@/lib/utils";
+import { formatDateTimeStable } from "@/lib/dates";
 
 const TYPES: (JobType | "All")[] = [
   "All",
@@ -39,8 +42,23 @@ export function JobsTable() {
   const [type, setType] = useState<JobType | "All">("All");
   const [status, setStatus] = useState<JobStatus | "All">("All");
 
+  const activeRoleId = usePreferences((s) => s.activeRoleId);
+  const foremanId = getActiveForemanId(activeRoleId);
+  const foremanName = foremanId ? getUserByRole(activeRoleId).name : null;
+
+  // A foreman only sees the jobs they are assigned to (driver or crew member).
+  const scopedJobs = useMemo(() => {
+    if (!foremanId) return jobs;
+    return jobs.filter(
+      (j) =>
+        j.driverId === foremanId ||
+        j.driverName === foremanName ||
+        j.crew.includes(foremanName ?? " "),
+    );
+  }, [foremanId, foremanName]);
+
   const rows = useMemo(() => {
-    return jobs.filter((j) => {
+    return scopedJobs.filter((j) => {
       if (type !== "All" && j.type !== type) return false;
       if (status !== "All" && j.status !== status) return false;
       if (search) {
@@ -54,7 +72,7 @@ export function JobsTable() {
       }
       return true;
     });
-  }, [search, type, status]);
+  }, [scopedJobs, search, type, status]);
 
   return (
     <div className="rounded-2xl border bg-card shadow-card">
@@ -99,7 +117,7 @@ export function JobsTable() {
         <div className="mt-3 flex flex-wrap gap-1">
           <ChipButton
             label="All"
-            count={jobs.length}
+            count={scopedJobs.length}
             active={status === "All"}
             onClick={() => setStatus("All")}
           />
@@ -107,7 +125,7 @@ export function JobsTable() {
             <ChipButton
               key={s}
               label={s}
-              count={jobs.filter((j) => j.status === s).length}
+              count={scopedJobs.filter((j) => j.status === s).length}
               active={status === s}
               onClick={() => setStatus(s)}
             />
@@ -140,7 +158,7 @@ export function JobsTable() {
                   {job.id}
                 </p>
                 <p className="text-xs font-semibold text-foreground">
-                  {new Date(job.scheduledAt).toLocaleString("en-US", {
+                  {formatDateTimeStable(job.scheduledAt, {
                     month: "short",
                     day: "numeric",
                     hour: "numeric",
@@ -219,16 +237,8 @@ export function JobsTable() {
       <div className="flex items-center justify-between border-t px-5 py-3 text-xs text-muted-foreground">
         <p>
           Showing <span className="font-semibold text-foreground">{rows.length}</span>{" "}
-          of {jobs.length} jobs
+          of {scopedJobs.length} jobs
         </p>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
-            Prev
-          </Button>
-          <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
-            Next
-          </Button>
-        </div>
       </div>
     </div>
   );

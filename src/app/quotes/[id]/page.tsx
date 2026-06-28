@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { useQuotesStore, type QuoteStatus } from "@/lib/store/quotes";
 import { fmtUSD, fmtCuft } from "@/lib/calculator/engine";
 import { cn } from "@/lib/utils";
+import { formatDateTimeStable } from "@/lib/dates";
 
 const STATUS_STYLES: Record<QuoteStatus, string> = {
   Draft: "bg-slate-500/15 text-slate-600 border-slate-500/30",
@@ -252,8 +253,8 @@ export default function QuoteDetailPage({
             </CardHeader>
             <CardContent className="space-y-1 text-xs">
               <Row label="Quote ID" value={quote.id} />
-              <Row label="Created" value={new Date(quote.createdAt).toLocaleString()} />
-              <Row label="Updated" value={new Date(quote.updatedAt).toLocaleString()} />
+              <Row label="Created" value={formatDateTimeStable(quote.createdAt)} />
+              <Row label="Updated" value={formatDateTimeStable(quote.updatedAt)} />
               {quote.customerId && (
                 <Row label="Customer ID" value={quote.customerId} />
               )}

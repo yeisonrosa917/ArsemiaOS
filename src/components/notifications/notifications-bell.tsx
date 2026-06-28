@@ -27,6 +27,8 @@ import {
   type NotificationKind,
   type NotificationSeverity,
 } from "@/lib/store/notifications";
+import { usePreferences } from "@/lib/store/preferences";
+import { filterNotificationsForRole } from "@/lib/notifications/audience";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<NotificationKind, React.ComponentType<{ className?: string }>> = {
@@ -67,9 +69,12 @@ function timeAgo(iso: string): string {
 }
 
 export function NotificationsBell() {
-  const items = useNotifications((s) => s.items);
+  const allItems = useNotifications((s) => s.items);
   const markRead = useNotifications((s) => s.markRead);
   const markAllRead = useNotifications((s) => s.markAllRead);
+  const activeRoleId = usePreferences((s) => s.activeRoleId);
+  // Only show notifications routed to the active role.
+  const items = filterNotificationsForRole(allItems, activeRoleId);
   const unread = items.filter((n) => !n.read).length;
   const visible = items.slice(0, 8);
 

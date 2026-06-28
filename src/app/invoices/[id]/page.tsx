@@ -27,6 +27,7 @@ import { useActivityLog } from "@/lib/store/activity-log";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
 import { formatCurrency } from "@/lib/utils";
+import { formatDateTimeStable } from "@/lib/dates";
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
   Draft: "bg-slate-500/15 text-slate-600 border-slate-500/30",
@@ -308,7 +309,7 @@ export default function InvoiceDetailPage({
                       {formatCurrency(p.amount)} · {p.method}
                     </p>
                     <p className="text-[10px] text-muted-foreground">
-                      Received {new Date(p.receivedAt).toLocaleString()} by {p.receivedBy}
+                      Received {formatDateTimeStable(p.receivedAt)} by {p.receivedBy}
                       {p.reference && ` · ref: ${p.reference}`}
                     </p>
                   </div>

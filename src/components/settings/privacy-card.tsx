@@ -19,6 +19,7 @@ import { usePreferences } from "@/lib/store/preferences";
 import { useNotifications } from "@/lib/store/notifications";
 import { getUserByRole } from "@/lib/auth/users";
 import { cn } from "@/lib/utils";
+import { formatDateTimeStable } from "@/lib/dates";
 
 export function PrivacyDataCard() {
   const account = useAccount((s) => s.account);
@@ -147,7 +148,7 @@ export function PrivacyDataCard() {
             <p className="mt-1 text-xs text-muted-foreground">
               Completed{" "}
               {account?.deletedAt
-                ? new Date(account.deletedAt).toLocaleString()
+                ? formatDateTimeStable(account.deletedAt)
                 : "—"}
               . Business records preserved.
             </p>
@@ -161,7 +162,7 @@ export function PrivacyDataCard() {
             <p className="mt-1 text-xs text-muted-foreground">
               Requested{" "}
               {account?.deletionRequestedAt
-                ? new Date(account.deletionRequestedAt).toLocaleString()
+                ? formatDateTimeStable(account.deletionRequestedAt)
                 : "—"}
               . You can cancel this request until anonymization is final.
             </p>

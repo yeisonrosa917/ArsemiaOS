@@ -6,6 +6,7 @@ import { ArrowLeft, Printer } from "lucide-react";
 import { useInvoices } from "@/lib/store/invoices";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
+import { formatDateStable } from "@/lib/dates";
 
 const COMPANY = {
   name: "Arsemia Logistics LLC",
@@ -207,7 +208,7 @@ export default function InvoicePrintPage({
               {invoice.payments.map((p) => (
                 <li key={p.id} className="flex items-center justify-between">
                   <span>
-                    {new Date(p.receivedAt).toLocaleDateString()} · {p.method}
+                    {formatDateStable(p.receivedAt)} · {p.method}
                     {p.reference && ` · ${p.reference}`}
                   </span>
                   <span className="font-mono font-semibold">

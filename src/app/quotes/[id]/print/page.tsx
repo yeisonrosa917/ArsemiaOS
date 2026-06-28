@@ -6,6 +6,7 @@ import { ArrowLeft, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuotesStore } from "@/lib/store/quotes";
 import { formatCurrency } from "@/lib/utils";
+import { formatDateStable } from "@/lib/dates";
 
 const COMPANY = {
   name: "Arsemia Logistics LLC",
@@ -88,7 +89,7 @@ export default function QuotePrintPage({
             <p className="mt-1 text-xs text-slate-500">
               Issued{" "}
               <span className="font-semibold text-slate-700">
-                {new Date(quote.createdAt).toLocaleDateString()}
+                {formatDateStable(quote.createdAt)}
               </span>
             </p>
             <p className="mt-2 inline-block rounded-md border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider">

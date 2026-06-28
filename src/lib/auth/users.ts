@@ -7,6 +7,12 @@ export interface SeedUser {
   email: string;
   roleId: UserRoleId;
   avatarColor: string;
+  /**
+   * For the foreman role only: the FM-#### id this user maps to in the
+   * operational data. Used to scope payroll/expenses/jobs to the active
+   * foreman so they can never see another foreman's records.
+   */
+  foremanId?: string;
 }
 
 export const SEED_USERS: SeedUser[] = [
@@ -36,11 +42,12 @@ export const SEED_USERS: SeedUser[] = [
   },
   {
     id: "u_for",
-    name: "Roberto Salas",
-    initials: "RS",
+    name: "Marcus Reyes",
+    initials: "MR",
     email: "foreman@arsemia.test",
     roleId: "foreman",
     avatarColor: "from-rose-400 to-rose-700",
+    foremanId: "FM-1042",
   },
   {
     id: "u_mkt",
@@ -70,4 +77,12 @@ export const SEED_USERS: SeedUser[] = [
 
 export function getUserByRole(roleId: UserRoleId): SeedUser {
   return SEED_USERS.find((u) => u.roleId === roleId) ?? SEED_USERS[0];
+}
+
+/**
+ * The FM-#### id the active foreman maps to, or null for non-foreman roles.
+ * Used to scope payroll/expenses/jobs so a foreman only sees their own data.
+ */
+export function getActiveForemanId(roleId: UserRoleId): string | null {
+  return getUserByRole(roleId).foremanId ?? null;
 }

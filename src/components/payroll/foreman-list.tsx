@@ -2,7 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronRight, Calendar, ShieldAlert } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  ShieldAlert,
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -27,6 +32,8 @@ import {
   monthlyRange,
   customRange,
   inRange,
+  addDays,
+  addMonths,
   type PayrollRange,
 } from "@/lib/payroll/period";
 import { cn, formatCurrency, initials } from "@/lib/utils";
@@ -55,14 +62,17 @@ export function PayrollForemanList() {
   const profiles = useForemanProfiles((s) => s.profiles);
 
   const [rangeKind, setRangeKind] = useState<"weekly" | "monthly" | "custom">("weekly");
+  const [offset, setOffset] = useState(0); // weeks/months back/forward from now
   const [customFrom, setCustomFrom] = useState(weeklyRange().from);
   const [customTo, setCustomTo] = useState(weeklyRange().to);
 
   const range: PayrollRange = useMemo(() => {
-    if (rangeKind === "weekly") return weeklyRange();
-    if (rangeKind === "monthly") return monthlyRange();
+    if (rangeKind === "weekly")
+      return weeklyRange(addDays(new Date(), offset * 7));
+    if (rangeKind === "monthly")
+      return monthlyRange(addMonths(new Date(), offset));
     return customRange(customFrom, customTo);
-  }, [rangeKind, customFrom, customTo]);
+  }, [rangeKind, offset, customFrom, customTo]);
 
   const rollups: ForemanRollup[] = useMemo(() => {
     return drivers.map((d) => {
@@ -151,7 +161,31 @@ export function PayrollForemanList() {
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-primary" />
-            <p className="text-sm font-semibold">{range.label}</p>
+            {rangeKind !== "custom" && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={() => setOffset((o) => o - 1)}
+                aria-label="Previous period"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <p className="min-w-[120px] text-center text-sm font-semibold">
+              {range.label}
+            </p>
+            {rangeKind !== "custom" && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={() => setOffset((o) => o + 1)}
+                aria-label="Next period"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            )}
             <Badge variant="outline" className="text-[10px]">
               {range.kind}
             </Badge>
@@ -160,17 +194,26 @@ export function PayrollForemanList() {
             <RangeButton
               label="This week"
               active={rangeKind === "weekly"}
-              onClick={() => setRangeKind("weekly")}
+              onClick={() => {
+                setRangeKind("weekly");
+                setOffset(0);
+              }}
             />
             <RangeButton
               label="This month"
               active={rangeKind === "monthly"}
-              onClick={() => setRangeKind("monthly")}
+              onClick={() => {
+                setRangeKind("monthly");
+                setOffset(0);
+              }}
             />
             <RangeButton
               label="Custom"
               active={rangeKind === "custom"}
-              onClick={() => setRangeKind("custom")}
+              onClick={() => {
+                setRangeKind("custom");
+                setOffset(0);
+              }}
             />
             {rangeKind === "custom" && (
               <div className="flex items-center gap-1">

@@ -44,7 +44,7 @@ export default function ForemanPortalPage() {
           description="The jobs you are working today and this week."
         />
         <PortalLink
-          href="/payroll"
+          href="/foreman-portal/payroll"
           icon={Coins}
           title="My payroll"
           description="Your own commissions, week by week."

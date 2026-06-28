@@ -39,8 +39,9 @@ import {
 import { useActivityLog } from "@/lib/store/activity-log";
 import type { ActivityAction } from "@/lib/types";
 import { usePreferences } from "@/lib/store/preferences";
-import { getUserByRole } from "@/lib/auth/users";
+import { getUserByRole, getActiveForemanId } from "@/lib/auth/users";
 import { formatCurrency } from "@/lib/utils";
+import { formatDateTimeStable } from "@/lib/dates";
 
 const STATUS_STYLES: Record<ExpenseStatus, string> = {
   Submitted: "bg-blue-500/15 text-blue-600 border-blue-500/30",
@@ -77,7 +78,11 @@ export default function ExpenseDetailPage({
 
   const [noteDraft, setNoteDraft] = useState("");
 
-  if (!expense) {
+  const foremanId = getActiveForemanId(activeRoleId);
+  // A foreman may only open their own expense, never another foreman's.
+  const blockedForForeman = !!foremanId && !!expense && expense.foremanId !== foremanId;
+
+  if (!expense || blockedForForeman) {
     return (
       <div className="space-y-4">
         <Button asChild variant="ghost" size="sm" className="gap-1">
@@ -88,7 +93,14 @@ export default function ExpenseDetailPage({
         </Button>
         <Card>
           <CardContent className="p-8 text-center">
-            <p className="text-sm font-semibold">Expense not found</p>
+            <p className="text-sm font-semibold">
+              {blockedForForeman ? "Not available" : "Expense not found"}
+            </p>
+            {blockedForForeman && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                You can only view your own expenses.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -230,7 +242,7 @@ export default function ExpenseDetailPage({
               )}
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <Row label="Submitted" value={new Date(expense.date).toLocaleString()} />
+              <Row label="Submitted" value={formatDateTimeStable(expense.date)} />
               <Row label="Foreman" value={`${expense.foremanName} (${expense.foremanId})`} />
               <Row label="Truck" value={expense.truckName} />
               {expense.jobId && (
@@ -243,16 +255,16 @@ export default function ExpenseDetailPage({
               {expense.reviewedAt && (
                 <Row
                   label="Reviewed at"
-                  value={new Date(expense.reviewedAt).toLocaleString()}
+                  value={formatDateTimeStable(expense.reviewedAt)}
                 />
               )}
               {expense.paidAt && (
-                <Row label="Paid at" value={new Date(expense.paidAt).toLocaleString()} />
+                <Row label="Paid at" value={formatDateTimeStable(expense.paidAt)} />
               )}
               {expense.reimbursedAt && (
                 <Row
                   label="Reimbursed at"
-                  value={new Date(expense.reimbursedAt).toLocaleString()}
+                  value={formatDateTimeStable(expense.reimbursedAt)}
                 />
               )}
             </div>
@@ -534,7 +546,7 @@ export default function ExpenseDetailPage({
                 >
                   <p>{n.text}</p>
                   <p className="mt-1 text-[10px] text-muted-foreground">
-                    {n.authorName} · {new Date(n.createdAt).toLocaleString()}
+                    {n.authorName} · {formatDateTimeStable(n.createdAt)}
                   </p>
                 </div>
               ))}

@@ -22,6 +22,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useExpenses, EXPENSE_STATUSES, type ExpenseStatus } from "@/lib/store/expenses";
+import { usePreferences } from "@/lib/store/preferences";
+import { getActiveForemanId } from "@/lib/auth/users";
 import { cn, formatCurrency } from "@/lib/utils";
 
 const STATUS_STYLES: Record<ExpenseStatus, string> = {
@@ -39,7 +41,14 @@ const STATUS_STYLES: Record<ExpenseStatus, string> = {
 const STATUSES: ("All" | ExpenseStatus)[] = ["All", ...EXPENSE_STATUSES];
 
 export default function ExpensesPage() {
-  const items = useExpenses((s) => s.items);
+  const allItems = useExpenses((s) => s.items);
+  const activeRoleId = usePreferences((s) => s.activeRoleId);
+  const foremanId = getActiveForemanId(activeRoleId);
+  // A foreman only ever sees their OWN submitted expenses — never the field's.
+  const items = useMemo(
+    () => (foremanId ? allItems.filter((e) => e.foremanId === foremanId) : allItems),
+    [allItems, foremanId],
+  );
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<(typeof STATUSES)[number]>("All");
 

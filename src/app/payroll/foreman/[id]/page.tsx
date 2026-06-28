@@ -1,10 +1,12 @@
 "use client";
 
-import { use, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
   CheckCircle2,
+  RotateCcw,
+  Save,
   ShieldAlert,
   Wallet,
   XCircle,
@@ -77,6 +79,29 @@ export default function ForemanPayrollPage({
   const payoutPercent = payoutPercentFor(profile);
   const payoutLabel = payoutModelLabel(profile);
 
+  // --- Payout configuration: staged edits with Save / Cancel / Dirty ---
+  // Changing a payout model changes what the foreman is paid, so it must never
+  // commit on keystroke. Edits live in a local draft until Save.
+  const initialPayout = useMemo(
+    () => ({
+      payoutModel: (profile?.payoutModel ?? "crew_30") as PayoutModelKind,
+      customPercent: profile?.customPercent ?? 30,
+      contractorCompany: profile?.contractorCompany ?? "",
+      notes: profile?.notes ?? "",
+    }),
+    [profile?.payoutModel, profile?.customPercent, profile?.contractorCompany, profile?.notes],
+  );
+  const [payoutDraft, setPayoutDraft] = useState(initialPayout);
+  // Re-sync the draft when navigating to a different foreman or after a save.
+  useEffect(() => {
+    setPayoutDraft(initialPayout);
+  }, [initialPayout]);
+  const payoutDirty =
+    payoutDraft.payoutModel !== initialPayout.payoutModel ||
+    payoutDraft.customPercent !== initialPayout.customPercent ||
+    payoutDraft.contractorCompany !== initialPayout.contractorCompany ||
+    payoutDraft.notes !== initialPayout.notes;
+
   const lines = useMemo(() => {
     if (!foreman) return [];
     return payrollLines.filter((p) => {
@@ -132,6 +157,30 @@ export default function ForemanPayrollPage({
       flags,
     };
   }, [lines, reimbursements, payoutPercent]);
+
+  // Defense-in-depth: the route guard already blocks foreman from /payroll/*,
+  // but never render another worker's payroll inside a foreman session even if
+  // they reach this component directly.
+  if (activeRoleId === "foreman") {
+    return (
+      <div className="space-y-4">
+        <Button asChild variant="ghost" size="sm" className="gap-1">
+          <Link href="/foreman-portal/payroll">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Go to my payroll
+          </Link>
+        </Button>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-sm font-semibold">Not available</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Foremen can only view their own payroll.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!foreman) {
     return (
@@ -492,14 +541,59 @@ export default function ForemanPayrollPage({
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Wallet className="h-4 w-4 text-primary" />
-            Payout configuration
-          </CardTitle>
-          <CardDescription>
-            Stored on the foreman profile and applied to every payroll line.
-          </CardDescription>
+        <CardHeader className="flex-row items-start justify-between space-y-0">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Wallet className="h-4 w-4 text-primary" />
+              Payout configuration
+            </CardTitle>
+            <CardDescription>
+              Stored on the foreman profile and applied to every payroll line.
+              {payoutDirty && (
+                <span className="ml-2 font-semibold text-amber-600">
+                  · Unsaved changes
+                </span>
+              )}
+            </CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1"
+              disabled={!payoutDirty}
+              onClick={() => setPayoutDraft(initialPayout)}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1"
+              disabled={!payoutDirty}
+              onClick={() => {
+                updateProfile(foreman.id, {
+                  payoutModel: payoutDraft.payoutModel,
+                  customPercent: payoutDraft.customPercent,
+                  contractorCompany: payoutDraft.contractorCompany,
+                  notes: payoutDraft.notes,
+                });
+                pushActivity({
+                  actorId: user.id,
+                  actorName: user.name,
+                  actorRole: activeRoleId,
+                  module: "Payroll",
+                  action: "updated",
+                  objectType: "ForemanProfile",
+                  objectId: foreman.id,
+                  title: `Payout configuration updated for ${foreman.name}`,
+                });
+              }}
+            >
+              <Save className="h-3.5 w-3.5" />
+              Save
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3">
           <div className="space-y-1">
@@ -507,11 +601,12 @@ export default function ForemanPayrollPage({
               Payout model
             </label>
             <select
-              value={profile?.payoutModel ?? "crew_30"}
+              value={payoutDraft.payoutModel}
               onChange={(e) =>
-                updateProfile(foreman.id, {
+                setPayoutDraft((d) => ({
+                  ...d,
                   payoutModel: e.target.value as PayoutModelKind,
-                })
+                }))
               }
               className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
             >
@@ -520,18 +615,19 @@ export default function ForemanPayrollPage({
               <option value="custom">Custom %</option>
             </select>
           </div>
-          {profile?.payoutModel === "custom" && (
+          {payoutDraft.payoutModel === "custom" && (
             <div className="space-y-1">
               <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Custom percent
               </label>
               <Input
                 type="number"
-                value={profile?.customPercent ?? 30}
+                value={payoutDraft.customPercent}
                 onChange={(e) =>
-                  updateProfile(foreman.id, {
+                  setPayoutDraft((d) => ({
+                    ...d,
                     customPercent: Number(e.target.value) || 30,
-                  })
+                  }))
                 }
               />
             </div>
@@ -541,10 +637,13 @@ export default function ForemanPayrollPage({
               Contractor company
             </label>
             <Input
-              value={profile?.contractorCompany ?? ""}
+              value={payoutDraft.contractorCompany}
               placeholder="e.g. Reyes Moving LLC"
               onChange={(e) =>
-                updateProfile(foreman.id, { contractorCompany: e.target.value })
+                setPayoutDraft((d) => ({
+                  ...d,
+                  contractorCompany: e.target.value,
+                }))
               }
             />
           </div>
@@ -553,9 +652,11 @@ export default function ForemanPayrollPage({
               Profile notes
             </label>
             <Input
-              value={profile?.notes ?? ""}
+              value={payoutDraft.notes}
               placeholder="Probationary, special rate, payment cadence..."
-              onChange={(e) => updateProfile(foreman.id, { notes: e.target.value })}
+              onChange={(e) =>
+                setPayoutDraft((d) => ({ ...d, notes: e.target.value }))
+              }
             />
           </div>
         </CardContent>

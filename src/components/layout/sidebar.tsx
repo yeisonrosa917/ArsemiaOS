@@ -80,7 +80,7 @@ const adminNav: NavItem[] = [
 const foremanPortalNav: NavItem[] = [
   { label: "Foreman Portal", href: "/foreman-portal", icon: LayoutDashboard },
   { label: "My Jobs", href: "/jobs", icon: ClipboardList },
-  { label: "My Payroll", href: "/payroll", icon: Coins },
+  { label: "My Payroll", href: "/foreman-portal/payroll", icon: Coins },
   { label: "My Expenses", href: "/expenses", icon: Wallet },
 ];
 

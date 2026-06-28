@@ -18,7 +18,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { JobStatusBadge } from "@/components/shared/status-badge";
 import { jobs } from "@/lib/mock-data";
-import { formatCurrency, initials } from "@/lib/utils";
+import { formatCurrency, formatNumber, initials } from "@/lib/utils";
 
 export function RecentJobsTable() {
   const rows = jobs.slice(0, 6);
@@ -71,7 +71,7 @@ export function RecentJobsTable() {
                   </div>
                 </TableCell>
                 <TableCell className="text-right font-mono text-xs">
-                  {job.cuFt.toLocaleString()}
+                  {formatNumber(job.cuFt)}
                 </TableCell>
                 <TableCell className="text-right font-mono text-xs">
                   {job.miles.toFixed(1)}

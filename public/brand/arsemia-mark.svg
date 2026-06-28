@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Arsemia">
   <rect x="0" y="0" width="256" height="256" rx="56" ry="56" fill="#1aa3ff"/>
   <g fill="#ffffff">
-    <path d="M128 40 L168 116 L88 116 Z"/>
-    <path d="M76 132 L180 132 L196 162 L60 162 Z"/>
-    <path d="M48 178 L208 178 L228 216 L28 216 Z"/>
+    <path d="M128 40 L169 112 L87 112 Z"/>
+    <path d="M80 124 L118 124 L128 140 L138 124 L176 124 L195 158 L61 158 Z"/>
+    <path d="M54 170 L112 170 L128 190 L144 170 L202 170 L228 216 L28 216 Z"/>
   </g>
 </svg>

@@ -25,9 +25,15 @@ function isoDay(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-function addDays(d: Date, n: number): Date {
+export function addDays(d: Date, n: number): Date {
   const x = new Date(d);
   x.setDate(x.getDate() + n);
+  return x;
+}
+
+export function addMonths(d: Date, n: number): Date {
+  const x = new Date(d);
+  x.setMonth(x.getMonth() + n);
   return x;
 }
 

@@ -1,145 +1,195 @@
-# Button Audit — QA Sprint
+# Button & Action Audit
 
-Every visible button in primary workflows audited. Rule: a button must
-navigate to a real page, mutate state, open a real modal, trigger a real
-workflow — or be removed. No decorative buttons.
+Every visible primary action across all 15 modules. Rule: a button must
+navigate to a real page, mutate persisted state, open a real modal, or trigger
+a real workflow — otherwise it is removed. Role-inappropriate actions are
+hidden, not disabled. Verified during the Emergency Stability sprint by
+loading and clicking each surface in a real browser.
 
-## Topbar / Quick Action
+Legend: **KEPT** works · **FIXED** repaired this sprint · **REMOVED** dead
+shell deleted · **PLACEHOLDER** intentional, labelled, not a fake button.
 
-| Action               | Status  | Notes                                              |
-| -------------------- | ------- | -------------------------------------------------- |
-| Quick Action (Owner) | KEPT    | Dropdown — 8 real navigations                       |
-| Owner → New Lead     | KEPT    | → /leads                                            |
-| Owner → New Quote    | KEPT    | → /quotes                                           |
-| Owner → Add Foreman  | KEPT    | → /foremen (list; add flow opens from there later) |
-| Owner → Add Vehicle  | KEPT    | → /fleet                                            |
-| Owner → Review Payroll | KEPT  | → /payroll                                          |
-| Owner → Review Claims  | KEPT  | → /claims                                           |
-| Owner → Notifications  | KEPT  | → /notifications                                    |
-| Owner → Company Settings | KEPT | → /settings                                         |
-| Seller CTA           | KEPT    | Dropdown — Lead/Quote/Pipeline/Customers           |
-| Dispatcher CTA       | KEPT    | Today's Jobs / Dispatch Board / Foremen on duty    |
-| Accountant CTA       | KEPT    | Payroll / Expenses / Invoices                      |
-| Claims CTA           | KEPT    | Open Claims / File Claim                            |
-| Marketing CTA        | KEPT    | Leads / Pipeline                                    |
-| Foreman CTA          | KEPT    | My Portal / My Jobs / My Expenses                  |
-| Search box (⌘K)      | KEPT    | Opens command palette                              |
-| Notifications bell   | KEPT    | Dropdown + link to /notifications                  |
-| Role switcher        | KEPT    | Dropdown — works                                   |
-| Theme menu           | KEPT    | Works                                              |
+---
 
-REMOVED:
-- Dispatcher quick-action “Assign Job” direct CTA — wasn't a real workflow; replaced by dropdown with “Dispatch Board”.
+## 1. Dashboard (`/`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| KPI / metric cards | KEPT | Read-only summaries |
+| Recent jobs rows | KEPT | → `/jobs/[id]` |
+| Quick Action (topbar) | KEPT | Role-specific; see Topbar |
 
-## Dispatch board
+## 2. Pipeline (`/pipeline`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Stage columns / cards | KEPT | Drag/click cards, real lead data |
+| Card → lead | KEPT | → `/leads/[id]` |
 
-| Action                  | Status   | Notes                                                  |
-| ----------------------- | -------- | ------------------------------------------------------ |
-| Date strip prev/next    | KEPT     | Real day navigation                                    |
-| Date picker             | KEPT     | Real <input type="date">                              |
-| "Today" shortcut        | KEPT     | Resets to today                                        |
-| Assign Foreman dropdown | KEPT     | Real reassign + activity log + notification           |
-| Call (selected job)     | KEPT     | tel: link from customer phone                          |
-| View Details            | KEPT     | → /jobs/[id]                                           |
-| View fleet board (rail) | KEPT     | → /fleet                                               |
-| “Live • 7 foremen” chip | REMOVED  | Was disabled, no action — pure decoration             |
-| “New job” header CTA    | REMOVED  | Dispatcher shouldn't create jobs; Seller route        |
-| Optimize Route          | REMOVED  | (already removed phase 2.6)                           |
-| Maximize map icon       | REMOVED  | (already removed phase 2.6)                           |
+## 3. Leads (`/leads`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Search / status filter | KEPT | Real filter state |
+| Lead row | KEPT | → `/leads/[id]` |
+| Convert to quote | KEPT | → `/quotes` with `leadId` param |
 
-## Job Detail
+## 4. Quotes (`/quotes`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Catalog / pricing inputs | KEPT | Wired to company-config store |
+| Save quote | KEPT | Persists to quotes store + notification |
+| Quote row | KEPT | → `/quotes/[id]` |
+| Print | KEPT | → `/quotes/[id]/print` |
 
-| Action                 | Status   | Notes                                                  |
-| ---------------------- | -------- | ------------------------------------------------------ |
-| Job History            | KEPT     | Opens right-side drawer with full timeline             |
-| Transfer / Reassign    | KEPT     | Opens modal with stage + confirm flow                  |
-| Edit inventory         | KEPT     | Real inventory editor                                  |
-| Mark step done         | KEPT     | State mutation                                          |
-| Adjustments → advance  | KEPT     | Real state advance                                      |
-| Adjustments → reject   | KEPT     | Real state + notification                              |
-| Documents → Generate   | KEPT     | Picks template, creates instance                       |
-| Documents → Preview    | KEPT     | Inline preview pane                                    |
-| Documents → Print      | KEPT     | → /jobs/[id]/documents/[documentId]/print              |
-| Documents → Mark sent  | KEPT     | State mutation                                          |
-| Documents → Sign       | KEPT     | State mutation, captures actor + ts                    |
-| Documents → Void       | KEPT     | State mutation                                          |
-| Adjustments “Manual entry” | REMOVED | Was disabled with title — replaced by foreman flow   |
+## 5. Customers (`/customers`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Search / segment filter | KEPT | Real filter state |
+| Customer row | KEPT | → `/customers/[id]` |
 
-## Foremen list
+## 6. Dispatch (`/dispatch`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Date strip ‹ / › | FIXED | Hardened against invalid dates (no RangeError) |
+| Day chips | KEPT | Select day; safe ISO |
+| Native date picker | FIXED | Cleared/invalid value falls back to today |
+| "Today" shortcut | KEPT | Resets to today |
+| Zone / Type / Foreman / Status filters | KEPT | Real filter state |
+| **Assign / Reassign Foreman** | FIXED | Now opens the real `ReassignModal` (reason, before/after, pending → confirm, activity + notifications + job history) instead of a fake log |
+| Call (selected job) | KEPT | `tel:` from customer phone |
+| View Details | KEPT | → `/jobs/[id]` |
+| View fleet board | KEPT | → `/fleet` |
+| "Saved" filter button | REMOVED | No action — dead |
+| "Date" dropdown (Today/Tomorrow/…) | REMOVED | No handler, duplicated the date strip |
 
-| Action            | Status   | Notes                                                |
-| ----------------- | -------- | ---------------------------------------------------- |
-| Foreman card row  | KEPT     | → /payroll/foreman/[id]                              |
-| Table row name    | KEPT     | → /payroll/foreman/[id]                              |
-| Schedule shifts   | REMOVED  | Was disabled with “coming in phase X” — dead button  |
-| Add foreman       | REMOVED  | Same — Foreman creation belongs to mobile app flow   |
+## 7. Jobs (`/jobs`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Search / type / status filters | KEPT | Real filter state |
+| Status chips | KEPT | Counts scoped to role |
+| Job row → Open | KEPT | → `/jobs/[id]` |
+| Stats cards | FIXED | Scoped per role (foreman sees only own counts, no company revenue) |
+| "Export CSV" header button | REMOVED | No handler — dead |
+| "New job" header button | REMOVED | Jobs are created from accepted quotes, not here |
+| "Prev / Next" pager | REMOVED | No pagination logic behind them |
 
-## Fleet list
+### Job Detail (`/jobs/[id]`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Job History | KEPT | Opens drawer, that job's timeline only, plain English |
+| Transfer / Reassign | KEPT | `ReassignModal` with confirm flow |
+| Edit inventory | KEPT | Real editor |
+| Mark step done | KEPT | State mutation |
+| Adjustments advance / reject | KEPT | State + notification |
+| Documents: Generate / Preview / Print / Mark sent / Sign / Void | KEPT | All mutate; dates now SSR-safe |
 
-| Action                | Status   | Notes                                                 |
-| --------------------- | -------- | ----------------------------------------------------- |
-| Vehicle card          | KEPT     | → /fleet/[id]                                         |
-| Roster row            | KEPT     | → /fleet/[id]                                         |
-| Schedule maintenance  | REMOVED  | Was disabled — dead                                   |
-| Add vehicle           | REMOVED  | Was disabled — dead                                   |
+## 8. Foremen (`/foremen`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Foreman card / row | FIXED | Links to `/payroll/foreman/[id]` **only** for payroll-capable roles (owner/accounting); informational for dispatcher/claims — no broken access-denied jumps |
+| "Schedule shifts" | REMOVED | Dead (prior sprint) |
+| "Add foreman" | REMOVED | Belongs to mobile app flow (prior sprint) |
 
-## Expenses list
+## 9. Fleet (`/fleet`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Vehicle card / roster row | KEPT | → `/fleet/[id]` |
+| "Schedule maintenance" | REMOVED | Dead (prior sprint) |
+| "Add vehicle" | REMOVED | Dead (prior sprint) |
 
-| Action            | Status   | Notes                                                 |
-| ----------------- | -------- | ----------------------------------------------------- |
-| Filter chips      | KEPT     | Real filter state                                     |
-| Search            | KEPT     | Real filter state                                     |
-| Row link          | KEPT     | → /expenses/[id]                                      |
-| Manual entry      | REMOVED  | Was disabled — flow comes from Foreman App           |
+### Fleet Detail (`/fleet/[id]`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Edit fields / Set status | KEPT | Mutates fleet store |
 
-## Expense Detail
+## 10. Invoices (`/invoices`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Invoice row | KEPT | → `/invoices/[id]` |
+| Mark Sent / Mark Paid / Mark Overdue / Void | KEPT | Mutates store + activity |
+| Preview / Download PDF | KEPT | → `/invoices/[id]/print` |
+| Payment dates | FIXED | SSR-safe (`formatDateTimeStable`) — no hydration mismatch |
 
-All actions verified — Move to review / Approve / Mark Paid / Mark Reimbursed
-/ Reject / Mark Duplicate / Hold / Request receipt / Change status menu / Add
-note / Reimbursable toggle / Detection field edits — every one mutates state.
+## 11. Expenses (`/expenses`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Search / status filters | KEPT | Real filter state |
+| Row | KEPT | → `/expenses/[id]` |
+| Role scope | FIXED | Foreman sees only their own expenses |
+| "Manual entry" | REMOVED | Flow comes from Foreman App (prior sprint) |
 
-## Invoice Detail
+### Expense Detail (`/expenses/[id]`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Move to review / Approve / Reject / Mark Paid / Mark Reimbursed / Hold / Mark Duplicate / Request receipt / Add note / Reimbursable toggle | KEPT | All mutate state |
+| Foreman cross-access | FIXED | A foreman opening another foreman's expense gets "Not available" |
+| Dates | FIXED | SSR-safe |
 
-All actions verified — Mark Sent / Mark Paid (records payment) / Mark Overdue /
-Void / Preview / Download PDF — every one works. No decorative buttons.
+## 12. Payroll (`/payroll` — Owner/Accounting)
+| Action | Status | Notes |
+| --- | --- | --- |
+| This week / month / Custom | KEPT | Real range state |
+| **Previous / Next period ‹ ›** | FIXED | Added — step weeks/months without opening the calendar |
+| Foreman row | KEPT | → `/payroll/foreman/[id]` |
+| Foreman-role access | FIXED | `/payroll` now requires `payroll.view_all` — foreman is blocked |
 
-## Claim Detail
+### Payroll Foreman Detail (`/payroll/foreman/[id]`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Approve / Flag | KEPT | Writes activity |
+| **Payout configuration** | FIXED | Now staged with **Save / Cancel / Unsaved-changes** — no longer mutates on keystroke |
+| Foreman guard | FIXED | Foreman role gets "Not available" (can't view others) |
 
-All status changes / Add Evidence / Request foreman response — all real.
+### My Payroll (`/foreman-portal/payroll` — Foreman, NEW)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Weekly / Monthly toggle + ‹ › | KEPT | Self-scoped period nav |
+| Jobs / reimbursements / take-home | KEPT | Own records only — no other foremen, no approve/flag, no payout editing |
 
-## Payroll
+## 13. Claims (`/claims`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Claim row | KEPT | → `/claims/[id]` |
+| Status changes / Add Evidence / Request foreman response | KEPT | All mutate store |
+| Dates | FIXED | SSR-safe |
 
-Foreman-first. Audit engine + period table moved to `/payroll/tools`.
-Approve / Flag actions on detail are real (writes activity).
-Range buttons (Week / Month / Custom) are real state.
-No decorative buttons on the home surface.
+## 14. Notifications (`/notifications`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Mark all read / Mark read-unread / Open / Dismiss | KEPT | Real state |
+| Severity / unread filters | KEPT | Real filter state |
+| Role audience | FIXED | Filtered by role — Marketing never sees fleet, Seller never sees payroll, etc. |
 
-REMOVED earlier (phase 4): old "Recompute period" + "Run payroll" disabled buttons
-that were sitting in the header.
+## 15. Settings (`/settings`)
+| Action | Status | Notes |
+| --- | --- | --- |
+| Quote modes / pricing / catalog / rooms / templates | KEPT | Mutate company-config store |
+| Restore default permissions | KEPT | Real state |
+| Integrations card | PLACEHOLDER | Framework only — labelled planned/in-design |
+| Document template "Template only" banner | PLACEHOLDER | Legal disclaimer, not a button |
 
-## Notifications
+---
 
-Mark all read / Mark read/unread / Open / Dismiss — all real state.
-
-## Settings
-
-Each section card → real card. Quote modes toggles, pricing field edits,
-catalog add/edit/disable/delete, room editor, document template editor —
-all mutate the persisted store. Restore default permissions per role: real
-state.
+## Topbar Quick Actions (role-specific)
+| Role | Actions |
+| --- | --- |
+| Owner | New Lead · New Quote · Add Foreman · Add Vehicle · Review Payroll · Review Claims · Notifications · Company Settings |
+| Seller | New Lead · New Quote · View Pipeline · View Customers |
+| Dispatcher | Today's Jobs · Dispatch Board · Foremen on duty |
+| Accounting | Review Payroll · Review Expenses · View Invoices |
+| Claims | Open Claims · File Claim |
+| Marketing | Leads · Pipeline |
+| Foreman | My Jobs · My Payroll · My Expenses |
 
 ## Command Palette
-
-Now permission-aware. Each record-level group only shows up if the active
-role can access that module. Each record row navigates to the exact detail
-page: /jobs/[id], /customers/[id], /payroll/foreman/[id], /invoices/[id],
-/expenses/[id], /claims/[id], /fleet/[id].
+Permission-aware. Page entries and record groups (Jobs, Customers, Leads,
+Quotes, Foremen, Invoices, Expenses, Claims, Fleet) only render if the active
+role can reach that module. Records open exact detail pages. The Foremen group
+is gated by payroll access (it routes into `/payroll/foreman/[id]`).
 
 ## Intentional placeholders (justified)
-
-| Where                       | Why kept                                                       |
-| --------------------------- | -------------------------------------------------------------- |
-| Settings → Integrations card | Structural framework only — labelled with planned/in-design  |
-| Document templates — "Template only" banner | Legal disclaimer, not a button        |
-| Receipt placeholder image in expense detail | Visual placeholder, not an action |
-| AI confidence / duplicate risk bars         | Visual placeholder, no fake button |
+| Where | Why |
+| --- | --- |
+| Settings → Integrations | Structural framework, labelled planned/in-design |
+| Document templates "Template only" banner | Legal disclaimer |
+| Expense receipt image block | Storage layer not built |
+| AI confidence / duplicate-risk bars | Visual gauges, no fake button |
+| Foreman Portal "Foreman App coming soon" | Mobile app ships separately |

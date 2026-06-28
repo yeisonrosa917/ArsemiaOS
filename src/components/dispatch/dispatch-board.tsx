@@ -3,8 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  CalendarDays,
-  Filter,
   MapPin,
   Phone,
   Search,
@@ -18,16 +16,11 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   JobStatusBadge,
   DriverStatusBadge,
 } from "@/components/shared/status-badge";
 import { MapPreview } from "@/components/shared/map-preview";
+import { ReassignModal } from "@/components/jobs/reassign-modal";
 import {
   drivers,
   jobs,
@@ -35,10 +28,8 @@ import {
   zones,
 } from "@/lib/mock-data";
 import type { JobStatus } from "@/lib/types";
-import { useActivityLog } from "@/lib/store/activity-log";
-import { usePreferences } from "@/lib/store/preferences";
-import { getUserByRole } from "@/lib/auth/users";
 import { cn, formatCurrency, initials } from "@/lib/utils";
+import { toISODateSafe, parseDateSafe, formatWeekdayStable } from "@/lib/dates";
 
 const JOB_TYPES = [
   "All Types",
@@ -52,7 +43,7 @@ const JOB_TYPES = [
 ] as const;
 
 function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return toISODateSafe(new Date());
 }
 
 export function DispatchBoard() {
@@ -65,12 +56,12 @@ export function DispatchBoard() {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(
     jobs[0]?.id ?? null,
   );
-  const pushActivity = useActivityLog((s) => s.push);
-  const activeRoleId = usePreferences((s) => s.activeRoleId);
-  const user = getUserByRole(activeRoleId);
+  const [reassignOpen, setReassignOpen] = useState(false);
 
   const dateStrip = useMemo(() => {
-    const base = new Date(selectedDate);
+    // Never trust selectedDate — a cleared date picker yields "" → Invalid Date
+    // → RangeError on toISOString(). Fall back to today on any invalid value.
+    const base = parseDateSafe(selectedDate) ?? new Date();
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(base);
       d.setDate(base.getDate() - 3 + i);
@@ -131,9 +122,9 @@ export function DispatchBoard() {
           variant="ghost"
           className="h-8 w-8 p-0"
           onClick={() => {
-            const d = new Date(selectedDate);
+            const d = parseDateSafe(selectedDate) ?? new Date();
             d.setDate(d.getDate() - 1);
-            setSelectedDate(d.toISOString().slice(0, 10));
+            setSelectedDate(toISODateSafe(d));
           }}
           aria-label="Previous day"
         >
@@ -141,7 +132,7 @@ export function DispatchBoard() {
         </Button>
         <div className="flex flex-1 items-center gap-1 overflow-x-auto">
           {dateStrip.map((d) => {
-            const iso = d.toISOString().slice(0, 10);
+            const iso = toISODateSafe(d);
             const active = iso === selectedDate;
             const isToday = iso === todayISO();
             const count = jobCountByDay[iso] ?? 0;
@@ -157,7 +148,7 @@ export function DispatchBoard() {
                 )}
               >
                 <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {d.toLocaleDateString("en-US", { weekday: "short" })}
+                  {formatWeekdayStable(d)}
                 </p>
                 <p className="text-base font-bold leading-none">
                   {d.getDate()}
@@ -174,9 +165,9 @@ export function DispatchBoard() {
           variant="ghost"
           className="h-8 w-8 p-0"
           onClick={() => {
-            const d = new Date(selectedDate);
+            const d = parseDateSafe(selectedDate) ?? new Date();
             d.setDate(d.getDate() + 1);
-            setSelectedDate(d.toISOString().slice(0, 10));
+            setSelectedDate(toISODateSafe(d));
           }}
           aria-label="Next day"
         >
@@ -185,7 +176,11 @@ export function DispatchBoard() {
         <input
           type="date"
           value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
+          onChange={(e) => {
+            const v = e.target.value;
+            // Cleared/invalid picker input must never reach toISOString().
+            setSelectedDate(v && parseDateSafe(v) ? v : todayISO());
+          }}
           className="h-8 rounded-md border border-border bg-background px-2 text-xs"
         />
         {selectedDate !== todayISO() && (
@@ -212,10 +207,6 @@ export function DispatchBoard() {
                   {filteredJobs.length} of {jobs.length} jobs
                 </p>
               </div>
-              <Button size="sm" variant="outline" className="h-7 gap-1 text-xs">
-                <Filter className="h-3 w-3" />
-                Saved
-              </Button>
             </div>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -228,12 +219,6 @@ export function DispatchBoard() {
             </div>
 
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <FilterSelect
-                label="Date"
-                value="Today"
-                icon={CalendarDays}
-                options={["Today", "Tomorrow", "This week", "Custom"]}
-              />
               <FilterSelect
                 label="Zone"
                 value={zoneFilter}
@@ -385,40 +370,15 @@ export function DispatchBoard() {
             </div>
             <div className="flex items-center gap-2">
               {selectedJob && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                      <UserPlus className="h-3.5 w-3.5" />
-                      Assign Foreman
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="max-h-72 overflow-y-auto">
-                    {drivers.map((d) => (
-                      <DropdownMenuItem
-                        key={d.id}
-                        onClick={() => {
-                          pushActivity({
-                            actorId: user.id,
-                            actorName: user.name,
-                            actorRole: activeRoleId,
-                            module: "Dispatch",
-                            action: "assigned",
-                            objectType: "Job",
-                            objectId: selectedJob.id,
-                            title: `Foreman ${d.name} assigned to ${selectedJob.id}`,
-                            beforeValue: { foreman: selectedJob.driverName ?? null },
-                            afterValue: { foreman: d.name, foremanId: d.id },
-                          });
-                        }}
-                      >
-                        {d.name}{" "}
-                        <span className="ml-2 text-[10px] text-muted-foreground">
-                          {d.status}
-                        </span>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                  onClick={() => setReassignOpen(true)}
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  {selectedJob.driverName ? "Reassign Foreman" : "Assign Foreman"}
+                </Button>
               )}
             </div>
           </div>
@@ -574,6 +534,14 @@ export function DispatchBoard() {
         </div>
       </aside>
       </div>
+
+      {selectedJob && (
+        <ReassignModal
+          job={selectedJob}
+          open={reassignOpen}
+          onOpenChange={setReassignOpen}
+        />
+      )}
     </div>
   );
 }

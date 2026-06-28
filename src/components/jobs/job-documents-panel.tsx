@@ -36,6 +36,7 @@ import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { cn } from "@/lib/utils";
+import { formatDateStable, formatDateTimeStable } from "@/lib/dates";
 
 const STATUS_STYLES: Record<JobDocumentStatus, string> = {
   draft: "bg-slate-500/15 text-slate-600 border-slate-500/30",
@@ -65,7 +66,13 @@ export function JobDocumentsPanel({
   foremanName?: string;
 }) {
   const templates = useCompanyConfig((s) => s.documentTemplates);
-  const items = useJobDocuments((s) => s.items.filter((d) => d.jobId === jobId));
+  // Select stable store state, derive the filtered list with useMemo. Filtering
+  // inside the selector returns a new array every render → infinite loop.
+  const allItems = useJobDocuments((s) => s.items);
+  const items = useMemo(
+    () => allItems.filter((d) => d.jobId === jobId),
+    [allItems, jobId],
+  );
   const generate = useJobDocuments((s) => s.generate);
   const markSent = useJobDocuments((s) => s.markSent);
   const signAs = useJobDocuments((s) => s.signAs);
@@ -169,9 +176,9 @@ export function JobDocumentsPanel({
                     ))}
                   </div>
                   <p className="text-[10px] text-muted-foreground">
-                    Generated {new Date(d.generatedAt).toLocaleString()}
-                    {d.sentAt && ` · sent ${new Date(d.sentAt).toLocaleDateString()}`}
-                    {d.signedAt && ` · signed ${new Date(d.signedAt).toLocaleDateString()}`}
+                    Generated {formatDateTimeStable(d.generatedAt)}
+                    {d.sentAt && ` · sent ${formatDateStable(d.sentAt)}`}
+                    {d.signedAt && ` · signed ${formatDateStable(d.signedAt)}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -284,8 +291,8 @@ export function JobDocumentsPanel({
                   customer: customerName,
                   foreman: foremanName ?? "",
                   jobId,
-                  date: new Date().toLocaleDateString(),
-                  timestamp: new Date().toLocaleString(),
+                  date: formatDateStable(new Date()),
+                  timestamp: formatDateTimeStable(new Date()),
                   validDays: "14",
                 })}
               </pre>

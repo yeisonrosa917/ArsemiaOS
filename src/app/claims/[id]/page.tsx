@@ -39,6 +39,7 @@ import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
 import { EvidencePlaceholder } from "@/components/claims/evidence-placeholder";
 import { formatCurrency } from "@/lib/utils";
+import { formatDateStable, formatDateTimeStable } from "@/lib/dates";
 
 const STATUS_STYLES: Record<ClaimStatus, string> = {
   New: "bg-blue-500/15 text-blue-600 border-blue-500/30",
@@ -178,7 +179,7 @@ export default function ClaimDetailPage({
               <Meta icon={User} label="Foreman" value={claim.foremanName} />
               <Meta icon={Truck} label="Truck" value={claim.truckName} />
               <Meta icon={Shield} label="Reviewer" value={claim.assignedReviewer} />
-              <Meta icon={Phone} label="Opened" value={new Date(claim.openedAt).toLocaleString()} />
+              <Meta icon={Phone} label="Opened" value={formatDateTimeStable(claim.openedAt)} />
             </div>
           </div>
 
@@ -270,7 +271,7 @@ export default function ClaimDetailPage({
                   </p>
                 )}
                 <p className="mt-1 text-[9px] text-muted-foreground">
-                  {ev.uploadedBy} · {new Date(ev.uploadedAt).toLocaleDateString()}
+                  {ev.uploadedBy} · {formatDateStable(ev.uploadedAt)}
                 </p>
               </div>
             ))}
@@ -401,7 +402,7 @@ function EvidenceTab({
                   </p>
                 )}
                 <p className="mt-1 text-[9px] text-muted-foreground">
-                  {ev.uploadedBy} · {new Date(ev.uploadedAt).toLocaleString()}
+                  {ev.uploadedBy} · {formatDateTimeStable(ev.uploadedAt)}
                 </p>
               </div>
             ))}

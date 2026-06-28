@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { formatCompactCurrency } from "@/lib/utils";
+import { formatCompactCurrency, formatNumber } from "@/lib/utils";
 
 export type TimeRange = "today" | "7d" | "30d" | "90d" | "ytd" | "custom";
 
@@ -178,8 +178,8 @@ export function TimeRangePicker({
           />
           <StatBlock
             label="Jobs closed"
-            value={meta.jobs.toLocaleString()}
-            prev={meta.prevJobs.toLocaleString()}
+            value={formatNumber(meta.jobs)}
+            prev={formatNumber(meta.prevJobs)}
             delta={jobDelta}
           />
           <StatBlock

@@ -105,9 +105,9 @@ const ROLE_ACTIONS: Record<UserRoleId, { label: string; items: CtaItem[] }> = {
   foreman: {
     label: "Foreman portal",
     items: [
-      { label: "My Portal", href: "/foreman-portal", icon: ClipboardList },
-      { label: "My Jobs", href: "/jobs", icon: Briefcase },
-      { label: "My Expenses", href: "/expenses", icon: Wallet },
+      { label: "My Jobs", href: "/jobs", icon: ClipboardList },
+      { label: "My Payroll", href: "/foreman-portal/payroll", icon: Wallet },
+      { label: "My Expenses", href: "/expenses", icon: Briefcase },
     ],
   },
 };
