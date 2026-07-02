@@ -27,6 +27,8 @@ const CATEGORY_ROLES: Record<NotificationKind, UserRoleId[]> = {
   job_reassigned: ["dispatcher"],
   adjustment_requested: ["dispatcher", "accountant"],
   quote_saved: ["seller"],
+  lead_assigned: ["seller"],
+  lead_followup: ["seller"],
   // Admin-only.
   settings_reset: [],
   // Generic info messages are visible to everyone.

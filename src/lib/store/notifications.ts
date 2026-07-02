@@ -19,6 +19,8 @@ export type NotificationKind =
   | "job_reassigned"
   | "adjustment_requested"
   | "quote_saved"
+  | "lead_assigned"
+  | "lead_followup"
   | "settings_reset"
   | "info";
 

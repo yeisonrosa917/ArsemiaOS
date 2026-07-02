@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { drivers, jobs, payrollLines } from "@/lib/mock-data";
@@ -316,18 +315,13 @@ export function PayrollForemanList() {
                         </span>
                       </span>
                     </div>
-                    <Progress
-                      value={sharePct}
-                      className="mt-2 h-1"
-                      indicatorClassName="bg-primary"
-                    />
                   </div>
                   <div className="text-right">
                     <p className="font-mono text-base font-bold">
                       {formatCurrency(r.finalTotal)}
                     </p>
                     <p className="text-[10px] text-muted-foreground">
-                      {sharePct.toFixed(1)}% of period
+                      {sharePct.toFixed(1)}% of period payroll
                     </p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />

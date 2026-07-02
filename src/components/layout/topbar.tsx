@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  Bell,
   Briefcase,
   Building2,
   ChevronDown,
@@ -57,9 +56,8 @@ const ROLE_ACTIONS: Record<UserRoleId, { label: string; items: CtaItem[] }> = {
       { label: "New Quote", href: "/quotes", icon: Briefcase },
       { label: "Add Foreman", href: "/foremen", icon: UserPlus },
       { label: "Add Vehicle", href: "/fleet", icon: Truck },
-      { label: "Review Payroll", href: "/payroll", icon: Wallet },
-      { label: "Review Claims", href: "/claims", icon: ShieldAlert },
-      { label: "View Notifications", href: "/notifications", icon: Bell },
+      { label: "Review Payroll Flags", href: "/payroll/tools", icon: Wallet },
+      { label: "Review Open Claims", href: "/claims", icon: ShieldAlert },
       { label: "Company Settings", href: "/settings", icon: Building2 },
     ],
   },
@@ -68,16 +66,15 @@ const ROLE_ACTIONS: Record<UserRoleId, { label: string; items: CtaItem[] }> = {
     items: [
       { label: "New Lead", href: "/leads", icon: UserRound },
       { label: "New Quote", href: "/quotes", icon: Briefcase },
-      { label: "View Pipeline", href: "/pipeline", icon: ClipboardList },
-      { label: "View Customers", href: "/customers", icon: UserRound },
+      { label: "Follow-ups Due", href: "/leads", icon: ClipboardList },
+      { label: "Open Pipeline", href: "/pipeline", icon: ClipboardList },
     ],
   },
   dispatcher: {
     label: "Dispatch actions",
     items: [
-      { label: "Today's Jobs", href: "/jobs", icon: ClipboardList },
-      { label: "Dispatch Board", href: "/dispatch", icon: Truck },
-      { label: "Foremen on duty", href: "/foremen", icon: Phone },
+      { label: "Today's Dispatch", href: "/dispatch", icon: Truck },
+      { label: "Call a Foreman", href: "/foremen", icon: Phone },
     ],
   },
   accountant: {
@@ -85,22 +82,16 @@ const ROLE_ACTIONS: Record<UserRoleId, { label: string; items: CtaItem[] }> = {
     items: [
       { label: "Review Payroll", href: "/payroll", icon: Wallet },
       { label: "Review Expenses", href: "/expenses", icon: Receipt },
-      { label: "View Invoices", href: "/invoices", icon: Receipt },
+      { label: "Review Invoices", href: "/invoices", icon: Receipt },
     ],
   },
   claims: {
     label: "Claims actions",
-    items: [
-      { label: "Open Claims", href: "/claims", icon: ShieldAlert },
-      { label: "File Claim", href: "/claims", icon: Plus },
-    ],
+    items: [{ label: "Open Claims", href: "/claims", icon: ShieldAlert }],
   },
   marketing: {
     label: "Marketing actions",
-    items: [
-      { label: "Leads", href: "/leads", icon: UserRound },
-      { label: "Pipeline", href: "/pipeline", icon: ClipboardList },
-    ],
+    items: [{ label: "Lead Sources", href: "/analytics", icon: ClipboardList }],
   },
   foreman: {
     label: "Foreman portal",

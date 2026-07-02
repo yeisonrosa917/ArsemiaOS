@@ -45,6 +45,8 @@ const ICONS: Record<NotificationKind, React.ComponentType<{ className?: string }
   job_reassigned: Truck,
   adjustment_requested: Briefcase,
   quote_saved: Briefcase,
+  lead_assigned: UserRound,
+  lead_followup: UserRound,
   settings_reset: UserRound,
   info: Bell,
 };

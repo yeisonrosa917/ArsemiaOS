@@ -548,7 +548,9 @@ export default function ForemanPayrollPage({
               Payout configuration
             </CardTitle>
             <CardDescription>
-              Stored on the foreman profile and applied to every payroll line.
+              This controls how this foreman is paid. It affects future payroll
+              calculations. Changes require Save and are logged. Only Owner/
+              Accounting can edit.
               {payoutDirty && (
                 <span className="ml-2 font-semibold text-amber-600">
                   · Unsaved changes

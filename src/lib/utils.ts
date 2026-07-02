@@ -24,6 +24,11 @@ export function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
+/** A safe tel: href — strips everything except digits and a leading +. */
+export function telHref(phone: string | undefined | null): string {
+  return `tel:${(phone ?? "").replace(/[^0-9+]/g, "")}`;
+}
+
 export function formatPercent(value: number, fractionDigits = 1) {
   return `${value.toFixed(fractionDigits)}%`;
 }

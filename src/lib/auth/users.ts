@@ -41,6 +41,22 @@ export const SEED_USERS: SeedUser[] = [
     avatarColor: "from-emerald-400 to-emerald-700",
   },
   {
+    id: "u_sell2",
+    name: "Daniela Rios",
+    initials: "DR",
+    email: "daniela@arsemia.test",
+    roleId: "seller",
+    avatarColor: "from-fuchsia-400 to-pink-700",
+  },
+  {
+    id: "u_sell3",
+    name: "Andres Molina",
+    initials: "AM",
+    email: "andres@arsemia.test",
+    roleId: "seller",
+    avatarColor: "from-sky-400 to-indigo-700",
+  },
+  {
     id: "u_for",
     name: "Marcus Reyes",
     initials: "MR",
@@ -77,6 +93,11 @@ export const SEED_USERS: SeedUser[] = [
 
 export function getUserByRole(roleId: UserRoleId): SeedUser {
   return SEED_USERS.find((u) => u.roleId === roleId) ?? SEED_USERS[0];
+}
+
+/** All seller users (for lead assignment + workload views). */
+export function getSellers(): SeedUser[] {
+  return SEED_USERS.filter((u) => u.roleId === "seller");
 }
 
 /**

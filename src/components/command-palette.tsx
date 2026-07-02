@@ -22,7 +22,7 @@ import {
   Zap,
 } from "lucide-react";
 import { customers, drivers, jobs, invoices } from "@/lib/data";
-import { LEADS } from "@/lib/data/leads";
+import { useLeads } from "@/lib/store/leads";
 import { useInvoices } from "@/lib/store/invoices";
 import { useClaims } from "@/lib/store/claims";
 import { useExpenses } from "@/lib/store/expenses";
@@ -85,6 +85,7 @@ export function CommandPalette({
   const expenseItems = useExpenses((s) => s.items);
   const vehicleItems = useFleet((s) => s.vehicles);
   const quoteItems = useQuotesStore((s) => s.quotes);
+  const leadItems = useLeads((s) => s.leads);
 
   useEffect(() => {
     if (!open) setQuery("");
@@ -189,7 +190,7 @@ export function CommandPalette({
 
               {can("/leads") && (
                 <Group heading="Leads">
-                  {LEADS.slice(0, 10).map((l) => (
+                  {leadItems.slice(0, 10).map((l) => (
                     <Command.Item
                       key={l.id}
                       value={`lead ${l.id} ${l.name} ${l.source}`}
@@ -201,7 +202,7 @@ export function CommandPalette({
                         <span className="font-semibold">{l.id}</span> · {l.name}
                       </span>
                       <span className="text-[10px] text-muted-foreground">
-                        {l.status}
+                        {l.stage}
                       </span>
                     </Command.Item>
                   ))}
