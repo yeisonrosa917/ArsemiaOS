@@ -174,14 +174,39 @@ happens after?**
 - Multi-truck AI recommendations are intentionally NOT built — the data
   structure and guardrails are in place for that later.
 
+## Installment 5 — Dashboard command center + action-based notifications (SHIPPED)
+
+### Dashboard (Section 9)
+- Rebuilt from a static demo into a live **command center** that reads the real
+  stores. Sections, each gated by capability so a non-owner only sees what they
+  can act on:
+  - **Today's operations** — active jobs, unassigned, jobs at risk (unassigned
+    or over truck capacity), foremen on road, trucks available, trucks in shop.
+  - **Sales attention** — unassigned leads, follow-ups due today, overdue
+    follow-ups, quotes sent, booked.
+  - **Finance attention** — payroll flags, expenses pending, invoices overdue,
+    reimbursements pending.
+  - **Risk & claims** — open, new/untriaged, under review.
+  - **Needs your action** — the role's actionable notifications, priority-dotted.
+  - **Recent activity** — the latest audit-log entries.
+- Every tile links to the exact page; no decorative KPI cards.
+
+### Notifications (Section 6) — action-based
+- Added `priority` (low/normal/high/urgent) and `dueDate` to notifications;
+  shown on the notifications page and the dashboard action list.
+- Pruned non-actionable noise: "invoice paid" and "claim resolved" no longer
+  generate notifications (they were good-news info, not to-dos). Fleet /
+  expense / invoice / claim alerts now carry priority and (where relevant) a due
+  date. Resolve = dismiss (already present); role routing already enforced.
+- Note: the old chart components (RevenueChart, JobsStatusChart, KpiCard, etc.)
+  are now unused by the dashboard and are reserved for the Analytics installment.
+
 ## Remaining installments (NOT yet done — require go-ahead)
 
 Each of these is a substantial piece; they were intentionally not rushed:
 
 | # | Section | Scope |
 | - | ------- | ----- |
-| 6 | Notifications action-based overhaul | Priority + due date + resolve on every notification; prune non-actionable |
-| 9 | Dashboard command center | Today's ops / sales / finance / risk / overnight-activity sections |
 | 10 | Analytics | Build real charts (revenue, conversion, forecast) or hide the module |
 | 11 | Seed split | Split the 5,383-LOC `mock-data.ts` into `seeds/*` (leads already done) |
 | 12 | Shared calendar controls | `DateStrip` / `PeriodNavigator` / `WeekNavigator` reused across pages |

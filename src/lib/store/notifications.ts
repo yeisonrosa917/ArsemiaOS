@@ -25,6 +25,7 @@ export type NotificationKind =
   | "info";
 
 export type NotificationSeverity = "info" | "warning" | "danger";
+export type NotificationPriority = "low" | "normal" | "high" | "urgent";
 
 export interface Notification {
   id: string;
@@ -39,6 +40,10 @@ export interface Notification {
   audience?: string;
   /** Optional dedupe key — derived notifications regenerate if this source still applies. */
   sourceKey?: string;
+  /** How urgently someone needs to act. */
+  priority?: NotificationPriority;
+  /** Optional due date (ISO) for the action. */
+  dueDate?: string;
 }
 
 interface NotificationsState {

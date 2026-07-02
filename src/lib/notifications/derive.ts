@@ -36,6 +36,7 @@ export function NotificationDeriver() {
         batch.push({
           kind: "expense_pending",
           severity: "warning",
+          priority: "normal",
           title: "Expense waiting for review",
           body: `${e.foremanName} · ${e.category} · $${e.amount.toFixed(2)}`,
           href: `/expenses/${e.id}`,
@@ -47,6 +48,7 @@ export function NotificationDeriver() {
         batch.push({
           kind: "expense_missing_receipt",
           severity: "warning",
+          priority: "high",
           title: "Expense missing receipt",
           body: `${e.id} · ${e.foremanName} owes a receipt for ${e.category}`,
           href: `/expenses/${e.id}`,
@@ -56,12 +58,13 @@ export function NotificationDeriver() {
       }
     });
 
-    // Claims — foreman response needed and recently approved/reimbursed
+    // Claims — foreman response needed (actionable only)
     claims.forEach((c) => {
       if (c.status === "Foreman Response Needed") {
         batch.push({
           kind: "claim_foreman_response",
           severity: "danger",
+          priority: "high",
           title: "Claim waiting for foreman response",
           body: `${c.id} · ${c.customerName} · ${c.foremanName}`,
           href: `/claims/${c.id}`,
@@ -69,46 +72,22 @@ export function NotificationDeriver() {
           sourceKey: `claim:${c.id}:foreman`,
         });
       }
-      if (c.status === "Approved" || c.status === "Reimbursed") {
-        batch.push({
-          kind: "claim_status_changed",
-          severity: "info",
-          title:
-            c.status === "Reimbursed"
-              ? "Claim reimbursed"
-              : "Claim approved",
-          body: `${c.id} · ${c.customerName}`,
-          href: `/claims/${c.id}`,
-          sourceKey: `claim:${c.id}:resolved`,
-        });
-      }
     });
 
-    // Invoices — overdue + paid
+    // Invoices — overdue (actionable). Paid invoices are not a to-do, so no
+    // "invoice paid" noise.
     invoices.forEach((inv) => {
       if (inv.status === "Overdue") {
         batch.push({
           kind: "invoice_overdue",
           severity: "danger",
+          priority: "high",
           title: "Invoice overdue",
           body: `${inv.id} · ${inv.customerName} · $${inv.balance.toFixed(2)} due`,
           href: `/invoices/${inv.id}`,
           audience: "accountant",
           sourceKey: `invoice:${inv.id}:overdue`,
         });
-      }
-      if (inv.status === "Paid" && inv.paidDate) {
-        const days = Math.abs(daysUntil(inv.paidDate));
-        if (days <= 7) {
-          batch.push({
-            kind: "invoice_paid",
-            severity: "info",
-            title: "Invoice paid",
-            body: `${inv.id} · ${inv.customerName} · $${inv.total.toFixed(2)}`,
-            href: `/invoices/${inv.id}`,
-            sourceKey: `invoice:${inv.id}:paid`,
-          });
-        }
       }
     });
 
@@ -119,9 +98,11 @@ export function NotificationDeriver() {
         batch.push({
           kind: "fleet_maintenance",
           severity: m < 0 ? "danger" : "warning",
+          priority: m < 0 ? "urgent" : "high",
           title: m < 0 ? "Maintenance overdue" : "Maintenance due soon",
           body: `${v.name} · scheduled ${v.nextMaintenance}`,
           href: `/fleet/${v.id}`,
+          dueDate: v.nextMaintenance,
           sourceKey: `fleet:${v.id}:maint`,
         });
       }
@@ -130,9 +111,11 @@ export function NotificationDeriver() {
         batch.push({
           kind: "fleet_insurance",
           severity: ins < 0 ? "danger" : "warning",
+          priority: ins < 0 ? "urgent" : "high",
           title: ins < 0 ? "Insurance expired" : "Insurance expiring",
           body: `${v.name} · expires ${v.insuranceExpiry}`,
           href: `/fleet/${v.id}`,
+          dueDate: v.insuranceExpiry,
           sourceKey: `fleet:${v.id}:ins`,
         });
       }
@@ -141,9 +124,11 @@ export function NotificationDeriver() {
         batch.push({
           kind: "fleet_registration",
           severity: reg < 0 ? "danger" : "warning",
+          priority: reg < 0 ? "urgent" : "high",
           title: reg < 0 ? "Registration expired" : "Registration expiring",
           body: `${v.name} · expires ${v.registrationExpiry}`,
           href: `/fleet/${v.id}`,
+          dueDate: v.registrationExpiry,
           sourceKey: `fleet:${v.id}:reg`,
         });
       }

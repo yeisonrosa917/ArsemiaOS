@@ -187,10 +187,22 @@ export default function NotificationsPage() {
                     <Icon className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-semibold">{n.title}</p>
                       {!n.read && (
                         <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                      )}
+                      {n.priority && n.priority !== "low" && (
+                        <span
+                          className={cn(
+                            "rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider",
+                            n.priority === "urgent" && "bg-rose-500/15 text-rose-600",
+                            n.priority === "high" && "bg-amber-500/15 text-amber-700",
+                            n.priority === "normal" && "bg-sky-500/15 text-sky-700",
+                          )}
+                        >
+                          {n.priority}
+                        </span>
                       )}
                       {n.audience && (
                         <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -201,6 +213,7 @@ export default function NotificationsPage() {
                     <p className="mt-0.5 text-xs text-muted-foreground">{n.body}</p>
                     <p className="mt-1 text-[10px] text-muted-foreground/70">
                       {timeAgo(n.createdAt)}
+                      {n.dueDate && ` · due ${n.dueDate.slice(0, 10)}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
