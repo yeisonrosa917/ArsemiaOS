@@ -8,11 +8,18 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { drivers } from "@/lib/mock-data";
 import { useJobsStore as useJobs } from "@/lib/store/jobs";
+import { useFleet } from "@/lib/store/fleet";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { useNotifications } from "@/lib/store/notifications";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
 import { cn, initials } from "@/lib/utils";
+import {
+  vehicleCapacity,
+  capacityLevel,
+  capacityMessage,
+  CAPACITY_STYLES,
+} from "@/lib/fleet/capacity";
 import type { Job } from "@/lib/types";
 
 const REASONS = [
@@ -48,8 +55,11 @@ export function ReassignModal({
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const actor = getUserByRole(activeRoleId);
 
+  const vehicles = useFleet((s) => s.vehicles);
+
   const [nextForemanId, setNextForemanId] = useState<string>("");
   const [reason, setReason] = useState<Reason>("Workload balance");
+  const [ackOver, setAckOver] = useState(false);
 
   const target = drivers.find((d) => d.id === nextForemanId);
   const current = job.driverId
@@ -60,6 +70,13 @@ export function ReassignModal({
     target?.currentJobId && target.currentJobId !== job.id
       ? `${target.name} already has ${target.currentJobId} in progress.`
       : null;
+
+  // Truck capacity guardrail — compare the job's CuFt against the new foreman's
+  // truck. An over-capacity assignment must be explicitly acknowledged.
+  const targetTruck = target ? vehicles.find((v) => v.id === target.vehicleId) : null;
+  const cap = targetTruck ? vehicleCapacity(targetTruck) : null;
+  const capLevel = cap ? capacityLevel(job.cuFt, cap) : null;
+  const blockedByCapacity = capLevel === "over" && !ackOver;
 
   const handleStage = () => {
     if (!target) return;
@@ -207,6 +224,26 @@ export function ReassignModal({
               </div>
             )}
 
+            {cap && capLevel && targetTruck && (
+              <div className={cn("space-y-2 rounded-md border p-2 text-xs", CAPACITY_STYLES[capLevel])}>
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>{capacityMessage(job.cuFt, cap, targetTruck.name)}</span>
+                </div>
+                {capLevel === "over" && (
+                  <label className="flex items-center gap-2 font-semibold">
+                    <input
+                      type="checkbox"
+                      checked={ackOver}
+                      onChange={(e) => setAckOver(e.target.checked)}
+                    />
+                    I understand this exceeds truck capacity and want to proceed
+                    anyway.
+                  </label>
+                )}
+              </div>
+            )}
+
             {pending ? (
               <div className="space-y-2 rounded-lg border border-amber-500/30 bg-amber-500/[0.04] p-3">
                 <p className="text-xs font-semibold">
@@ -231,7 +268,7 @@ export function ReassignModal({
                 <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
-                <Button size="sm" onClick={handleStage} disabled={!target}>
+                <Button size="sm" onClick={handleStage} disabled={!target || blockedByCapacity}>
                   Stage reassignment
                 </Button>
               </div>

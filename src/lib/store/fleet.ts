@@ -4,12 +4,17 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { vehicles as SEED } from "@/lib/mock-data";
 import type { Vehicle, VehicleStatus } from "@/lib/types";
+import { DEFAULT_CAPACITY } from "@/lib/fleet/capacity";
 
 export type FleetVehicle = Vehicle & {
   make?: string;
   model?: string;
   year?: number;
   notes?: string;
+  /** CuFt the truck can physically hold. */
+  maxCuFtCapacity?: number;
+  /** CuFt we recommend loading (leaves margin). */
+  safeRecommendedCuFt?: number;
 };
 
 function migrateSeed(): FleetVehicle[] {
@@ -21,7 +26,15 @@ function migrateSeed(): FleetVehicle[] {
       model: type,
     };
   };
-  return SEED.map((v) => ({ ...v, ...parse(v.name, v.type) }));
+  return SEED.map((v) => {
+    const cap = DEFAULT_CAPACITY[v.type] ?? { max: 1000, safe: 850 };
+    return {
+      ...v,
+      ...parse(v.name, v.type),
+      maxCuFtCapacity: cap.max,
+      safeRecommendedCuFt: cap.safe,
+    };
+  });
 }
 
 interface FleetState {

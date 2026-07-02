@@ -42,6 +42,7 @@ import {
 import { drivers as seedDrivers } from "@/lib/data";
 import type { BuildingDetails, Job, JobInventoryItem } from "@/lib/types";
 import { useJobsStore } from "@/lib/store/jobs";
+import { useFleet } from "@/lib/store/fleet";
 import { useNotifications } from "@/lib/store/notifications";
 import { useJobEvents } from "@/lib/store/job-events";
 import { JobEventLog } from "./job-event-log";
@@ -50,6 +51,13 @@ import { JobDocumentsPanel } from "./job-documents-panel";
 import { JobHistoryDrawer } from "./job-history-drawer";
 import { ReassignModal } from "./reassign-modal";
 import { fmtUSD } from "@/lib/calculator/engine";
+import {
+  vehicleCapacity,
+  capacityLevel,
+  capacityMessage,
+  CAPACITY_STYLES,
+  CAPACITY_LABEL,
+} from "@/lib/fleet/capacity";
 import { cn } from "@/lib/utils";
 import { formatDateStable } from "@/lib/dates";
 
@@ -88,6 +96,16 @@ export function JobDetail({ job: initial }: { job: Job }) {
   const pushEvent = useJobEvents((s) => s.push);
   const contractor = job.driverId ? CONTRACTOR_COMPANIES[job.driverId] : undefined;
 
+  // Assigned truck capacity vs this job's CuFt.
+  const fleetVehicles = useFleet((s) => s.vehicles);
+  const assignedTruck = (() => {
+    if (!job.driverId) return undefined;
+    const d = seedDrivers.find((x) => x.id === job.driverId);
+    return d ? fleetVehicles.find((v) => v.id === d.vehicleId) : undefined;
+  })();
+  const jobCap = assignedTruck ? vehicleCapacity(assignedTruck) : null;
+  const jobCapLevel = jobCap ? capacityLevel(job.cuFt, jobCap) : null;
+
   const [editingInv, setEditingInv] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
@@ -106,38 +124,6 @@ export function JobDetail({ job: initial }: { job: Job }) {
       (job.additionalServices ?? []).reduce((acc, s) => acc + s.price, 0),
     [job.additionalServices],
   );
-
-  const handleStageReassign = (driverId: string, driverName: string) => {
-    const staged = stageReassignment(job.id, driverId, driverName, "Mariana Castro");
-    pushNotif({
-      kind: "job_reassigned",
-      severity: "warning",
-      title: `Pending reassignment — ${job.id}`,
-      body: staged.fromDriverName
-        ? `${staged.fromDriverName} → ${driverName}. Awaiting confirmation.`
-        : `Staged for ${driverName}. Awaiting confirmation.`,
-      href: `/jobs/${job.id}`,
-    });
-    pushEvent({
-      jobId: job.id,
-      type: "reassigned",
-      actor: "Mariana Castro",
-      message: staged.fromDriverName
-        ? `Staged reassignment: ${staged.fromDriverName} → ${driverName}.`
-        : `Staged assignment to ${driverName}.`,
-    });
-  };
-
-  const handleStageUnassign = () => {
-    const staged = stageReassignment(job.id, undefined, undefined, "Mariana Castro");
-    pushNotif({
-      kind: "job_unassigned",
-      severity: "warning",
-      title: `Pending unassignment — ${job.id}`,
-      body: `Removing ${staged.fromDriverName ?? "current foreman"}. Awaiting confirmation.`,
-      href: `/jobs/${job.id}`,
-    });
-  };
 
   const handleConfirmPending = () => {
     const p = confirmPending(job.id);
@@ -631,69 +617,33 @@ export function JobDetail({ job: initial }: { job: Job }) {
                       <p className="text-sm font-semibold">{job.driverName}</p>
                       <p className="text-[10px] text-muted-foreground">{job.driverId}</p>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1"
-                          disabled={!!pendingForJob}
-                        >
-                          Reassign <ChevronDown className="h-3 w-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-60">
-                        <DropdownMenuLabel>Reassign to foreman</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {seedDrivers
-                          .filter((d) => d.id !== job.driverId)
-                          .map((d) => (
-                            <DropdownMenuItem
-                              key={d.id}
-                              onClick={() => handleStageReassign(d.id, d.name)}
-                              className="flex flex-col items-start gap-0.5"
-                            >
-                              <p className="text-sm font-semibold">{d.name}</p>
-                              <p className="text-[10px] text-muted-foreground">
-                                {d.status} · {d.vehicleName}
-                              </p>
-                            </DropdownMenuItem>
-                          ))}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={handleStageUnassign}>
-                          <span className="text-destructive">Unassign</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1"
+                      disabled={!!pendingForJob}
+                      onClick={() => setReassignOpen(true)}
+                    >
+                      Reassign
+                    </Button>
                   </div>
                 ) : (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="mt-1 w-full gap-1"
-                        disabled={!!pendingForJob}
-                      >
-                        Assign foreman <ChevronDown className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-60">
-                      <DropdownMenuLabel>Available foremen</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {seedDrivers.map((d) => (
-                        <DropdownMenuItem
-                          key={d.id}
-                          onClick={() => handleStageReassign(d.id, d.name)}
-                          className="flex flex-col items-start gap-0.5"
-                        >
-                          <p className="text-sm font-semibold">{d.name}</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {d.status} · {d.vehicleName}
-                          </p>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button
+                    variant="outline"
+                    className="mt-1 w-full"
+                    disabled={!!pendingForJob}
+                    onClick={() => setReassignOpen(true)}
+                  >
+                    Assign foreman
+                  </Button>
+                )}
+
+                {/* Assigned truck capacity status */}
+                {assignedTruck && jobCap && jobCapLevel && (
+                  <div className={cn("mt-2 rounded-md border px-2 py-1.5 text-[11px]", CAPACITY_STYLES[jobCapLevel])}>
+                    <span className="font-semibold">Truck capacity: {CAPACITY_LABEL[jobCapLevel]}</span>
+                    <span className="mt-0.5 block">{capacityMessage(job.cuFt, jobCap, assignedTruck.name)}</span>
+                  </div>
                 )}
               </div>
               {contractor && (

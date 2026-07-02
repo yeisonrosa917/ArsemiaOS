@@ -21,6 +21,7 @@ import {
 } from "@/components/shared/status-badge";
 import { MapPreview } from "@/components/shared/map-preview";
 import { ReassignModal } from "@/components/jobs/reassign-modal";
+import { PendingDispatchChanges } from "@/components/dispatch/pending-changes";
 import {
   drivers,
   jobs,
@@ -100,6 +101,11 @@ export function DispatchBoard() {
       return true;
     });
   }, [search, zoneFilter, typeFilter, statusFilter, driverFilter, selectedDate]);
+
+  const jobsOnDate = useMemo(
+    () => jobs.filter((j) => (j.scheduledAt ?? "").slice(0, 10) === selectedDate).length,
+    [selectedDate],
+  );
 
   const selectedJob =
     filteredJobs.find((j) => j.id === selectedJobId) ??
@@ -195,6 +201,8 @@ export function DispatchBoard() {
         )}
       </div>
 
+      <PendingDispatchChanges />
+
       <div className="grid grid-cols-12 gap-4">
       {/* Filters / job list */}
       <aside className="col-span-12 xl:col-span-3">
@@ -204,7 +212,11 @@ export function DispatchBoard() {
               <div>
                 <p className="text-sm font-semibold">Job queue</p>
                 <p className="text-xs text-muted-foreground">
-                  {filteredJobs.length} of {jobs.length} jobs
+                  {jobsOnDate === 0
+                    ? "0 jobs on selected date"
+                    : filteredJobs.length === jobsOnDate
+                      ? `${jobsOnDate} job${jobsOnDate !== 1 ? "s" : ""} on selected date`
+                      : `${jobsOnDate} on this date · ${filteredJobs.length} match filters`}
                 </p>
               </div>
             </div>

@@ -139,14 +139,47 @@ happens after?**
 - Two additional sellers now appear here (Daniela Rios, Andres Molina) — 9 users
   total. No blank avatars (initials fallback, stable color).
 
+## Installment 4 — Dispatch + Foremen + Truck capacity (SHIPPED)
+
+### Dispatch (Section 3)
+- **Pending Dispatch Changes** panel (`pending-changes.tsx`): lists every staged
+  reassignment (job, customer, old→new foreman, reason, changed-by, time) with
+  **Confirm** / **Cancel** per row and **Confirm all** / **Cancel all**.
+  Confirming writes the job change + activity log + notification.
+- Job-queue count is honest: "0 jobs on selected date" vs "N on this date · M
+  match filters" (no more misleading "0 of 20").
+- **One reassign workflow everywhere**: removed the duplicate inline
+  assign/reassign dropdowns from Job Detail; both the header button and the
+  "Assigned foreman" card now open the same `ReassignModal` used by Dispatch and
+  the Foremen roster.
+
+### Foremen (Section 4)
+- **Roster / Today** view: operational cards (name, status, availability, truck,
+  base, jobs-today count, next job time, current status, doc status). Cards
+  **expand** to show today's jobs with Open / Reassign / (per foreman) Call and
+  **Set availability** (available / break / offline — owner/dispatch only, via a
+  new persisted availability store).
+- **Directory** view: compact contact table with truck capacity, rating, docs,
+  and a payroll link for payroll-capable roles.
+- Search + filters (status, base, documents) + date. **Revenue removed from the
+  operational roster** (it belongs to Payroll/Analytics).
+
+### Truck capacity guardrails (addition)
+- `src/lib/fleet/capacity.ts`: every vehicle type has a max + safe-recommended
+  CuFt; seeded onto all vehicles and **editable in Fleet detail**.
+- **Reassign modal guardrail**: shows the job's CuFt vs the new foreman's truck
+  with green (fits) / yellow (tight) / red (over) status; an over-capacity
+  assignment is **blocked until explicitly acknowledged**.
+- **Job Detail** shows the assigned truck's capacity status for the job.
+- Multi-truck AI recommendations are intentionally NOT built — the data
+  structure and guardrails are in place for that later.
+
 ## Remaining installments (NOT yet done — require go-ahead)
 
 Each of these is a substantial piece; they were intentionally not rushed:
 
 | # | Section | Scope |
 | - | ------- | ----- |
-| 3 | Dispatch operational board | Layout polish, week strip w/ counts, **Pending Dispatch Changes** panel (confirm individual / confirm all), single reassign workflow everywhere |
-| 4 | Foremen roster/today view | Expandable cards w/ today's jobs, status/availability controls, directory tab |
 | 6 | Notifications action-based overhaul | Priority + due date + resolve on every notification; prune non-actionable |
 | 9 | Dashboard command center | Today's ops / sales / finance / risk / overnight-activity sections |
 | 10 | Analytics | Build real charts (revenue, conversion, forecast) or hide the module |

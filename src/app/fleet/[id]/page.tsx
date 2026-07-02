@@ -211,6 +211,18 @@ export default function FleetDetailPage({
             </select>
           </div>
           <Field
+            label="Max CuFt capacity"
+            value={draft.maxCuFtCapacity != null ? String(draft.maxCuFtCapacity) : ""}
+            onChange={(v) => setDraft({ ...draft, maxCuFtCapacity: v ? Number(v) : undefined })}
+            hint="Physical limit — assignments above this are blocked unless overridden"
+          />
+          <Field
+            label="Safe recommended CuFt"
+            value={draft.safeRecommendedCuFt != null ? String(draft.safeRecommendedCuFt) : ""}
+            onChange={(v) => setDraft({ ...draft, safeRecommendedCuFt: v ? Number(v) : undefined })}
+            hint="Comfortable load — jobs above this show a warning"
+          />
+          <Field
             label="Make"
             value={draft.make ?? ""}
             onChange={(v) => setDraft({ ...draft, make: v })}
