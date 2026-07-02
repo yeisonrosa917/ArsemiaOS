@@ -112,17 +112,42 @@ happens after?**
 - `deductions` on a payroll line subtract automatically; `Flagged` lines are
   held (their payout is subtracted as On hold) until audit clears them.
 
+## Installment 3 — Jobs calendar + Users & Access (SHIPPED)
+
+### Jobs page rebuilt (Section 2)
+- **Calendar-first**: Prev / Today / Tomorrow / Next / date picker, plus
+  **Day / Week / List** views. Day and Week render operational job cards; List
+  falls back to the searchable database table.
+- Job cards show ID, customer, time window, type, pickup→delivery city,
+  foreman, truck, status, CuFt, miles, customer total, and priority.
+- Filters: status (operational statuses), type, foreman, and full-text search
+  (job ID, customer, phone, address, foreman, truck, city).
+- **Useful empty state**: distinguishes "no jobs on this day" (offers *View next
+  booked date* / *Create quote* / *Back to today*) from "N jobs, 0 match
+  filters". Defaults to the latest active day so the calendar is never blank.
+- Foreman sees only their own jobs; no company financials.
+- Removed the dead Export/New-job header buttons (already gone) and the dead
+  pager in the list view.
+
+### Settings → Users & Access (Section 8)
+- New `src/lib/store/users.ts` (workspace directory seeded from the auth users)
+  + `users-access-card.tsx`: a WordPress-style table with initials avatars,
+  email, **change role** (inline select), status badge, **activate/deactivate**,
+  **reset permissions to role default**, **edit profile**, last-active
+  placeholder, and a link to the foreman payroll profile where applicable.
+- Every action mutates the store and writes a Permissions activity-log entry.
+- Two additional sellers now appear here (Daniela Rios, Andres Molina) — 9 users
+  total. No blank avatars (initials fallback, stable color).
+
 ## Remaining installments (NOT yet done — require go-ahead)
 
 Each of these is a substantial piece; they were intentionally not rushed:
 
 | # | Section | Scope |
 | - | ------- | ----- |
-| 2 | Jobs page rebuild | Calendar-first, day cards, operational statuses, search, empty state |
 | 3 | Dispatch operational board | Layout polish, week strip w/ counts, **Pending Dispatch Changes** panel (confirm individual / confirm all), single reassign workflow everywhere |
 | 4 | Foremen roster/today view | Expandable cards w/ today's jobs, status/availability controls, directory tab |
 | 6 | Notifications action-based overhaul | Priority + due date + resolve on every notification; prune non-actionable |
-| 8 | Settings → Users & Access | WordPress-style users table: role, status, activate/deactivate, reset perms |
 | 9 | Dashboard command center | Today's ops / sales / finance / risk / overnight-activity sections |
 | 10 | Analytics | Build real charts (revenue, conversion, forecast) or hide the module |
 | 11 | Seed split | Split the 5,383-LOC `mock-data.ts` into `seeds/*` (leads already done) |

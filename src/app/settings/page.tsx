@@ -12,6 +12,7 @@ import {
   Settings as SettingsIcon,
   Shield,
   UserCircle,
+  Users,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ import { PrivacyDataCard } from "@/components/settings/privacy-card";
 import { NotificationsSettingsCard } from "@/components/settings/notifications-card";
 import { IntegrationsCard } from "@/components/settings/integrations-card";
 import { CompanyConfigCard } from "@/components/settings/company-config-card";
+import { UsersAccessCard } from "@/components/settings/users-access-card";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
@@ -40,6 +42,7 @@ const SECTIONS = [
   { id: "calculator", icon: Calculator, label: "Calculator & Pricing" },
   { id: "appearance", icon: SettingsIcon, label: "Appearance" },
   { id: "roles", icon: Shield, label: "Roles & Permissions" },
+  { id: "users", icon: Users, label: "Users & Access" },
   { id: "audit", icon: Activity, label: "Audit Log", external: "/activity" as const },
   { id: "notifications", icon: Bell, label: "Notifications" },
   { id: "integrations", icon: Plug, label: "Integrations" },
@@ -220,6 +223,8 @@ export default function SettingsPage() {
           {section === "appearance" && <AppearanceCard />}
 
           {section === "roles" && <RolesAndPermissionsCard />}
+
+          {section === "users" && <UsersAccessCard />}
 
           {section === "notifications" && <NotificationsSettingsCard />}
 
