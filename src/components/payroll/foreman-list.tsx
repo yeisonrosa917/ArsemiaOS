@@ -19,7 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { drivers, jobs, payrollLines } from "@/lib/mock-data";
+import { drivers } from "@/lib/mock-data";
+import { payrollJobs as jobs, payrollLinesAll as payrollLines } from "@/lib/payroll/data";
 import { useExpenses } from "@/lib/store/expenses";
 import {
   useForemanProfiles,

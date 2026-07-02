@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PayrollStatusBadge } from "@/components/shared/status-badge";
-import { payrollLines } from "@/lib/mock-data";
+import { payrollLinesAll as payrollLines } from "@/lib/payroll/data";
 import { cn, formatCurrency } from "@/lib/utils";
 
 export function PayrollTable() {

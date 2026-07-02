@@ -31,7 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { drivers, jobs, payrollLines } from "@/lib/mock-data";
+import { drivers } from "@/lib/mock-data";
+import { payrollJobs as jobs, payrollLinesAll as payrollLines } from "@/lib/payroll/data";
 import { useExpenses } from "@/lib/store/expenses";
 import {
   useForemanProfiles,
@@ -324,20 +325,26 @@ export default function ForemanPayrollPage({
               <TableHeader>
                 <TableRow>
                   <TableHead className="pl-5">Date</TableHead>
-                  <TableHead>Job</TableHead>
+                  <TableHead>Job #</TableHead>
                   <TableHead>Customer</TableHead>
+                  <TableHead>Crew / Foreman</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Commissionable</TableHead>
                   <TableHead className="text-right">Model</TableHead>
-                  <TableHead className="text-right">Payout</TableHead>
-                  <TableHead className="text-right">Deduct</TableHead>
-                  <TableHead className="pr-5">Status</TableHead>
+                  <TableHead className="text-right">Commissionable</TableHead>
+                  <TableHead className="text-right">Commission</TableHead>
+                  <TableHead className="pr-5">Notes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {lines.map((p) => {
                   const job = jobs.find((j) => j.id === p.jobId);
                   const lineExpected = (p.commissionableTotal * payoutPercent) / 100;
+                  const note =
+                    p.status === "Flagged"
+                      ? p.auditFlags[0] ?? "On hold — pending audit"
+                      : p.deductions > 0
+                        ? `−${formatCurrency(p.deductions)} · ${p.auditFlags[0] ?? "deduction"}`
+                        : p.auditFlags[0] ?? "—";
                   return (
                     <TableRow key={p.jobId}>
                       <TableCell className="pl-5 text-[11px] text-muted-foreground">
@@ -349,45 +356,44 @@ export default function ForemanPayrollPage({
                         </Link>
                       </TableCell>
                       <TableCell className="text-xs">{p.customer}</TableCell>
+                      <TableCell className="text-[11px] text-muted-foreground">
+                        {foreman.name}
+                      </TableCell>
                       <TableCell className="text-[11px]">
                         <Badge variant="outline" className="text-[10px]">
                           {job?.type ?? "—"}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-right font-mono text-[10px] text-muted-foreground">
+                        {payoutLabel.split(" ")[0]} · {payoutPercent}%
+                      </TableCell>
                       <TableCell className="text-right font-mono text-xs">
                         {formatCurrency(p.commissionableTotal)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-[10px] text-muted-foreground">
-                        {payoutPercent}%
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs font-semibold">
                         {formatCurrency(lineExpected)}
                       </TableCell>
-                      <TableCell className="text-right font-mono text-xs">
-                        {p.deductions > 0 ? (
-                          <span className="text-rose-600">-{formatCurrency(p.deductions)}</span>
-                        ) : (
-                          "—"
+                      <TableCell
+                        className={cn(
+                          "pr-5 text-[11px]",
+                          p.status === "Flagged" && "text-amber-600",
+                          p.deductions > 0 && "text-rose-600",
+                          note === "—" && "text-muted-foreground",
                         )}
-                      </TableCell>
-                      <TableCell className="pr-5">
-                        <Badge
-                          variant={
-                            p.status === "Approved" || p.status === "Paid"
-                              ? "success"
-                              : p.status === "Flagged"
-                                ? "danger"
-                                : "outline"
-                          }
-                        >
-                          {p.status}
-                        </Badge>
+                      >
+                        {note}
                       </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
             </Table>
+          )}
+          {lines.length > 0 && (
+            <p className="mt-3 border-t pt-3 text-right text-xs font-semibold">
+              Commission earned this period:{" "}
+              <span className="font-mono">{formatCurrency(summary.expectedPayout)}</span>
+            </p>
           )}
         </CardContent>
       </Card>
@@ -506,6 +512,28 @@ export default function ForemanPayrollPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Ileana-style signed summary — how the take-home is built. */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Payroll summary — {range.label}</CardTitle>
+          <CardDescription>
+            {payoutLabel} · commission from {range.from} to {range.to}.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-1.5 text-sm">
+            <SummaryRow label={`Commission earned (${lines.length} job${lines.length !== 1 ? "s" : ""})`} value={summary.expectedPayout} />
+            <SummaryRow label="Added — reimbursements" value={summary.reimbAmount} sign="+" tone="success" />
+            <SummaryRow label="Deducted" value={summary.deductions} sign="-" tone="danger" />
+            <SummaryRow label="On hold (pending audit)" value={summary.onHold} sign="-" tone="warning" />
+            <li className="mt-2 flex items-center justify-between border-t-2 border-primary/30 pt-2 text-base font-bold">
+              <span>Take-home total</span>
+              <span className="font-mono text-primary">{formatCurrency(summary.finalTotal)}</span>
+            </li>
+          </ul>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -664,6 +692,35 @@ export default function ForemanPayrollPage({
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+  sign,
+  tone,
+}: {
+  label: string;
+  value: number;
+  sign?: "+" | "-";
+  tone?: "success" | "danger" | "warning";
+}) {
+  return (
+    <li className="flex items-center justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span
+        className={cn(
+          "font-mono font-semibold",
+          tone === "success" && "text-emerald-600",
+          tone === "danger" && "text-rose-600",
+          tone === "warning" && "text-amber-600",
+        )}
+      >
+        {value > 0 && sign ? sign : ""}
+        {formatCurrency(value)}
+      </span>
+    </li>
   );
 }
 

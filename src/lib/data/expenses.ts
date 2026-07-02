@@ -37,6 +37,21 @@ export interface Expense {
 
 export const EXPENSES: Expense[] = [
   {
+    id: "EXP-M901",
+    foremanName: "Marcus Reyes",
+    foremanId: "FM-1042",
+    truckId: "VEH-204",
+    truckName: "Truck #04 - ISUZU NPR 20' - 2024 - Foreman Marcus",
+    jobId: "JOB-M502",
+    category: "Packing Material",
+    amount: 84.75,
+    date: "2026-07-01T18:20:00",
+    status: "Approved",
+    reviewedBy: "Luis Mendoza",
+    reviewedAt: "2026-07-01T20:05:00",
+    notes: "Extra moving blankets + shrink wrap for the Orlando long-distance load.",
+  },
+  {
     id: "EXP-2401",
     foremanName: "Marcus Reyes",
     foremanId: "FM-1042",

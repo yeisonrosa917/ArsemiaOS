@@ -79,6 +79,39 @@ happens after?**
 
 ---
 
+## Installment 2 — Payroll Ileana-style + Marcus Reyes demo (SHIPPED)
+
+### Rebuilt
+- **Foreman payroll detail is now Ileana-style**: the weekly table shows Date,
+  Job #, Customer, Crew/Foreman, Job type, Model/commission %, Commissionable,
+  Commission earned, and a Notes column (deduction reason / on-hold reason /
+  audit flag). A "Commission earned this period" line closes the table.
+- **Signed summary block** ("Payroll summary — {week}"): Commission earned →
+  + Reimbursements → − Deducted → − On hold → **Take-home total**, mirroring the
+  Ileana payroll sheet. The KPI stat row and the reimbursement/deduction/on-hold
+  line-item cards remain for the descriptions.
+- Payout-configuration helper text clarifies it drives future payroll, requires
+  Save, and is Owner/Accounting only.
+
+### Marcus Reyes demo (Section 5D)
+- New `src/lib/seeds/payroll-demo.ts` gives Marcus (FM-1042) a full current-week
+  set: a normal local move, a long-distance move (Miami → Orlando), a normal
+  move, a job with a **$120 deduction**, and a job **on hold pending audit** —
+  plus a matching **reimbursable expense** (EXP-M901, packing material) that
+  flows in automatically.
+- Payroll now reads from `src/lib/payroll/data.ts`, which merges the demo with
+  the mock arrays — so the same data shows consistently on the payroll home, the
+  foreman detail, and the foreman self-view, **without** polluting the global
+  Jobs list or Dispatch board. This also begins the seed split (Section 11).
+
+### Expenses → payroll (Section 5E) — confirmed working
+- Approved, reimbursable, out-of-pocket expenses inside the pay period appear
+  under "Added / reimbursements" and add to the take-home total automatically.
+
+### Deductions / on-hold (Section 5F) — confirmed working
+- `deductions` on a payroll line subtract automatically; `Flagged` lines are
+  held (their payout is subtracted as On hold) until audit clears them.
+
 ## Remaining installments (NOT yet done — require go-ahead)
 
 Each of these is a substantial piece; they were intentionally not rushed:
@@ -88,7 +121,6 @@ Each of these is a substantial piece; they were intentionally not rushed:
 | 2 | Jobs page rebuild | Calendar-first, day cards, operational statuses, search, empty state |
 | 3 | Dispatch operational board | Layout polish, week strip w/ counts, **Pending Dispatch Changes** panel (confirm individual / confirm all), single reassign workflow everywhere |
 | 4 | Foremen roster/today view | Expandable cards w/ today's jobs, status/availability controls, directory tab |
-| 5 | Payroll Ileana-style | Auto-generate lines from completed jobs, Ileana-style detail table, richer Marcus Reyes weekly demo (normal/long-distance/reimbursement/deduction/on-hold rows) |
 | 6 | Notifications action-based overhaul | Priority + due date + resolve on every notification; prune non-actionable |
 | 8 | Settings → Users & Access | WordPress-style users table: role, status, activate/deactivate, reset perms |
 | 9 | Dashboard command center | Today's ops / sales / finance / risk / overnight-activity sections |
