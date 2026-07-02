@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { jobs } from "@/lib/mock-data";
+import { allJobs as jobs } from "@/lib/data/all-jobs";
 import { Button } from "@/components/ui/button";
 import { JobDetail } from "@/components/jobs/job-detail";
 

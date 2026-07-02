@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { jobs as seedJobs } from "@/lib/mock-data";
+import { allJobs as seedJobs } from "@/lib/data/all-jobs";
 import type { Job } from "@/lib/types";
 
 export interface PendingReassignment {
@@ -144,7 +144,7 @@ export const useJobsStore = create<JobsState>()(
       reset: () => set({ jobs: seedJobs, pendingReassignments: [] }),
     }),
     {
-      name: "arsemia.jobs.v1",
+      name: "arsemia.jobs.v2",
       storage: createJSONStorage(() => localStorage),
     },
   ),

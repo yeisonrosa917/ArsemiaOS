@@ -36,7 +36,8 @@ import {
 import { DriverStatusBadge } from "@/components/shared/status-badge";
 import { JobStatusBadge } from "@/components/shared/status-badge";
 import { ReassignModal } from "@/components/jobs/reassign-modal";
-import { drivers, jobs } from "@/lib/mock-data";
+import { drivers } from "@/lib/mock-data";
+import { allJobs as jobs } from "@/lib/data/all-jobs";
 import { useFleet } from "@/lib/store/fleet";
 import {
   useForemanAvailability,

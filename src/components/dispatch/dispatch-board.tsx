@@ -22,12 +22,8 @@ import {
 import { MapPreview } from "@/components/shared/map-preview";
 import { ReassignModal } from "@/components/jobs/reassign-modal";
 import { PendingDispatchChanges } from "@/components/dispatch/pending-changes";
-import {
-  drivers,
-  jobs,
-  jobStatuses,
-  zones,
-} from "@/lib/mock-data";
+import { drivers, jobStatuses, zones } from "@/lib/mock-data";
+import { allJobs as jobs } from "@/lib/data/all-jobs";
 import type { JobStatus } from "@/lib/types";
 import { cn, formatCurrency, initials } from "@/lib/utils";
 import { toISODateSafe, parseDateSafe, formatWeekdayStable } from "@/lib/dates";

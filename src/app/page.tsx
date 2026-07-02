@@ -17,7 +17,8 @@ import {
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { jobs, drivers } from "@/lib/mock-data";
+import { drivers } from "@/lib/mock-data";
+import { allJobs as jobs } from "@/lib/data/all-jobs";
 import { useLeads, followUpState, isOpenStage } from "@/lib/store/leads";
 import { useExpenses } from "@/lib/store/expenses";
 import { useInvoices } from "@/lib/store/invoices";

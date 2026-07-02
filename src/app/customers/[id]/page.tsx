@@ -13,7 +13,8 @@ import {
   TrendingUp,
   Truck,
 } from "lucide-react";
-import { customers, jobs } from "@/lib/mock-data";
+import { customers } from "@/lib/mock-data";
+import { allJobs as jobs } from "@/lib/data/all-jobs";
 import { Button } from "@/components/ui/button";
 import {
   Card,

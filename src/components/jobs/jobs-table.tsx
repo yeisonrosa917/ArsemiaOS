@@ -19,7 +19,8 @@ import {
   JobStatusBadge,
   PayrollStatusBadge,
 } from "@/components/shared/status-badge";
-import { jobs, jobStatuses } from "@/lib/mock-data";
+import { jobStatuses } from "@/lib/mock-data";
+import { allJobs as jobs } from "@/lib/data/all-jobs";
 import type { JobStatus, JobType } from "@/lib/types";
 import { usePreferences } from "@/lib/store/preferences";
 import { getActiveForemanId, getUserByRole } from "@/lib/auth/users";
