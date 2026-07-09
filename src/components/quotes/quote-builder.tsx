@@ -6,6 +6,7 @@ import {
   Calculator,
   ChevronDown,
   ChevronUp,
+  ClipboardList,
   Info,
   Plus,
   Trash2,
@@ -28,6 +29,7 @@ import {
   PRESET_ITEMS,
   type HandlingItem,
 } from "@/lib/calculator/catalog";
+import { parseItemText, type ParseResult } from "@/lib/calculator/parse-items";
 import { useCompanyConfig } from "@/lib/store/company-config";
 import {
   calculateQuote,
@@ -121,6 +123,9 @@ export function QuoteBuilder() {
   // Inventory — REAL moving items only.
   const [inventory, setInventory] = useState<InventoryLine[]>([]);
   const [search, setSearch] = useState("");
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState("");
+  const [pasteResult, setPasteResult] = useState<ParseResult | null>(null);
 
   // Handling charges
   const [handlingPicked, setHandlingPicked] = useState<Record<string, boolean>>(
@@ -182,17 +187,23 @@ export function QuoteBuilder() {
       .slice(0, 25);
   }, [search, mergedPresets]);
 
-  const addPreset = (name: string, cuft: number) => {
+  const addPreset = (name: string, cuft: number, qty = 1) => {
     setInventory((prev) => {
       const idx = prev.findIndex((p) => p.itemName === name);
       if (idx >= 0) {
         const next = [...prev];
-        next[idx] = { ...next[idx], qty: next[idx].qty + 1 };
+        next[idx] = { ...next[idx], qty: next[idx].qty + qty };
         return next;
       }
-      return [...prev, { itemName: name, qty: 1, cuftEach: cuft }];
+      return [...prev, { itemName: name, qty, cuftEach: cuft }];
     });
     setSearch("");
+  };
+
+  const runPasteParse = () => {
+    const res = parseItemText(pasteText);
+    res.matched.forEach((m) => addPreset(m.name, m.cuftEach, m.qty));
+    setPasteResult(res);
   };
 
   const updateQty = (idx: number, qty: number) => {
@@ -602,6 +613,83 @@ export function QuoteBuilder() {
                       </span>
                     </button>
                   ))}
+                </div>
+              )}
+            </div>
+
+            {/* Paste a list — parse free text into catalog items */}
+            <div className="rounded-xl border border-border bg-muted/20">
+              <button
+                type="button"
+                onClick={() => setPasteOpen((v) => !v)}
+                className="flex w-full items-center justify-between px-3 py-2 text-left"
+              >
+                <span className="flex items-center gap-2 text-xs font-semibold">
+                  <ClipboardList className="h-3.5 w-3.5 text-primary" />
+                  Paste an item list
+                </span>
+                <span className="text-[10px] text-muted-foreground">{pasteOpen ? "Hide" : "Expand"}</span>
+              </button>
+              {pasteOpen && (
+                <div className="space-y-2 border-t border-border p-3">
+                  <p className="text-[11px] text-muted-foreground">
+                    Paste from an email, text or call notes — one item per line (e.g. <span className="font-mono">3 dining chairs</span>, <span className="font-mono">2x queen mattress</span>, <span className="font-mono">couch</span>). We match each line to the catalog.
+                  </p>
+                  <textarea
+                    value={pasteText}
+                    onChange={(e) => setPasteText(e.target.value)}
+                    rows={5}
+                    placeholder={"3 dining chairs\nsofa 3 seater\n2x queen mattress\ncoffee table\nfridge"}
+                    className="w-full rounded-lg border border-border bg-background p-2 font-mono text-xs"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Button type="button" size="sm" className="h-8 text-xs" disabled={!pasteText.trim()} onClick={runPasteParse}>
+                      Parse &amp; add
+                    </Button>
+                    {(pasteText || pasteResult) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={() => {
+                          setPasteText("");
+                          setPasteResult(null);
+                        }}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                  {pasteResult && (
+                    <div className="space-y-2 text-[11px]">
+                      <p className="font-semibold text-emerald-600">
+                        Added {pasteResult.matched.reduce((s, m) => s + m.qty, 0)} item(s) from {pasteResult.matched.length} line(s).
+                      </p>
+                      {pasteResult.unmatched.length > 0 && (
+                        <div className="rounded-lg border border-amber-500/40 bg-amber-500/[0.05] p-2">
+                          <p className="mb-1 font-semibold text-amber-700">
+                            {pasteResult.unmatched.length} line(s) didn&apos;t match the catalog — add them manually or search:
+                          </p>
+                          <ul className="space-y-0.5">
+                            {pasteResult.unmatched.map((u, i) => (
+                              <li key={i} className="flex items-center gap-2">
+                                <span className="font-mono text-muted-foreground">{u.qty}×</span>
+                                <span>{u.raw}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setSearch(u.query)}
+                                  className="text-[10px] font-semibold text-primary hover:underline"
+                                >
+                                  search
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
