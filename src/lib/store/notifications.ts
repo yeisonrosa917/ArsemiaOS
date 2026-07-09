@@ -7,6 +7,7 @@ export type NotificationKind =
   | "expense_pending"
   | "expense_missing_receipt"
   | "claim_foreman_response"
+  | "claim_evidence_needed"
   | "claim_status_changed"
   | "invoice_overdue"
   | "invoice_paid"

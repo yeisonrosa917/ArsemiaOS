@@ -17,7 +17,9 @@ const CATEGORY_ROLES: Record<NotificationKind, UserRoleId[]> = {
   invoice_paid: ["accountant"],
   payroll_flag: ["accountant"],
   payroll_pending: ["accountant"],
-  claim_foreman_response: ["claims"],
+  // Foreman-response requests reach the claims team and the foreman.
+  claim_foreman_response: ["claims", "foreman"],
+  claim_evidence_needed: ["claims"],
   claim_status_changed: ["claims"],
   // Fleet alerts are operational — dispatch, not marketing/accounting.
   fleet_maintenance: ["dispatcher"],

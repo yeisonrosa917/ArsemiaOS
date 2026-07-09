@@ -1,480 +1,318 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
-  CheckCircle2,
-  ChevronDown,
-  ClipboardCheck,
-  Phone,
-  Plus,
+  Briefcase,
+  FileText,
+  MessageSquare,
+  Paperclip,
+  Send,
   Shield,
-  ShieldCheck,
   Truck,
   User,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useClaims, CLAIM_STATUSES, type ClaimStatus } from "@/lib/store/claims";
+  useClaims,
+  CLAIM_STATUSES,
+  CLAIM_PRIORITIES,
+  CLAIM_STATUS_STYLE,
+  type ClaimStatus,
+  type ClaimPriority,
+  type ClaimMessage,
+  type ClaimVisibility,
+} from "@/lib/store/claims";
 import { useActivityLog } from "@/lib/store/activity-log";
+import { useNotifications } from "@/lib/store/notifications";
 import { usePreferences } from "@/lib/store/preferences";
-import { getUserByRole } from "@/lib/auth/users";
-import { EvidencePlaceholder } from "@/components/claims/evidence-placeholder";
-import { formatCurrency } from "@/lib/utils";
-import { formatDateStable, formatDateTimeStable } from "@/lib/dates";
+import { getUserByRole, SEED_USERS } from "@/lib/auth/users";
+import { cn, formatCurrency, initials } from "@/lib/utils";
+import { formatDateTimeStable } from "@/lib/dates";
 
-const STATUS_STYLES: Record<ClaimStatus, string> = {
-  New: "bg-blue-500/15 text-blue-600 border-blue-500/30",
-  "Under Review": "bg-amber-500/15 text-amber-600 border-amber-500/30",
-  "Waiting for Evidence": "bg-orange-500/15 text-orange-600 border-orange-500/30",
-  "Foreman Response Needed": "bg-rose-500/15 text-rose-600 border-rose-500/30",
-  "Insurance Review": "bg-violet-500/15 text-violet-600 border-violet-500/30",
-  Approved: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
-  Rejected: "bg-rose-500/15 text-rose-600 border-rose-500/30",
-  Reimbursed: "bg-success/15 text-success border-success/30",
-  Deducted: "bg-cyan-500/15 text-cyan-600 border-cyan-500/30",
-  Closed: "bg-slate-500/15 text-slate-600 border-slate-500/30",
+const VIS_LABEL: Record<ClaimVisibility, string> = {
+  internal: "Internal only",
+  customer: "Customer-facing",
+  foreman: "Foreman-facing",
+  claims_team: "Claims team",
 };
 
-export default function ClaimDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+const MSG_STYLE: Record<string, { label: string; cls: string }> = {
+  customer_message: { label: "Customer", cls: "border-blue-500/40 bg-blue-500/[0.05]" },
+  foreman_response: { label: "Foreman", cls: "border-emerald-500/40 bg-emerald-500/[0.05]" },
+  internal_note: { label: "Internal note", cls: "border-amber-500/40 bg-amber-500/[0.05]" },
+  claims_message: { label: "Claims", cls: "border-primary/40 bg-primary/[0.05]" },
+  dispatch_note: { label: "Dispatch", cls: "border-sky-500/40 bg-sky-500/[0.05]" },
+  resolution: { label: "Resolution", cls: "border-emerald-500/50 bg-emerald-500/[0.08]" },
+};
+
+const SYSTEM_KINDS = new Set(["system_event", "status_changed", "evidence_uploaded"]);
+
+export default function ClaimThreadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const claim = useClaims((s) => s.items.find((c) => c.id === id));
   const setStatus = useClaims((s) => s.setStatus);
-  const addEvidence = useClaims((s) => s.addEvidence);
+  const setPriority = useClaims((s) => s.setPriority);
+  const assignHandler = useClaims((s) => s.assignHandler);
+  const requestForemanResponse = useClaims((s) => s.requestForemanResponse);
+  const requestEvidence = useClaims((s) => s.requestEvidence);
+  const setResolutionNote = useClaims((s) => s.setResolutionNote);
+  const addMessage = useClaims((s) => s.addMessage);
+  const markRead = useClaims((s) => s.markRead);
   const pushActivity = useActivityLog((s) => s.push);
+  const pushNotif = useNotifications((s) => s.push);
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const user = getUserByRole(activeRoleId);
-  const [tab, setTab] = useState<
-    "overview" | "customer" | "foreman" | "internal" | "insurance" | "resolution"
-  >("overview");
+
+  const handlers = useMemo(
+    () => SEED_USERS.filter((u) => u.roleId === "claims" || u.roleId === "owner"),
+    [],
+  );
+
+  const [composer, setComposer] = useState<"customer" | "internal" | "foreman">("internal");
+  const [draft, setDraft] = useState("");
+
+  // Opening a claim marks it read.
+  useEffect(() => {
+    if (claim && claim.read === false) markRead(claim.id);
+  }, [claim, markRead]);
 
   if (!claim) {
     return (
       <div className="space-y-4">
         <Button asChild variant="ghost" size="sm" className="gap-1">
-          <Link href="/claims">
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Back to claims
-          </Link>
+          <Link href="/claims"><ArrowLeft className="h-3.5 w-3.5" /> Back to claims</Link>
         </Button>
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-sm font-semibold">Claim not found</p>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="p-8 text-center text-sm font-semibold">Claim not found</CardContent></Card>
       </div>
     );
   }
 
-  const customerEvidence = claim.evidence.filter((e) => e.side === "customer");
-  const foremanEvidence = claim.evidence.filter((e) => e.side === "foreman");
-  const internalEvidence = claim.evidence.filter((e) => e.side === "internal");
-  const insuranceEvidence = claim.evidence.filter((e) => e.side === "insurance");
-
-  const handleStatus = (next: ClaimStatus) => {
-    const prev = claim.status;
-    setStatus(claim.id, next, user.name);
+  const log = (title: string) =>
     pushActivity({
-      actorId: user.id,
-      actorName: user.name,
-      actorRole: activeRoleId,
-      module: "Claims",
-      action: "status_changed",
-      objectType: "Claim",
-      objectId: claim.id,
-      title: `Claim ${claim.id} moved from ${prev} to ${next}`,
-      beforeValue: { status: prev },
-      afterValue: { status: next },
+      actorId: user.id, actorName: user.name, actorRole: activeRoleId,
+      module: "Claims", action: "status_changed", objectType: "Claim", objectId: claim.id, title,
     });
+
+  const send = () => {
+    const body = draft.trim();
+    if (!body) return;
+    const map: Record<typeof composer, { kind: ClaimMessage["kind"]; visibility: ClaimVisibility }> = {
+      customer: { kind: "claims_message", visibility: "customer" },
+      internal: { kind: "internal_note", visibility: "internal" },
+      foreman: { kind: "claims_message", visibility: "foreman" },
+    };
+    const { kind, visibility } = map[composer];
+    addMessage(claim.id, { kind, body, visibility, authorName: user.name, authorRole: "Claims" });
+    log(`Message added to ${claim.id} (${VIS_LABEL[visibility]})`);
+    setDraft("");
   };
 
-  const handleRequestForemanResponse = () => {
-    handleStatus("Foreman Response Needed");
+  const doRequestForeman = () => {
+    requestForemanResponse(claim.id, user.name);
+    log(`Foreman response requested for ${claim.id}`);
+    pushNotif({
+      kind: "claim_foreman_response", severity: "danger", priority: "high",
+      title: "Claim needs your response", body: `${claim.id} · ${claim.claimType} · ${claim.customerName}`,
+      href: `/claims/${claim.id}`, audience: "foreman",
+    });
+  };
+  const doRequestEvidence = () => {
+    requestEvidence(claim.id, user.name);
+    log(`Evidence requested for ${claim.id}`);
+    pushNotif({
+      kind: "claim_evidence_needed", severity: "warning", priority: "normal",
+      title: "Claim missing evidence", body: `${claim.id} · ${claim.customerName}`,
+      href: `/claims/${claim.id}`, audience: "claims",
+    });
+  };
+  const doResolve = () => {
+    const note = window.prompt("Resolution summary:");
+    if (!note) return;
+    setResolutionNote(claim.id, note, user.name);
+    log(`Claim ${claim.id} resolved`);
   };
 
-  const handleAddEvidence = (side: "customer" | "foreman" | "internal" | "insurance") => {
-    const caption = window.prompt(`Add ${side} evidence note:`);
-    if (!caption) return;
-    addEvidence(claim.id, {
-      side,
-      kind: "note",
-      caption,
-      placeholderTone:
-        side === "customer"
-          ? "rose"
-          : side === "foreman"
-            ? "emerald"
-            : side === "internal"
-              ? "violet"
-              : "cyan",
-      uploadedBy: user.name,
-      body: caption,
-    });
-    pushActivity({
-      actorId: user.id,
-      actorName: user.name,
-      actorRole: activeRoleId,
-      module: "Claims",
-      action: "submitted",
-      objectType: "Claim",
-      objectId: claim.id,
-      title: `Evidence added to claim ${claim.id}`,
-      notes: `${side} side: ${caption}`,
-    });
-  };
+  const thread = [...(claim.messages ?? [])].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
   return (
     <div className="space-y-4">
       <Button asChild variant="ghost" size="sm" className="gap-1">
-        <Link href="/claims">
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to claims
-        </Link>
+        <Link href="/claims"><ArrowLeft className="h-3.5 w-3.5" /> Back to claims</Link>
       </Button>
 
-      <PageHeader
-        title={`${claim.claimType} — ${claim.customerName}`}
-        description={`Claim ${claim.id} · Job ${claim.jobId}`}
-      />
+      <PageHeader title={`${claim.customerName} · ${claim.claimType}`} description={`${claim.id} · opened ${formatDateTimeStable(claim.openedAt)}`} />
 
-      <Card>
-        <CardContent className="grid gap-3 p-4 lg:grid-cols-12">
-          <div className="lg:col-span-7">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={
-                  "inline-flex rounded-md border px-2 py-0.5 text-[10px] font-semibold " +
-                  STATUS_STYLES[claim.status]
-                }
-              >
-                {claim.status}
-              </span>
-              <Badge variant="outline">{claim.claimType}</Badge>
-            </div>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2 text-xs">
-              <Meta icon={User} label="Customer" value={claim.customerName} />
-              <Meta icon={ClipboardCheck} label="Job" value={claim.jobId} link={`/jobs/${claim.jobId}`} />
-              <Meta icon={User} label="Foreman" value={claim.foremanName} />
-              <Meta icon={Truck} label="Truck" value={claim.truckName} />
-              <Meta icon={Shield} label="Reviewer" value={claim.assignedReviewer} />
-              <Meta icon={Phone} label="Opened" value={formatDateTimeStable(claim.openedAt)} />
-            </div>
-          </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* Thread */}
+        <div className="space-y-3 lg:col-span-2">
+          <Card>
+            <CardContent className="space-y-2 p-4">
+              {thread.map((m) => <Message key={m.id} m={m} />)}
+              {thread.length === 0 && <p className="p-6 text-center text-xs text-muted-foreground">No messages yet.</p>}
+            </CardContent>
+          </Card>
 
-          <div className="lg:col-span-5">
-            <div className="grid grid-cols-2 gap-2">
-              <Stat label="Claim amount" value={formatCurrency(claim.claimAmount)} primary />
-              <Stat
-                label="Reimbursed"
-                value={formatCurrency(claim.reimbursedAmount ?? 0)}
-                accent="success"
-              />
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" className="gap-1">
-                    Change Status <ChevronDown className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Move claim to</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {CLAIM_STATUSES.filter((s) => s !== claim.status).map((s) => (
-                    <DropdownMenuItem key={s} onClick={() => handleStatus(s)}>
-                      {s}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1"
-                onClick={handleRequestForemanResponse}
-                disabled={claim.status === "Foreman Response Needed"}
-              >
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Request foreman response
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1 overflow-x-auto">
-        {(
-          [
-            ["overview", "Overview"],
-            ["customer", `Customer (${customerEvidence.length})`],
-            ["foreman", `Foreman Defense (${foremanEvidence.length})`],
-            ["internal", `Internal Review (${internalEvidence.length})`],
-            ["insurance", `Insurance (${insuranceEvidence.length})`],
-            ["resolution", "Resolution"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            className={
-              "shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors " +
-              (tab === id
-                ? "bg-background text-foreground shadow-soft"
-                : "text-muted-foreground hover:text-foreground")
-            }
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {tab === "overview" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Overview</CardTitle>
-            <CardDescription>All evidence across every side.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-2 sm:grid-cols-3">
-            {claim.evidence.map((ev) => (
-              <div key={ev.id} className="rounded-xl border border-border bg-card p-2">
-                <EvidencePlaceholder
-                  tone={ev.placeholderTone}
-                  kind={ev.kind}
-                  label={ev.side.toUpperCase()}
-                />
-                <p className="mt-2 text-xs font-semibold">{ev.caption}</p>
-                {ev.body && (
-                  <p className="mt-0.5 text-[10px] text-muted-foreground line-clamp-2">
-                    {ev.body}
-                  </p>
-                )}
-                <p className="mt-1 text-[9px] text-muted-foreground">
-                  {ev.uploadedBy} · {formatDateStable(ev.uploadedAt)}
-                </p>
+          {/* Composer */}
+          <Card>
+            <CardContent className="space-y-2 p-3">
+              <div className="flex gap-1 text-xs">
+                {([["internal", "Internal note"], ["customer", "Reply to customer"], ["foreman", "Note to foreman"]] as const).map(([id2, label]) => (
+                  <button key={id2} onClick={() => setComposer(id2)}
+                    className={cn("rounded-md border px-2.5 py-1.5 font-semibold transition-colors",
+                      composer === id2 ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted")}>
+                    {label}
+                  </button>
+                ))}
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {(tab === "customer" || tab === "foreman" || tab === "internal" || tab === "insurance") && (
-        <EvidenceTab
-          side={tab}
-          title={
-            tab === "foreman"
-              ? "Foreman Defense"
-              : tab.charAt(0).toUpperCase() + tab.slice(1)
-          }
-          description={
-            tab === "foreman"
-              ? "The foreman's right to defend themselves with pre-move photos, signed inventory, and condition reports."
-              : tab === "customer"
-                ? "Customer-submitted photos, notes and documents."
-                : tab === "internal"
-                  ? "Hub team review notes and inventory reconciliation."
-                  : "Insurance carrier responses and decisions."
-          }
-          evidence={
-            tab === "customer"
-              ? customerEvidence
-              : tab === "foreman"
-                ? foremanEvidence
-                : tab === "internal"
-                  ? internalEvidence
-                  : insuranceEvidence
-          }
-          onAdd={() => handleAddEvidence(tab)}
-        />
-      )}
-
-      {tab === "resolution" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Resolution</CardTitle>
-            <CardDescription>Reimbursement, deduction, and closure note.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Stat
-                label="Reimbursed to customer"
-                value={formatCurrency(claim.reimbursedAmount ?? 0)}
-                accent="success"
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder={composer === "internal" ? "Internal note — only the claims team sees this…" : composer === "customer" ? "Reply to the customer…" : "Note to the foreman…"}
+                className="min-h-[90px] w-full rounded-lg border border-border bg-background p-3 text-sm"
               />
-              <Stat
-                label="Deducted from foreman"
-                value={formatCurrency(claim.deductedAmount ?? 0)}
-                accent="warning"
-              />
-            </div>
-            {claim.internalReviewNote && (
-              <div className="rounded-lg border border-violet-500/40 bg-violet-500/[0.06] p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-700">
-                  Internal review
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] text-muted-foreground">
+                  Logged in this thread. No external email is sent yet — {VIS_LABEL[composer === "customer" ? "customer" : composer === "foreman" ? "foreman" : "internal"]}.
                 </p>
-                <p className="mt-1 text-xs">{claim.internalReviewNote}</p>
+                <Button size="sm" className="gap-1.5" onClick={send} disabled={!draft.trim()}>
+                  <Send className="h-3.5 w-3.5" /> Send
+                </Button>
               </div>
-            )}
-            {claim.resolutionNote ? (
-              <div className="rounded-lg border border-success/40 bg-success/[0.06] p-3">
-                <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-success">
-                  <CheckCircle2 className="h-3 w-3" />
-                  Resolved
-                </p>
-                <p className="mt-1 text-xs">{claim.resolutionNote}</p>
-              </div>
-            ) : (
-              <p className="rounded-lg border border-dashed border-border bg-muted/10 p-4 text-center text-xs text-muted-foreground">
-                No resolution recorded yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
+            </CardContent>
+          </Card>
 
-function EvidenceTab({
-  side,
-  title,
-  description,
-  evidence,
-  onAdd,
-}: {
-  side: string;
-  title: string;
-  description: string;
-  evidence: ReturnType<typeof useClaims.getState>["items"][number]["evidence"];
-  onAdd: () => void;
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between space-y-0">
-        <div>
-          <CardTitle className="text-base">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+          {/* Evidence */}
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><Paperclip className="h-4 w-4 text-primary" /> Evidence ({claim.evidence.length})</CardTitle></CardHeader>
+            <CardContent className="grid gap-2 sm:grid-cols-2">
+              {claim.evidence.map((ev) => (
+                <div key={ev.id} className="rounded-lg border border-border/60 bg-background p-2 text-[11px]">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="outline" className="text-[9px] capitalize">{ev.side} · {ev.kind}</Badge>
+                    <span className="text-[9px] text-muted-foreground">{formatDateTimeStable(ev.uploadedAt, { month: "short", day: "numeric" })}</span>
+                  </div>
+                  <p className="mt-1 font-medium">{ev.caption}</p>
+                  {ev.body && <p className="mt-0.5 text-muted-foreground">{ev.body}</p>}
+                  <p className="mt-1 text-[9px] text-muted-foreground">— {ev.uploadedBy}</p>
+                </div>
+              ))}
+              {claim.evidence.length === 0 && <p className="col-span-full rounded-lg border border-dashed p-3 text-center text-xs text-muted-foreground">No evidence yet.</p>}
+            </CardContent>
+          </Card>
         </div>
-        <Button size="sm" variant="outline" className="gap-1" onClick={onAdd}>
-          <Plus className="h-3.5 w-3.5" />
-          Add {side === "customer" ? "evidence" : "note"}
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {evidence.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border bg-muted/10 p-6 text-center text-xs text-muted-foreground">
-            No {side} evidence yet.
-          </p>
-        ) : (
-          <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
-            {evidence.map((ev) => (
-              <div key={ev.id} className="rounded-xl border border-border bg-card p-2">
-                <EvidencePlaceholder
-                  tone={ev.placeholderTone}
-                  kind={ev.kind}
-                  label={ev.kind.toUpperCase()}
-                />
-                <p className="mt-2 text-xs font-semibold">{ev.caption}</p>
-                {ev.body && (
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    {ev.body}
-                  </p>
-                )}
-                <p className="mt-1 text-[9px] text-muted-foreground">
-                  {ev.uploadedBy} · {formatDateTimeStable(ev.uploadedAt)}
-                </p>
+
+        {/* Action rail */}
+        <div className="space-y-3">
+          <Card>
+            <CardContent className="space-y-3 p-4">
+              <div className="flex items-center justify-between">
+                <span className={cn("rounded border px-2 py-0.5 text-[10px] font-semibold", CLAIM_STATUS_STYLE[claim.status])}>{claim.status}</span>
+                <span className="font-mono text-lg font-bold">{formatCurrency(claim.claimAmount)}</span>
               </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
 
-function Meta({
-  icon: Icon,
-  label,
-  value,
-  link,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  link?: string;
-}) {
-  const content = (
-    <>
-      <Icon className="h-3 w-3 text-muted-foreground" />
-      <span className="text-muted-foreground">{label}:</span>
-      <span className="font-semibold">{value}</span>
-    </>
-  );
-  return link ? (
-    <Link href={link} className="flex items-center gap-1.5 hover:underline">
-      {content}
-    </Link>
-  ) : (
-    <p className="flex items-center gap-1.5">{content}</p>
-  );
-}
+              <Labeled label="Status">
+                <select value={claim.status} onChange={(e) => { setStatus(claim.id, e.target.value as ClaimStatus, user.name); log(`${claim.id} → ${e.target.value}`); }}
+                  className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm">
+                  {CLAIM_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </Labeled>
 
-function Stat({
-  label,
-  value,
-  primary,
-  accent,
-}: {
-  label: string;
-  value: string;
-  primary?: boolean;
-  accent?: "success" | "warning";
-}) {
-  return (
-    <div
-      className={
-        "rounded-lg border border-border bg-muted/20 p-2 " +
-        (primary
-          ? "border-primary/40 bg-primary/[0.04]"
-          : accent === "success"
-            ? "border-success/40 bg-success/[0.04]"
-            : accent === "warning"
-              ? "border-warning/40 bg-warning/[0.04]"
-              : "")
-      }
-    >
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
-      <p
-        className={
-          "mt-0.5 font-mono text-lg font-bold " +
-          (primary ? "text-primary" : accent === "success" ? "text-success" : "")
-        }
-      >
-        {value}
-      </p>
+              <Labeled label="Priority">
+                <select value={claim.priority ?? "Normal"} onChange={(e) => setPriority(claim.id, e.target.value as ClaimPriority)}
+                  className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm">
+                  {CLAIM_PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </Labeled>
+
+              <Labeled label="Assigned handler">
+                <select value={claim.assignedReviewer} onChange={(e) => { assignHandler(claim.id, e.target.value, user.name); log(`${claim.id} assigned to ${e.target.value}`); }}
+                  className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm">
+                  {[claim.assignedReviewer, ...handlers.map((h) => h.name)].filter((v, i, a) => a.indexOf(v) === i).map((n) => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </Labeled>
+
+              <div className="grid gap-1.5">
+                <Button size="sm" variant="outline" className="justify-start gap-2" onClick={doRequestForeman}>
+                  <User className="h-3.5 w-3.5" /> Request foreman response
+                </Button>
+                <Button size="sm" variant="outline" className="justify-start gap-2" onClick={doRequestEvidence}>
+                  <Paperclip className="h-3.5 w-3.5" /> Request more evidence
+                </Button>
+                <Button size="sm" variant="outline" className="justify-start gap-2" onClick={doResolve}>
+                  <MessageSquare className="h-3.5 w-3.5" /> Add resolution
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">Connections</CardTitle></CardHeader>
+            <CardContent className="space-y-1.5 text-xs">
+              <Conn icon={Briefcase} label="Job" value={claim.jobId} href={`/jobs/${claim.jobId}`} />
+              {claim.customerId && <Conn icon={User} label="Customer" value={claim.customerName} href={`/customers/${claim.customerId}`} />}
+              <Conn icon={Shield} label="Foreman" value={claim.foremanName} href={`/foremen`} />
+              <Conn icon={Truck} label="Truck" value={claim.truckName} />
+              {claim.invoiceId && <Conn icon={FileText} label="Invoice" value={claim.invoiceId} href={`/invoices/${claim.invoiceId}`} />}
+              {claim.expenseId && <Conn icon={FileText} label="Expense" value={claim.expenseId} href={`/expenses/${claim.expenseId}`} />}
+              {(claim.status === "Deduction Pending" || claim.status === "Deducted") && (
+                <p className="rounded-md border border-amber-500/40 bg-amber-500/[0.06] px-2 py-1.5 text-[11px] text-amber-700">
+                  A payroll deduction is linked to this claim for {claim.foremanName}.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
+}
+
+function Message({ m }: { m: ClaimMessage }) {
+  if (SYSTEM_KINDS.has(m.kind)) {
+    return (
+      <div className="flex items-center gap-2 py-1 text-[10px] text-muted-foreground">
+        <span className="h-px flex-1 bg-border" />
+        <span>{m.body} · {m.authorName} · {formatDateTimeStable(m.createdAt, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+    );
+  }
+  const s = MSG_STYLE[m.kind] ?? MSG_STYLE.claims_message;
+  return (
+    <div className={cn("rounded-lg border p-3", s.cls)}>
+      <div className="flex items-center gap-2">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-background text-[9px] font-bold">{initials(m.authorName)}</span>
+        <span className="text-xs font-semibold">{m.authorName}</span>
+        <Badge variant="outline" className="text-[9px]">{s.label}</Badge>
+        <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">{VIS_LABEL[m.visibility]}</span>
+        <span className="ml-auto text-[10px] text-muted-foreground">{formatDateTimeStable(m.createdAt, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+      </div>
+      <p className="mt-1.5 whitespace-pre-wrap text-sm">{m.body}</p>
+      {m.attachments ? <p className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground"><Paperclip className="h-3 w-3" />{m.attachments} attachment</p> : null}
+    </div>
+  );
+}
+
+function Labeled({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function Conn({ icon: Icon, label, value, href }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string; href?: string }) {
+  const inner = (
+    <span className="flex items-center justify-between gap-2 rounded-md border border-border/60 bg-background px-2 py-1.5">
+      <span className="flex items-center gap-1.5 text-muted-foreground"><Icon className="h-3 w-3" />{label}</span>
+      <span className="truncate font-medium">{value}</span>
+    </span>
+  );
+  return href ? <Link href={href} className="block hover:underline">{inner}</Link> : inner;
 }

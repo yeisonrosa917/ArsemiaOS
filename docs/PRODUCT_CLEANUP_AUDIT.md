@@ -243,3 +243,45 @@ Each of these is a substantial piece; they were intentionally not rushed:
 - `src/lib/mock-data.ts` — 5,383 LOC. **Must be split** in installment 11.
 - `job-detail.tsx` (1,046) and `quote-builder.tsx` (1,046) — canonical domain
   surfaces; flagged for extraction, not yet split.
+
+---
+
+# Operational Intelligence Sprint
+
+## Installment A — Claims Gmail-style inbox + threads (SHIPPED)
+
+- **Claims store** upgraded into a conversation model: each claim now carries a
+  `messages[]` thread, `priority`, `read` state, and optional invoice/expense
+  connections. Seed claims are **hydrated** into threads from their existing
+  evidence/notes (customer statements → customer messages, foreman defenses →
+  foreman responses, internal notes → internal, photos/docs → evidence-uploaded
+  events). Persist key bumped to `v2`.
+- **Statuses** expanded to the workflow set: New · Under Review · Waiting for
+  Foreman · Waiting for Customer · Waiting for Evidence · Approved · Denied ·
+  Deduction Pending · Resolved · Closed (older values kept for compatibility).
+  Added `ClaimPriority` and shared status/priority style maps.
+- **`/claims` is now an inbox**: unread dots, last-message preview, priority,
+  status, awaiting-response + evidence-needed badges, amount-at-risk, and filters
+  (Open / Unread / Awaiting response / Missing evidence / High-Urgent / Resolved).
+- **`/claims/[id]` is a thread**: chronological messages visually separated by
+  author and **visibility** (Internal only / Customer-facing / Foreman-facing /
+  Claims team); a composer with **Internal note / Reply to customer / Note to
+  foreman** modes (local thread — clearly labelled "no external email is sent");
+  and an action rail — change status, priority, assign handler, **request foreman
+  response**, **request more evidence**, add resolution. Connections link to the
+  exact job, customer, foreman, truck, invoice/expense, with a payroll-deduction
+  note when relevant. Opening a claim marks it read.
+- **Notifications**: request-foreman-response fires `claim_foreman_response`
+  (routed to claims **and** the foreman), request-evidence fires the new
+  `claim_evidence_needed` (claims only). Every action writes to the activity log.
+- **Fixed**: the dashboard's Risk & Claims tiles used claim statuses that don't
+  exist in the store — now use the real open-claim set + awaiting-response.
+
+Verified: typecheck, lint (0 errors), build pass; headless smoke — inbox lists
+open claims, thread shows customer+foreman messages, sending an internal note
+appends to the thread, "request foreman response" flips status to Waiting for
+Foreman and notifies, claims role has access, seller is blocked — all with zero
+console errors.
+
+Known: the old `evidence-placeholder.tsx` component is now unused (superseded by
+the inline evidence panel); left in place for a later cleanup pass.

@@ -1,234 +1,179 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { Camera, Filter, Plus, Search, ShieldAlert } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, ShieldAlert } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useClaims, CLAIM_STATUSES, type ClaimStatus } from "@/lib/store/claims";
+import {
+  useClaims,
+  claimAwaitingResponse,
+  claimEvidenceMissing,
+  OPEN_CLAIM_STATUSES,
+  CLAIM_STATUS_STYLE,
+  CLAIM_PRIORITY_STYLE,
+  type Claim,
+} from "@/lib/store/claims";
 import { cn, formatCurrency } from "@/lib/utils";
+import { formatDateTimeStable } from "@/lib/dates";
 
-const STATUS_STYLES: Record<ClaimStatus, string> = {
-  New: "bg-blue-500/15 text-blue-600 border-blue-500/30",
-  "Under Review": "bg-amber-500/15 text-amber-600 border-amber-500/30",
-  "Waiting for Evidence": "bg-orange-500/15 text-orange-600 border-orange-500/30",
-  "Foreman Response Needed": "bg-rose-500/15 text-rose-600 border-rose-500/30",
-  "Insurance Review": "bg-violet-500/15 text-violet-600 border-violet-500/30",
-  Approved: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
-  Rejected: "bg-rose-500/15 text-rose-600 border-rose-500/30",
-  Reimbursed: "bg-success/15 text-success border-success/30",
-  Deducted: "bg-cyan-500/15 text-cyan-600 border-cyan-500/30",
-  Closed: "bg-slate-500/15 text-slate-600 border-slate-500/30",
-};
+type Filter = "all" | "open" | "unread" | "awaiting" | "evidence" | "urgent" | "resolved";
 
-const FILTERS: ("All" | ClaimStatus)[] = ["All", ...CLAIM_STATUSES];
+function lastMessage(c: Claim) {
+  const msgs = c.messages ?? [];
+  return msgs[msgs.length - 1];
+}
 
-export default function ClaimsPage() {
-  const items = useClaims((s) => s.items);
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
+export default function ClaimsInboxPage() {
+  const router = useRouter();
+  const claims = useClaims((s) => s.items);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<Filter>("open");
 
-  const filtered = useMemo(
-    () =>
-      items
-        .filter((c) => filter === "All" || c.status === filter)
-        .filter((c) => {
-          if (!query) return true;
-          const q = query.toLowerCase();
-          return (
-            c.customerName.toLowerCase().includes(q) ||
-            c.jobId.toLowerCase().includes(q) ||
-            c.foremanName.toLowerCase().includes(q) ||
-            c.id.toLowerCase().includes(q) ||
-            c.claimType.toLowerCase().includes(q)
-          );
-        }),
-    [items, query, filter],
+  const rows = useMemo(() => {
+    const q = search.toLowerCase();
+    return [...claims]
+      .filter((c) => {
+        if (filter === "open" && !OPEN_CLAIM_STATUSES.includes(c.status)) return false;
+        if (filter === "unread" && c.read !== false) return false;
+        if (filter === "awaiting" && !claimAwaitingResponse(c)) return false;
+        if (filter === "evidence" && !claimEvidenceMissing(c)) return false;
+        if (filter === "urgent" && c.priority !== "Urgent" && c.priority !== "High") return false;
+        if (filter === "resolved" && !["Resolved", "Closed", "Approved", "Denied"].includes(c.status)) return false;
+        if (q) {
+          return `${c.id} ${c.customerName} ${c.jobId} ${c.claimType} ${c.foremanName} ${c.assignedReviewer}`
+            .toLowerCase()
+            .includes(q);
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        const la = lastMessage(a)?.createdAt ?? a.openedAt;
+        const lb = lastMessage(b)?.createdAt ?? b.openedAt;
+        return lb.localeCompare(la);
+      });
+  }, [claims, search, filter]);
+
+  const counts = useMemo(
+    () => ({
+      open: claims.filter((c) => OPEN_CLAIM_STATUSES.includes(c.status)).length,
+      unread: claims.filter((c) => c.read === false).length,
+      awaiting: claims.filter(claimAwaitingResponse).length,
+      atRisk: claims.filter((c) => OPEN_CLAIM_STATUSES.includes(c.status)).reduce((s, c) => s + c.claimAmount, 0),
+    }),
+    [claims],
   );
 
-  const totals = useMemo(() => {
-    const open = items.filter(
-      (c) =>
-        !["Approved", "Rejected", "Reimbursed", "Deducted", "Closed"].includes(
-          c.status,
-        ),
-    );
-    const atRisk = open.reduce((s, c) => s + c.claimAmount, 0);
-    const reimbursed = items
-      .filter((c) => c.status === "Reimbursed")
-      .reduce((s, c) => s + (c.reimbursedAmount ?? c.claimAmount), 0);
-    return {
-      openCount: open.length,
-      total: items.length,
-      atRisk,
-      reimbursed,
-    };
-  }, [items]);
+  const FILTERS: [Filter, string][] = [
+    ["open", `Open (${counts.open})`],
+    ["all", "All"],
+    ["unread", `Unread (${counts.unread})`],
+    ["awaiting", `Awaiting response (${counts.awaiting})`],
+    ["evidence", "Missing evidence"],
+    ["urgent", "High / Urgent"],
+    ["resolved", "Resolved / Closed"],
+  ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
-        title="Claims & evidence"
-        description="Damage, lost items, late deliveries. Each claim is clickable and has a full evidence trail."
-        actions={
-          <Button asChild size="sm" className="gap-2">
-            <Link href="/claims/new">
-              <Plus className="h-4 w-4" />
-              File claim
-            </Link>
-          </Button>
-        }
+        title="Claims inbox"
+        description="Every claim is a conversation — customer, foreman, and claims-team messages in one thread. Click a claim to open it."
       />
 
-      <div className="grid gap-3 md:grid-cols-4">
-        <SummaryCard label="Open claims" value={String(totals.openCount)} tone="warning" />
-        <SummaryCard label="Total claims" value={String(totals.total)} />
-        <SummaryCard
-          label="Amount at risk"
-          value={formatCurrency(totals.atRisk)}
-          tone="danger"
-        />
-        <SummaryCard
-          label="Reimbursed (lifetime)"
-          value={formatCurrency(totals.reimbursed)}
-          tone="success"
-        />
+      <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <Stat label="Open claims" value={String(counts.open)} tone={counts.open > 0 ? "warning" : undefined} />
+        <Stat label="Awaiting response" value={String(counts.awaiting)} tone={counts.awaiting > 0 ? "danger" : undefined} />
+        <Stat label="Unread" value={String(counts.unread)} />
+        <Stat label="Amount at risk" value={formatCurrency(counts.atRisk)} />
       </div>
 
-      <Card>
-        <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by customer, job, foreman, claim ID..."
-              className="pl-9"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-1 overflow-x-auto rounded-lg border border-border bg-muted/30 p-1">
-            <Filter className="ml-1 h-3.5 w-3.5 text-muted-foreground" />
-            {FILTERS.map((s) => (
-              <button
-                key={s}
-                onClick={() => setFilter(s)}
-                className={cn(
-                  "shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors",
-                  filter === s
-                    ? "bg-background text-foreground shadow-soft"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search claim, customer, job, foreman..." className="h-9 pl-9" />
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="pl-5">Claim</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Job · Foreman</TableHead>
-              <TableHead>Damage type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Evidence</TableHead>
-              <TableHead className="pr-5 text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map((c) => (
-              <TableRow
-                key={c.id}
-                className="cursor-pointer hover:bg-accent/30"
-              >
-                <TableCell className="pl-5">
-                  <Link href={`/claims/${c.id}`} className="font-mono text-xs hover:underline">
-                    {c.id}
-                  </Link>
-                </TableCell>
-                <TableCell>
-                  <Link href={`/claims/${c.id}`} className="font-medium hover:underline">
-                    {c.customerName}
-                  </Link>
-                </TableCell>
-                <TableCell className="text-xs">
-                  <p className="font-mono text-muted-foreground">{c.jobId}</p>
-                  <p>{c.foremanName}</p>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">{c.claimType}</Badge>
-                </TableCell>
-                <TableCell>
-                  <span
+        <div className="flex flex-wrap gap-1">
+          {FILTERS.map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setFilter(id)}
+              className={cn(
+                "rounded-md border px-2.5 py-1.5 text-[11px] font-semibold transition-colors",
+                filter === id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          <ul className="divide-y divide-border">
+            {rows.map((c) => {
+              const lm = lastMessage(c);
+              return (
+                <li key={c.id}>
+                  <button
+                    onClick={() => router.push(`/claims/${c.id}`)}
                     className={cn(
-                      "inline-flex rounded-md border px-2 py-0.5 text-[10px] font-semibold",
-                      STATUS_STYLES[c.status],
+                      "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/30",
+                      c.read === false && "bg-primary/[0.03]",
                     )}
                   >
-                    {c.status}
-                  </span>
-                </TableCell>
-                <TableCell className="text-xs">
-                  <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 font-semibold">
-                    <Camera className="h-3 w-3" />
-                    {c.evidence.length}
-                  </span>
-                </TableCell>
-                <TableCell className="pr-5 text-right font-semibold">
-                  {formatCurrency(c.claimAmount)}
-                </TableCell>
-              </TableRow>
-            ))}
-            {filtered.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="p-8 text-center text-sm text-muted-foreground">
-                  No claims match your filters.
-                </TableCell>
-              </TableRow>
+                    <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", c.read === false ? "bg-primary" : "bg-transparent")} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={cn("text-sm", c.read === false ? "font-bold" : "font-semibold")}>{c.customerName}</span>
+                        <span className="font-mono text-[10px] text-muted-foreground">{c.id}</span>
+                        <Badge variant="outline" className="text-[10px]">{c.claimType}</Badge>
+                        {c.priority && (
+                          <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase", CLAIM_PRIORITY_STYLE[c.priority])}>
+                            {c.priority}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {lm ? `${lm.authorName}: ${lm.body}` : "No messages yet."}
+                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                        <span>Job {c.jobId}</span>
+                        <span>· {c.assignedReviewer}</span>
+                        {claimAwaitingResponse(c) && <Badge variant="warning" className="text-[9px]">Awaiting response</Badge>}
+                        {claimEvidenceMissing(c) && <Badge variant="danger" className="text-[9px]">Evidence needed</Badge>}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-semibold", CLAIM_STATUS_STYLE[c.status])}>{c.status}</span>
+                      <span className="font-mono text-xs font-semibold">{formatCurrency(c.claimAmount)}</span>
+                      <span className="text-[9px] text-muted-foreground">{lm ? formatDateTimeStable(lm.createdAt, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}</span>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+            {rows.length === 0 && (
+              <li className="flex flex-col items-center gap-2 p-12 text-center">
+                <ShieldAlert className="h-8 w-8 text-muted-foreground/60" />
+                <p className="text-sm font-semibold">No claims in this view</p>
+              </li>
             )}
-          </TableBody>
-        </Table>
+          </ul>
+        </CardContent>
       </Card>
     </div>
   );
 }
 
-function SummaryCard({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: "warning" | "danger" | "success";
-}) {
+function Stat({ label, value, tone }: { label: string; value: string; tone?: "warning" | "danger" }) {
   return (
-    <Card className="p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p
-        className={cn(
-          "mt-1 text-2xl font-semibold tracking-tight",
-          tone === "warning" && "text-amber-600 dark:text-amber-400",
-          tone === "danger" && "text-rose-600 dark:text-rose-400",
-          tone === "success" && "text-emerald-600 dark:text-emerald-400",
-        )}
-      >
-        {value}
-      </p>
+    <Card className={cn("border p-3", tone === "warning" && "border-amber-500/40 bg-amber-500/[0.04]", tone === "danger" && "border-rose-500/40 bg-rose-500/[0.04]")}>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-1 font-mono text-2xl font-bold">{value}</p>
     </Card>
   );
 }

@@ -33,6 +33,7 @@ const ICONS: Record<NotificationKind, React.ComponentType<{ className?: string }
   expense_pending: ReceiptText,
   expense_missing_receipt: ReceiptText,
   claim_foreman_response: ShieldAlert,
+  claim_evidence_needed: ShieldAlert,
   claim_status_changed: ShieldAlert,
   invoice_overdue: FileText,
   invoice_paid: FileText,

@@ -22,7 +22,7 @@ import { allJobs as jobs } from "@/lib/data/all-jobs";
 import { useLeads, followUpState, isOpenStage } from "@/lib/store/leads";
 import { useExpenses } from "@/lib/store/expenses";
 import { useInvoices } from "@/lib/store/invoices";
-import { useClaims } from "@/lib/store/claims";
+import { useClaims, OPEN_CLAIM_STATUSES, claimAwaitingResponse } from "@/lib/store/claims";
 import { useFleet } from "@/lib/store/fleet";
 import { useNotifications } from "@/lib/store/notifications";
 import { useActivityLog } from "@/lib/store/activity-log";
@@ -91,11 +91,10 @@ export default function DashboardPage() {
   }, [expenses, invoices]);
 
   const risk = useMemo(() => {
-    const open = claims.filter((c) => ["New", "Under Review", "Customer Contacted"].includes(c.status));
     return {
-      open: open.length,
+      open: claims.filter((c) => OPEN_CLAIM_STATUSES.includes(c.status)).length,
       untriaged: claims.filter((c) => c.status === "New").length,
-      reviewing: claims.filter((c) => c.status === "Under Review").length,
+      awaiting: claims.filter(claimAwaitingResponse).length,
     };
   }, [claims]);
 
@@ -146,7 +145,7 @@ export default function DashboardPage() {
         <Section title="Risk & claims" icon={ShieldAlert}>
           <Tile label="Open claims" value={risk.open} href="/claims" icon={ShieldAlert} tone={risk.open > 0 ? "warning" : undefined} />
           <Tile label="New / untriaged" value={risk.untriaged} href="/claims" icon={AlertTriangle} tone={risk.untriaged > 0 ? "danger" : undefined} />
-          <Tile label="Under review" value={risk.reviewing} href="/claims" icon={Clock} />
+          <Tile label="Awaiting response" value={risk.awaiting} href="/claims" icon={Clock} tone={risk.awaiting > 0 ? "warning" : undefined} />
         </Section>
       )}
 
