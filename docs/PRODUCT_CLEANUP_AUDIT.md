@@ -336,3 +336,63 @@ unit labels each item by owner and groups by destination — zero server errors.
 Deferred (follow-ups, intentionally not built yet): a dedicated mobile scan
 screen, billing/invoice sync for storage fees, and automatic linking of a
 Damaged/Missing item to a new Claim.
+
+## Installment D — Routes / Schedule board (SHIPPED)
+
+`/routes` was a decorative map placeholder with disabled buttons. It's now a real
+day-navigable schedule built from live job data: jobs grouped by foreman with
+stop order + time, origin→destination cities, zone/load/miles, status and value,
+an "unassigned — needs a foreman" lane, and a day stat row (jobs · foremen ·
+load · miles · value). Prev/next day + a date picker + Today.
+
+## Installment E — Clickable addresses & phones (SHIPPED)
+
+New `mapsHref()` helper. Addresses now open Google Maps and phone numbers use
+`tel:` across job detail (customer phone + each pickup/delivery "Open in Maps"),
+customer detail (phone + email), and storage unit provider (address + phone).
+
+## Installment F — Quote paste-a-list parser (SHIPPED)
+
+`parseItemText()` turns pasted free text ("3 dining chairs", "2x queen mattress",
+"couch") into structured inventory lines matched to the moving catalog — quantity
+extraction, synonyms, singularization, token-overlap scoring. A collapsible
+"Paste an item list" panel in the builder parses & adds matched items in one
+click and surfaces unmatched lines for manual add / search / catalog suggestion.
+
+## Installment G — Pending catalog approval (SHIPPED)
+
+Unknown quote items can be suggested for the master catalog instead of silently
+polluting it. `catalog-pending` store holds submissions (Pending/Approved/
+Rejected); Settings → Calculator & Pricing → "Catalog approvals" lets the Owner
+set ft³ + category and approve (adds a real `CatalogItem` used by every quote) or
+reject — both logged to activity. Verified end to end (paste → suggest → approve).
+
+## Installment H — Calculator reset (SHIPPED)
+
+A "Reset · new estimate" control (with confirm) clears every field of the quote
+builder — job type, customer, addresses, mileage, inventory, paste state,
+handling/admin/LTA fees, and all notes — for a fresh estimate without reloading.
+
+## Installment I — Luis & Andres payroll demos (SHIPPED)
+
+Mirrors the Marcus Reyes weekly demo for two more foremen. Adds Luis Mendoza
+(FM-1049) and Andres Molina (FM-1050) to the roster with matching trucks
+(VEH-212 / VEH-218), plus per-foreman weekly jobs + lines (local + long-distance,
+a full-pack job, a deduction, pending/flagged holds). Their demo dates are
+anchored to the current pay week so they show in the default weekly payroll view
+regardless of when opened; Marcus stays on his original week (fixed expense link).
+
+## Installment J — Fleet maintenance & inspections (SHIPPED)
+
+The fleet store now carries a `MaintenanceRecord` log (Maintenance / Inspection /
+Repair, with outcome Completed/Passed/Failed/Scheduled, odometer, cost, vendor,
+next-due). The fleet detail page shows each truck's service history + DOT
+inspections and a "Log service" form that records an entry (and advances the
+truck's next-maintenance date when a next-due is given). Persist bumped to
+`arsemia.fleet.v2`. Verified: seeded failed DOT inspection renders and a logged
+record appears live, zero console errors.
+
+Deferred (follow-ups): dedicated mobile scan screen + billing sync for Storage;
+route optimization / live map for Routes; auto-linking damaged storage items to
+claims. Every screen above reads real seed/store data with working actions — no
+empty shells or fake buttons.

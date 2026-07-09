@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Save, Truck } from "lucide-react";
+import { ArrowLeft, Plus, Save, Truck, Wrench } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import {
   Card,
@@ -21,12 +21,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { VehicleStatusBadge } from "@/components/shared/status-badge";
-import { useFleet, type FleetVehicle } from "@/lib/store/fleet";
+import {
+  useFleet,
+  type FleetVehicle,
+  type MaintenanceKind,
+  type MaintenanceOutcome,
+  MAINTENANCE_KINDS,
+  MAINTENANCE_OUTCOMES,
+  MAINTENANCE_KIND_STYLE,
+  MAINTENANCE_OUTCOME_STYLE,
+} from "@/lib/store/fleet";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
 import type { VehicleStatus, VehicleType } from "@/lib/types";
-import { formatNumber } from "@/lib/utils";
+import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatShortDateStable } from "@/lib/dates";
 
 const STATUSES: VehicleStatus[] = ["Active", "Idle", "Maintenance", "Out of Service"];
 const VEHICLE_TYPES: VehicleType[] = [
@@ -49,11 +59,58 @@ export default function FleetDetailPage({
   const vehicle = useFleet((s) => s.vehicles.find((v) => v.id === id));
   const update = useFleet((s) => s.update);
   const setStatus = useFleet((s) => s.setStatus);
+  const allRecords = useFleet((s) => s.records);
+  const addRecord = useFleet((s) => s.addRecord);
   const pushActivity = useActivityLog((s) => s.push);
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const user = getUserByRole(activeRoleId);
 
   const [draft, setDraft] = useState<FleetVehicle | null>(null);
+  const records = allRecords
+    .filter((r) => r.vehicleId === id)
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  const [logOpen, setLogOpen] = useState(false);
+  const emptyLog = {
+    kind: "Maintenance" as MaintenanceKind,
+    title: "",
+    date: "2026-07-09",
+    odometer: "",
+    cost: "",
+    vendor: "",
+    outcome: "Completed" as MaintenanceOutcome,
+    nextDue: "",
+    notes: "",
+  };
+  const [log, setLog] = useState(emptyLog);
+
+  const submitLog = () => {
+    if (!vehicle || !log.title.trim()) return;
+    addRecord({
+      vehicleId: vehicle.id,
+      kind: log.kind,
+      title: log.title.trim(),
+      date: log.date,
+      odometer: log.odometer ? Number(log.odometer) : undefined,
+      cost: log.cost ? Number(log.cost) : undefined,
+      vendor: log.vendor || undefined,
+      outcome: log.outcome,
+      nextDue: log.nextDue || undefined,
+      notes: log.notes || undefined,
+    });
+    pushActivity({
+      actorId: user.id,
+      actorName: user.name,
+      actorRole: activeRoleId,
+      module: "Fleet",
+      action: "created",
+      objectType: "Maintenance",
+      objectId: vehicle.id,
+      title: `${log.kind} logged for ${vehicle.id}: ${log.title.trim()} (${log.outcome})`,
+    });
+    setLog(emptyLog);
+    setLogOpen(false);
+  };
 
   useEffect(() => {
     if (vehicle) setDraft(vehicle);
@@ -303,6 +360,96 @@ export default function FleetDetailPage({
       </Card>
 
       <Card>
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Wrench className="h-4 w-4 text-primary" />
+              Maintenance &amp; inspections
+            </CardTitle>
+            <CardDescription>
+              Service history and DOT inspections. Logging with a next-due date advances the truck&apos;s next-maintenance date.
+            </CardDescription>
+          </div>
+          <Button size="sm" variant="outline" className="gap-1" onClick={() => setLogOpen((v) => !v)}>
+            <Plus className="h-3.5 w-3.5" />
+            Log service
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {logOpen && (
+            <div className="space-y-2 rounded-xl border border-border bg-muted/20 p-3">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Type</label>
+                  <select
+                    value={log.kind}
+                    onChange={(e) => setLog({ ...log, kind: e.target.value as MaintenanceKind })}
+                    className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+                  >
+                    {MAINTENANCE_KINDS.map((k) => <option key={k} value={k}>{k}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Outcome</label>
+                  <select
+                    value={log.outcome}
+                    onChange={(e) => setLog({ ...log, outcome: e.target.value as MaintenanceOutcome })}
+                    className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+                  >
+                    {MAINTENANCE_OUTCOMES.map((o) => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+              </div>
+              <LogField label="Description" value={log.title} onChange={(v) => setLog({ ...log, title: v })} placeholder="e.g. Oil change + brake inspection" />
+              <div className="grid gap-2 sm:grid-cols-2">
+                <LogField label="Date (YYYY-MM-DD)" value={log.date} onChange={(v) => setLog({ ...log, date: v })} />
+                <LogField label="Odometer" value={log.odometer} onChange={(v) => setLog({ ...log, odometer: v })} placeholder={String(vehicle.mileage)} />
+                <LogField label="Cost (USD)" value={log.cost} onChange={(v) => setLog({ ...log, cost: v })} />
+                <LogField label="Vendor" value={log.vendor} onChange={(v) => setLog({ ...log, vendor: v })} />
+                <LogField label="Next due (YYYY-MM-DD)" value={log.nextDue} onChange={(v) => setLog({ ...log, nextDue: v })} hint="Updates next maintenance" />
+                <LogField label="Notes" value={log.notes} onChange={(v) => setLog({ ...log, notes: v })} />
+              </div>
+              <div className="flex justify-end">
+                <Button size="sm" disabled={!log.title.trim()} onClick={submitLog}>Add record</Button>
+              </div>
+            </div>
+          )}
+
+          {records.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-border bg-muted/10 px-3 py-6 text-center text-sm text-muted-foreground">
+              No maintenance or inspection records yet.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {records.map((r) => (
+                <li key={r.id} className="rounded-xl border border-border p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`rounded border px-1.5 py-0.5 text-[9px] font-semibold ${MAINTENANCE_KIND_STYLE[r.kind]}`}>{r.kind}</span>
+                        <span className="text-sm font-semibold">{r.title}</span>
+                      </div>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        {formatShortDateStable(r.date)}
+                        {r.odometer != null && ` · ${formatNumber(r.odometer)} mi`}
+                        {r.vendor && ` · ${r.vendor}`}
+                        {r.nextDue && ` · next due ${formatShortDateStable(r.nextDue)}`}
+                      </p>
+                      {r.notes && <p className="mt-1 text-[11px] italic text-muted-foreground">{r.notes}</p>}
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className={`rounded border px-1.5 py-0.5 text-[9px] font-semibold ${MAINTENANCE_OUTCOME_STYLE[r.outcome]}`}>{r.outcome}</span>
+                      {r.cost != null && <span className="font-mono text-xs font-semibold">{formatCurrency(r.cost)}</span>}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
           <CardTitle className="text-base">Notes</CardTitle>
         </CardHeader>
@@ -336,6 +483,30 @@ function Field({
         {label}
       </label>
       <Input value={value} onChange={(e) => onChange(e.target.value)} />
+      {hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
+function LogField({
+  label,
+  value,
+  onChange,
+  hint,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+  hint?: string;
+  placeholder?: string;
+}) {
+  return (
+    <div className="space-y-1">
+      <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
+      <Input value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className="h-9" />
       {hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}
     </div>
   );
