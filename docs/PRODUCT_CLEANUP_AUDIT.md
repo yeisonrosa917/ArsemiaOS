@@ -285,3 +285,54 @@ console errors.
 
 Known: the old `evidence-placeholder.tsx` component is now unused (superseded by
 the inline evidence panel); left in place for a later cleanup pass.
+
+## Installment B — Claim lifecycle states + Dashboard upgrade (SHIPPED)
+
+- **Claim lifecycle state** rolls the detailed workflow status up into four
+  states — **Active / Pending / Resolved / Closed** (`claimState(status)`) — with
+  state tabs + counts on the inbox and a prominent state pill on the thread.
+- **Dashboard**: added a **Fleet & maintenance** section (maintenance/inspection/
+  registration due windows, in-shop) and a **7-day Upcoming schedule** strip, plus
+  section colour accents. Deterministic `DASH_TODAY` avoids hydration drift; all
+  new blocks respect role gating.
+
+## Installment C — Storage module (foundation) (SHIPPED)
+
+- **New module "Storage"** (sidebar → People & Assets). Deliberately *not* called
+  "Warehouse" — Arsemia mostly rents **third-party** facilities, so providers are
+  first-class: `StorageProvider` with `kind: third_party | in_house` (CubeSmart,
+  Public Storage, Extra Space + Arsemia's own Medley warehouse), each with
+  address / phone / access hours.
+- **Units are storage accounts**: `StorageUnit` (provider, unit #, size, monthly
+  cost, status Active/Vacant/Overdue/Closed, `shared`, customer + job link,
+  paid-through). One unit can be **shared** across customers.
+- **Inventory model**: `StorageItem` carries a scannable `tag`, category, quantity,
+  **condition** (Good / Minor Wear / Damaged / Missing), **owner** (per-customer on
+  shared units), origin room, and a **destination group** used to sort items by
+  where they go on the way out.
+- **Chain of custody**: an **8-stage** scan pipeline (Registered → Picked Up →
+  In Transit → Storage → Received → In Storage → Pulled → Out for Delivery →
+  Delivered). Every item has a hydrated `scanHistory[]`; `advanceScan` and
+  `setCondition` write real timestamped scan events attributed to the active user.
+  Persist key `arsemia.storage.v1`.
+- **`/storage`**: provider cards (click to filter), status tabs, search, and a unit
+  list with occupancy, monthly cost, shared/flagged badges. Stat row = active
+  units · items in storage · damaged-or-missing · monthly storage cost.
+- **`/storage/[id]`**: unit + provider + customer panel, per-unit metrics, and the
+  inventory **grouped by destination**. Each item shows its condition + current
+  stage, a chain-of-custody progress rail, and (with `storage.manage`) a working
+  **Scan → next stage** button + condition setter; the full scan history expands
+  inline. Read-only for roles without manage.
+- **Access**: new capabilities `storage.view` / `storage.manage`. Granted to Owner
+  and Dispatch/Operations (view + manage); Claims team gets **view** so damaged/
+  missing items can be inspected for a claim. Deny-by-default guard covers
+  `/storage` and `/storage/[id]`.
+
+Verified: typecheck + lint clean, production build compiles both routes; headless
+smoke — index lists all 4 providers and every unit with the right stats, a unit
+detail renders damaged/missing flags and the chain-of-custody rail, and a shared
+unit labels each item by owner and groups by destination — zero server errors.
+
+Deferred (follow-ups, intentionally not built yet): a dedicated mobile scan
+screen, billing/invoice sync for storage fees, and automatic linking of a
+Damaged/Missing item to a new Claim.

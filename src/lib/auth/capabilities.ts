@@ -28,6 +28,8 @@ export type CapabilityId =
   | "drivers.edit"
   | "fleet.view"
   | "fleet.edit"
+  | "storage.view"
+  | "storage.manage"
   | "customers.view"
   | "customers.edit"
   | "leads.view"
@@ -66,6 +68,7 @@ export type CapabilityGroup =
   | "Routes"
   | "Foremen"
   | "Fleet"
+  | "Storage"
   | "Customers"
   | "Sales"
   | "Finance"
@@ -93,6 +96,9 @@ export const CAPABILITIES: CapabilityMeta[] = [
 
   { id: "fleet.view", group: "Fleet", label: "View fleet", description: "See vehicles and maintenance." },
   { id: "fleet.edit", group: "Fleet", label: "Edit fleet", description: "Update vehicle records." },
+
+  { id: "storage.view", group: "Storage", label: "View storage", description: "See storage providers, units and stored inventory." },
+  { id: "storage.manage", group: "Storage", label: "Manage storage", description: "Scan items, advance chain of custody, flag damage/missing." },
 
   { id: "customers.view", group: "Customers", label: "View customers", description: "Browse customer list and history." },
   { id: "customers.edit", group: "Customers", label: "Edit customers", description: "Create or modify customers." },
@@ -133,6 +139,7 @@ export const CAPABILITY_GROUPS: CapabilityGroup[] = [
   "Routes",
   "Foremen",
   "Fleet",
+  "Storage",
   "Customers",
   "Sales",
   "Finance",

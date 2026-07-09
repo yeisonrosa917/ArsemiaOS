@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Bell,
+  Boxes,
   Briefcase,
   ClipboardList,
   Coins,
@@ -55,6 +56,7 @@ const salesNav: NavItem[] = [
 const operationsNav: NavItem[] = [
   { label: "Foremen", href: "/foremen", icon: UserSquare2 },
   { label: "Fleet", href: "/fleet", icon: Truck },
+  { label: "Storage", href: "/storage", icon: Boxes },
 ];
 
 const financeNav: NavItem[] = [
