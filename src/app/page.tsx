@@ -35,6 +35,11 @@ import { cn, formatCurrency } from "@/lib/utils";
 import { formatDateTimeStable } from "@/lib/dates";
 
 const ACTIVE_JOB = (s: string) => s !== "Completed" && s !== "Cancelled";
+// Fixed "today" for the demo timeline so counts are deterministic (no drift).
+const DASH_TODAY = new Date("2026-07-02T12:00:00");
+const daysUntil = (iso: string) =>
+  Math.round((new Date(iso).getTime() - DASH_TODAY.getTime()) / 86400000);
+const isoDay = (d: Date) => d.toISOString().slice(0, 10);
 
 export default function DashboardPage() {
   const leads = useLeads((s) => s.leads);
@@ -98,6 +103,33 @@ export default function DashboardPage() {
     };
   }, [claims]);
 
+  const fleet = useMemo(() => {
+    return {
+      maintSoon: vehicles.filter((v) => daysUntil(v.nextMaintenance) <= 14).length,
+      insSoon: vehicles.filter((v) => daysUntil(v.insuranceExpiry) <= 30).length,
+      regSoon: vehicles.filter((v) => daysUntil(v.registrationExpiry) <= 30).length,
+      inShop: vehicles.filter((v) => v.status === "Maintenance" || v.status === "Out of Service").length,
+    };
+  }, [vehicles]);
+
+  const upcoming = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(DASH_TODAY);
+      d.setDate(DASH_TODAY.getDate() + i);
+      const day = isoDay(d);
+      const count = jobs.filter((j) => (j.scheduledAt ?? "").slice(0, 10) === day).length;
+      return {
+        day,
+        weekday: d.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" }),
+        date: d.getUTCDate(),
+        count,
+        isToday: i === 0,
+      };
+    });
+  }, []);
+
+  const canFleet = caps.includes("fleet.view") || caps.includes("roles.manage");
+
   const roleNotifs = useMemo(
     () => filterNotificationsForRole(allNotifs, activeRoleId).filter((n) => n.priority),
     [allNotifs, activeRoleId],
@@ -112,7 +144,7 @@ export default function DashboardPage() {
       />
 
       {canOps && (
-        <Section title="Today's operations" icon={Truck}>
+        <Section title="Today's operations" icon={Truck} accent="text-blue-600">
           <Tile label="Active jobs" value={ops.active} href="/jobs" icon={ClipboardList} />
           <Tile label="Unassigned" value={ops.unassigned} href="/dispatch" icon={UserRound} tone={ops.unassigned > 0 ? "warning" : undefined} />
           <Tile label="Jobs at risk" value={ops.atRisk} href="/dispatch" icon={AlertTriangle} tone={ops.atRisk > 0 ? "danger" : undefined} hint="unassigned or over truck capacity" />
@@ -123,7 +155,7 @@ export default function DashboardPage() {
       )}
 
       {canSales && (
-        <Section title="Sales attention" icon={UserRound}>
+        <Section title="Sales attention" icon={UserRound} accent="text-violet-600">
           <Tile label="Unassigned leads" value={sales.unassigned} href="/pipeline" icon={UserRound} tone={sales.unassigned > 0 ? "warning" : undefined} />
           <Tile label="Follow-ups due today" value={sales.followToday} href="/leads" icon={Clock} tone={sales.followToday > 0 ? "warning" : undefined} />
           <Tile label="Overdue follow-ups" value={sales.overdue} href="/leads" icon={AlertTriangle} tone={sales.overdue > 0 ? "danger" : undefined} />
@@ -133,7 +165,7 @@ export default function DashboardPage() {
       )}
 
       {canFinance && (
-        <Section title="Finance attention" icon={Coins}>
+        <Section title="Finance attention" icon={Coins} accent="text-emerald-600">
           <Tile label="Payroll flags" value={finance.flags} href="/payroll/tools" icon={ShieldAlert} tone={finance.flags > 0 ? "danger" : undefined} />
           <Tile label="Expenses pending" value={finance.pendingExp} href="/expenses" icon={Receipt} tone={finance.pendingExp > 0 ? "warning" : undefined} />
           <Tile label="Invoices overdue" value={finance.overdueInv} href="/invoices" icon={Receipt} tone={finance.overdueInv > 0 ? "danger" : undefined} />
@@ -142,11 +174,50 @@ export default function DashboardPage() {
       )}
 
       {canClaims && (
-        <Section title="Risk & claims" icon={ShieldAlert}>
+        <Section title="Risk & claims" icon={ShieldAlert} accent="text-rose-600">
           <Tile label="Open claims" value={risk.open} href="/claims" icon={ShieldAlert} tone={risk.open > 0 ? "warning" : undefined} />
           <Tile label="New / untriaged" value={risk.untriaged} href="/claims" icon={AlertTriangle} tone={risk.untriaged > 0 ? "danger" : undefined} />
           <Tile label="Awaiting response" value={risk.awaiting} href="/claims" icon={Clock} tone={risk.awaiting > 0 ? "warning" : undefined} />
         </Section>
+      )}
+
+      {canFleet && (
+        <Section title="Fleet & maintenance" icon={Truck} accent="text-cyan-600">
+          <Tile label="Maintenance due ≤14d" value={fleet.maintSoon} href="/fleet" icon={Truck} tone={fleet.maintSoon > 0 ? "warning" : undefined} />
+          <Tile label="Insurance expiring ≤30d" value={fleet.insSoon} href="/fleet" icon={AlertTriangle} tone={fleet.insSoon > 0 ? "danger" : undefined} />
+          <Tile label="Registration ≤30d" value={fleet.regSoon} href="/fleet" icon={AlertTriangle} tone={fleet.regSoon > 0 ? "warning" : undefined} />
+          <Tile label="Trucks in shop" value={fleet.inShop} href="/fleet" icon={Truck} tone={fleet.inShop > 0 ? "warning" : undefined} />
+        </Section>
+      )}
+
+      {canOps && (
+        <div>
+          <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <Clock className="h-3.5 w-3.5 text-violet-600" />
+            Upcoming schedule
+          </p>
+          <Link href="/jobs" className="block">
+            <Card className="transition-colors hover:bg-accent/20">
+              <CardContent className="flex gap-2 overflow-x-auto p-3">
+                {upcoming.map((d) => (
+                  <div
+                    key={d.day}
+                    className={cn(
+                      "min-w-[70px] flex-1 rounded-lg border p-2 text-center",
+                      d.isToday ? "border-primary bg-primary/[0.06]" : "border-border bg-background",
+                    )}
+                  >
+                    <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{d.weekday}</p>
+                    <p className="text-base font-bold leading-none">{d.date}</p>
+                    <p className={cn("mt-1 text-[10px] font-semibold", d.count > 0 ? "text-primary" : "text-muted-foreground")}>
+                      {d.count} job{d.count !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -218,16 +289,18 @@ export default function DashboardPage() {
 function Section({
   title,
   icon: Icon,
+  accent,
   children,
 }: {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
+  accent?: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
       <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        <Icon className="h-3.5 w-3.5" />
+        <Icon className={cn("h-3.5 w-3.5", accent ?? "text-primary")} />
         {title}
       </p>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">{children}</div>
