@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Info,
   Plus,
+  RotateCcw,
   Trash2,
   X,
 } from "lucide-react";
@@ -219,6 +220,41 @@ export function QuoteBuilder() {
       note: "Suggested from quote inventory (no catalog match).",
     });
     setSuggested((s) => ({ ...s, [name]: true }));
+  };
+
+  /** Clear the whole estimate back to a blank slate for a new quote. */
+  const resetForm = () => {
+    setJobType("Local Move");
+    setOtherDescription("");
+    setCustomerName("");
+    setPhone("");
+    setEmail("");
+    setPickup("");
+    setDelivery("");
+    setMoveDate("");
+    setMiles(0);
+    setCustomerMileageRate(companyPricing.customerMileageRate);
+    setInternalMileageRate(companyPricing.internalMileageRate);
+    setStairsFlights(0);
+    setEstimatedCuFt(0);
+    setInventory([]);
+    setSearch("");
+    setPasteOpen(false);
+    setPasteText("");
+    setPasteResult(null);
+    setSuggested({});
+    setHandlingPicked({});
+    setOpenCats({});
+    setLtaAmount(0);
+    setAdminCharge(0);
+    setAdminCommissionable(false);
+    setNotesCustomer("");
+    setNotesForeman("");
+    setNotesInternal("");
+    setNotesAccounting("");
+    setFromLeadId(null);
+    setFromCustomerId(null);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const updateQty = (idx: number, qty: number) => {
@@ -1092,6 +1128,18 @@ export function QuoteBuilder() {
                 onClick={() => handleSave("Sent")}
               >
                 Save & mark sent
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="w-full text-muted-foreground hover:text-destructive"
+                onClick={() => {
+                  if (typeof window !== "undefined" && !window.confirm("Clear this estimate and start a new one?")) return;
+                  resetForm();
+                }}
+              >
+                <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Reset · new estimate
               </Button>
             </div>
           </CardContent>
