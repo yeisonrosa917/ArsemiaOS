@@ -47,6 +47,8 @@ import {
 import { useActivityLog } from "@/lib/store/activity-log";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
+import { useCatalogPending } from "@/lib/store/catalog-pending";
+import { ROLES } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
 
 /**
@@ -204,6 +206,19 @@ export function QuoteBuilder() {
     const res = parseItemText(pasteText);
     res.matched.forEach((m) => addPreset(m.name, m.cuftEach, m.qty));
     setPasteResult(res);
+  };
+
+  const submitPending = useCatalogPending((s) => s.submit);
+  const [suggested, setSuggested] = useState<Record<string, boolean>>({});
+  const suggestToCatalog = (name: string) => {
+    const clean = name.replace(/^\d+\s*[xX]?\s*/, "").trim();
+    submitPending({
+      name: clean,
+      submittedBy: user.name,
+      submittedByRole: ROLES[activeRoleId].label,
+      note: "Suggested from quote inventory (no catalog match).",
+    });
+    setSuggested((s) => ({ ...s, [name]: true }));
   };
 
   const updateQty = (idx: number, qty: number) => {
@@ -683,6 +698,17 @@ export function QuoteBuilder() {
                                 >
                                   search
                                 </button>
+                                {suggested[u.raw] ? (
+                                  <span className="text-[10px] font-semibold text-emerald-600">✓ suggested</span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => suggestToCatalog(u.raw)}
+                                    className="text-[10px] font-semibold text-amber-700 hover:underline"
+                                  >
+                                    suggest to catalog
+                                  </button>
+                                )}
                               </li>
                             ))}
                           </ul>

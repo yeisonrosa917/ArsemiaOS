@@ -31,6 +31,7 @@ import { PrivacyDataCard } from "@/components/settings/privacy-card";
 import { NotificationsSettingsCard } from "@/components/settings/notifications-card";
 import { IntegrationsCard } from "@/components/settings/integrations-card";
 import { CompanyConfigCard } from "@/components/settings/company-config-card";
+import { CatalogApprovalCard } from "@/components/settings/catalog-approval-card";
 import { UsersAccessCard } from "@/components/settings/users-access-card";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { usePreferences } from "@/lib/store/preferences";
@@ -218,7 +219,12 @@ export default function SettingsPage() {
             </Card>
           )}
 
-          {section === "calculator" && <CompanyConfigCard />}
+          {section === "calculator" && (
+            <div className="space-y-4">
+              <CompanyConfigCard />
+              <CatalogApprovalCard />
+            </div>
+          )}
 
           {section === "appearance" && <AppearanceCard />}
 
