@@ -22,6 +22,8 @@ import {
   CLAIM_STATUSES,
   CLAIM_PRIORITIES,
   CLAIM_STATUS_STYLE,
+  CLAIM_STATE_STYLE,
+  claimState,
   type ClaimStatus,
   type ClaimPriority,
   type ClaimMessage,
@@ -211,7 +213,12 @@ export default function ClaimThreadPage({ params }: { params: Promise<{ id: stri
           <Card>
             <CardContent className="space-y-3 p-4">
               <div className="flex items-center justify-between">
-                <span className={cn("rounded border px-2 py-0.5 text-[10px] font-semibold", CLAIM_STATUS_STYLE[claim.status])}>{claim.status}</span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className={cn("rounded border px-2 py-0.5 text-[11px] font-bold", CLAIM_STATE_STYLE[claimState(claim.status)])}>
+                    {claimState(claim.status)}
+                  </span>
+                  <span className={cn("rounded border px-2 py-0.5 text-[10px] font-semibold", CLAIM_STATUS_STYLE[claim.status])}>{claim.status}</span>
+                </div>
                 <span className="font-mono text-lg font-bold">{formatCurrency(claim.claimAmount)}</span>
               </div>
 

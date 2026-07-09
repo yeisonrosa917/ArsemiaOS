@@ -11,10 +11,14 @@ import {
   useClaims,
   claimAwaitingResponse,
   claimEvidenceMissing,
+  claimState,
+  CLAIM_STATES,
+  CLAIM_STATE_STYLE,
   OPEN_CLAIM_STATUSES,
   CLAIM_STATUS_STYLE,
   CLAIM_PRIORITY_STYLE,
   type Claim,
+  type ClaimState,
 } from "@/lib/store/claims";
 import { cn, formatCurrency } from "@/lib/utils";
 import { formatDateTimeStable } from "@/lib/dates";
@@ -30,12 +34,14 @@ export default function ClaimsInboxPage() {
   const router = useRouter();
   const claims = useClaims((s) => s.items);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<Filter>("open");
+  const [filter, setFilter] = useState<Filter>("all");
+  const [stateTab, setStateTab] = useState<"all" | ClaimState>("all");
 
   const rows = useMemo(() => {
     const q = search.toLowerCase();
     return [...claims]
       .filter((c) => {
+        if (stateTab !== "all" && claimState(c.status) !== stateTab) return false;
         if (filter === "open" && !OPEN_CLAIM_STATUSES.includes(c.status)) return false;
         if (filter === "unread" && c.read !== false) return false;
         if (filter === "awaiting" && !claimAwaitingResponse(c)) return false;
@@ -54,7 +60,7 @@ export default function ClaimsInboxPage() {
         const lb = lastMessage(b)?.createdAt ?? b.openedAt;
         return lb.localeCompare(la);
       });
-  }, [claims, search, filter]);
+  }, [claims, search, filter, stateTab]);
 
   const counts = useMemo(
     () => ({
@@ -65,6 +71,12 @@ export default function ClaimsInboxPage() {
     }),
     [claims],
   );
+
+  const stateCounts = useMemo(() => {
+    const m: Record<ClaimState, number> = { Active: 0, Pending: 0, Resolved: 0, Closed: 0 };
+    claims.forEach((c) => (m[claimState(c.status)] += 1));
+    return m;
+  }, [claims]);
 
   const FILTERS: [Filter, string][] = [
     ["open", `Open (${counts.open})`],
@@ -88,6 +100,21 @@ export default function ClaimsInboxPage() {
         <Stat label="Awaiting response" value={String(counts.awaiting)} tone={counts.awaiting > 0 ? "danger" : undefined} />
         <Stat label="Unread" value={String(counts.unread)} />
         <Stat label="Amount at risk" value={formatCurrency(counts.atRisk)} />
+      </div>
+
+      {/* Lifecycle state tabs — active / pending / resolved / closed */}
+      <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-card p-2">
+        <StateTab label="All" count={claims.length} active={stateTab === "all"} onClick={() => setStateTab("all")} />
+        {CLAIM_STATES.map((st) => (
+          <StateTab
+            key={st}
+            label={st}
+            count={stateCounts[st]}
+            active={stateTab === st}
+            onClick={() => setStateTab(st)}
+            cls={CLAIM_STATE_STYLE[st]}
+          />
+        ))}
       </div>
 
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
@@ -148,7 +175,10 @@ export default function ClaimsInboxPage() {
                       </div>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1">
-                      <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-semibold", CLAIM_STATUS_STYLE[c.status])}>{c.status}</span>
+                      <div className="flex items-center gap-1">
+                        <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-semibold", CLAIM_STATE_STYLE[claimState(c.status)])}>{claimState(c.status)}</span>
+                        <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-semibold", CLAIM_STATUS_STYLE[c.status])}>{c.status}</span>
+                      </div>
                       <span className="font-mono text-xs font-semibold">{formatCurrency(c.claimAmount)}</span>
                       <span className="text-[9px] text-muted-foreground">{lm ? formatDateTimeStable(lm.createdAt, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}</span>
                     </div>
@@ -166,6 +196,37 @@ export default function ClaimsInboxPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function StateTab({
+  label,
+  count,
+  active,
+  onClick,
+  cls,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+  cls?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
+        active
+          ? cls
+            ? cls
+            : "border-primary bg-primary/10 text-primary"
+          : "border-border text-muted-foreground hover:bg-muted",
+      )}
+    >
+      {label}
+      <span className={cn("rounded-full px-1.5 text-[10px]", active ? "bg-background/70" : "bg-muted")}>{count}</span>
+    </button>
   );
 }
 

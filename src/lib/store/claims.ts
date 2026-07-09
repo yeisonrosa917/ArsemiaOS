@@ -74,6 +74,53 @@ export const CLAIM_PRIORITY_STYLE: Record<ClaimPriority, string> = {
   Urgent: "bg-rose-500/15 text-rose-700 border-rose-500/30",
 };
 
+/**
+ * High-level lifecycle state, derived from the detailed status so the whole
+ * inbox can be grouped into "is it active / pending / resolved / closed?".
+ *  - Active  = being worked right now (New, Under Review)
+ *  - Pending = waiting on someone or something (foreman / customer / evidence /
+ *              insurance / deduction)
+ *  - Resolved = an outcome was reached (Approved / Denied / Reimbursed / Deducted
+ *              / Resolved)
+ *  - Closed  = filed away
+ */
+export type ClaimState = "Active" | "Pending" | "Resolved" | "Closed";
+
+export const CLAIM_STATES: ClaimState[] = ["Active", "Pending", "Resolved", "Closed"];
+
+export function claimState(status: ClaimStatus): ClaimState {
+  switch (status) {
+    case "New":
+    case "Under Review":
+      return "Active";
+    case "Waiting for Foreman":
+    case "Waiting for Customer":
+    case "Waiting for Evidence":
+    case "Foreman Response Needed":
+    case "Insurance Review":
+    case "Deduction Pending":
+      return "Pending";
+    case "Approved":
+    case "Denied":
+    case "Rejected":
+    case "Reimbursed":
+    case "Deducted":
+    case "Resolved":
+      return "Resolved";
+    case "Closed":
+      return "Closed";
+    default:
+      return "Active";
+  }
+}
+
+export const CLAIM_STATE_STYLE: Record<ClaimState, string> = {
+  Active: "bg-blue-500/15 text-blue-700 border-blue-500/30",
+  Pending: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+  Resolved: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+  Closed: "bg-slate-500/15 text-slate-600 border-slate-500/30",
+};
+
 export type ClaimMessageKind =
   | "customer_message"
   | "internal_note"
