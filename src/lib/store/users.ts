@@ -43,16 +43,41 @@ const SEED: WorkspaceUser[] = SEED_USERS.map((u, i) => ({
   lastActive: LAST_ACTIVE[i % LAST_ACTIVE.length],
 }));
 
+const AVATAR_COLORS = [
+  "bg-brand-500",
+  "bg-emerald-500",
+  "bg-sky-500",
+  "bg-violet-500",
+  "bg-amber-500",
+  "bg-rose-500",
+  "bg-cyan-500",
+];
+
+function initialsFor(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+let userSeq = 0;
+function mkUserId(): string {
+  userSeq += 1;
+  return `u_new_${Date.now().toString(36)}_${userSeq}`;
+}
+
 interface UsersState {
   users: WorkspaceUser[];
   setRole: (id: string, roleId: UserRoleId) => void;
   setStatus: (id: string, status: UserStatus) => void;
   updateProfile: (id: string, patch: Partial<Pick<WorkspaceUser, "name" | "email">>) => void;
+  inviteUser: (input: { name: string; email: string; roleId: UserRoleId }) => WorkspaceUser;
+  removeUser: (id: string) => void;
 }
 
 export const useUsers = create<UsersState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       users: SEED,
       setRole: (id, roleId) =>
         set((s) => ({
@@ -66,6 +91,23 @@ export const useUsers = create<UsersState>()(
         set((s) => ({
           users: s.users.map((u) => (u.id === id ? { ...u, ...patch } : u)),
         })),
+      inviteUser: ({ name, email, roleId }) => {
+        const count = get().users.length;
+        const user: WorkspaceUser = {
+          id: mkUserId(),
+          name: name.trim(),
+          email: email.trim(),
+          initials: initialsFor(name),
+          avatarColor: AVATAR_COLORS[count % AVATAR_COLORS.length],
+          roleId,
+          status: "active",
+          lastActive: "Invited · pending first sign-in",
+        };
+        set((s) => ({ users: [...s.users, user] }));
+        return user;
+      },
+      removeUser: (id) =>
+        set((s) => ({ users: s.users.filter((u) => u.id !== id) })),
     }),
     {
       name: "arsemia.users.v1",

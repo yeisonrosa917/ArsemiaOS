@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Users as UsersIcon } from "lucide-react";
+import { UserPlus, Users as UsersIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -38,10 +40,30 @@ export function UsersAccessCard() {
   const setRole = useUsers((s) => s.setRole);
   const setStatus = useUsers((s) => s.setStatus);
   const updateProfile = useUsers((s) => s.updateProfile);
+  const inviteUser = useUsers((s) => s.inviteUser);
+  const removeUser = useUsers((s) => s.removeUser);
   const resetRoleCapabilities = usePreferences((s) => s.resetRoleCapabilities);
   const pushActivity = useActivityLog((s) => s.push);
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const actor = getUserByRole(activeRoleId);
+
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [invName, setInvName] = useState("");
+  const [invEmail, setInvEmail] = useState("");
+  const [invRole, setInvRole] = useState<UserRoleId>("dispatcher");
+
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invEmail.trim());
+  const canInvite = invName.trim().length > 1 && emailValid;
+
+  const submitInvite = () => {
+    if (!canInvite) return;
+    const u = inviteUser({ name: invName, email: invEmail, roleId: invRole });
+    log(`Invited ${u.name} (${u.email}) as ${ROLES[invRole].label}`, u.id);
+    setInvName("");
+    setInvEmail("");
+    setInvRole("dispatcher");
+    setInviteOpen(false);
+  };
 
   const log = (title: string, objectId: string) =>
     pushActivity({
@@ -59,17 +81,50 @@ export function UsersAccessCard() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <UsersIcon className="h-4 w-4 text-primary" /> Users & Access
-        </CardTitle>
-        <CardDescription>
-          {users.length} users · {active} active. Change a role, deactivate
-          access, or reset a role&apos;s permissions to its default. Roles map to
-          capabilities across the hub.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0">
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <UsersIcon className="h-4 w-4 text-primary" /> Users & Access
+          </CardTitle>
+          <CardDescription>
+            {users.length} users · {active} active. Invite a teammate, change a
+            role, deactivate access, or reset a role&apos;s permissions. Roles
+            map to capabilities across the hub.
+          </CardDescription>
+        </div>
+        <Button size="sm" variant="outline" className="gap-1" onClick={() => setInviteOpen((v) => !v)}>
+          <UserPlus className="h-3.5 w-3.5" />
+          Invite user
+        </Button>
       </CardHeader>
       <CardContent className="overflow-x-auto">
+        {inviteOpen && (
+          <div className="mb-4 grid gap-2 rounded-xl border border-border bg-muted/20 p-3 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Name</label>
+              <Input value={invName} onChange={(e) => setInvName(e.target.value)} placeholder="Full name" className="h-9" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Email</label>
+              <Input value={invEmail} onChange={(e) => setInvEmail(e.target.value)} placeholder="name@arsemia.co" className="h-9" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Role</label>
+              <select
+                value={invRole}
+                onChange={(e) => setInvRole(e.target.value as UserRoleId)}
+                className="h-9 rounded-md border border-input bg-background px-2 text-xs font-medium"
+              >
+                {ROLE_IDS.map((r) => (
+                  <option key={r} value={r}>{ROLES[r].label}</option>
+                ))}
+              </select>
+            </div>
+            <Button size="sm" className="h-9" disabled={!canInvite} onClick={submitInvite}>
+              Send invite
+            </Button>
+          </div>
+        )}
         <Table>
           <TableHeader>
             <TableRow>
@@ -174,6 +229,18 @@ export function UsersAccessCard() {
                       >
                         Edit profile
                       </DropdownMenuItem>
+                      {u.roleId !== "owner" && (
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => {
+                            if (!window.confirm(`Remove ${u.name} from the workspace?`)) return;
+                            removeUser(u.id);
+                            log(`${u.name} removed from the workspace`, u.id);
+                          }}
+                        >
+                          Remove user
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -182,7 +249,8 @@ export function UsersAccessCard() {
           </TableBody>
         </Table>
         <p className="mt-3 text-[10px] text-muted-foreground">
-          Local workspace directory. Real invitations, SSO, and per-user
+          Invites, role changes and removals update this local workspace
+          directory and the activity log. Email delivery, SSO, and per-user
           passwords require the backend — the structure here is what that will
           bind to.
         </p>

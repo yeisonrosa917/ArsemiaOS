@@ -392,7 +392,16 @@ truck's next-maintenance date when a next-due is given). Persist bumped to
 `arsemia.fleet.v2`. Verified: seeded failed DOT inspection renders and a logged
 record appears live, zero console errors.
 
+## Installment K — Users & Access: invite + remove (SHIPPED)
+
+The Settings → Users & Access card could change roles, activate/deactivate and
+reset permissions, but had no way to add or remove people. Added `inviteUser`
+and `removeUser` to the users store and wired an "Invite user" form (name +
+validated email + role) and a guarded "Remove user" action (the Owner can't be
+removed) into the card — both write to the activity log. Verified end to end:
+inviting adds a pending user, removing deletes it, zero console errors.
+
 Deferred (follow-ups): dedicated mobile scan screen + billing sync for Storage;
 route optimization / live map for Routes; auto-linking damaged storage items to
-claims. Every screen above reads real seed/store data with working actions — no
-empty shells or fake buttons.
+claims; real email/SSO delivery for user invites. Every screen above reads real
+seed/store data with working actions — no empty shells or fake buttons.
