@@ -29,6 +29,12 @@ export function telHref(phone: string | undefined | null): string {
   return `tel:${(phone ?? "").replace(/[^0-9+]/g, "")}`;
 }
 
+/** A Google Maps search href for an address (and optional city). */
+export function mapsHref(...parts: (string | undefined | null)[]): string {
+  const q = parts.filter(Boolean).join(", ");
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+}
+
 export function formatPercent(value: number, fractionDigits = 1) {
   return `${value.toFixed(fractionDigits)}%`;
 }

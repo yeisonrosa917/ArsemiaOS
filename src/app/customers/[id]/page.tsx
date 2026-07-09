@@ -27,7 +27,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { JobStatusBadge } from "@/components/shared/status-badge";
-import { formatCurrency, initials } from "@/lib/utils";
+import { formatCurrency, initials, telHref } from "@/lib/utils";
 import { fmtUSD } from "@/lib/calculator/engine";
 
 export function generateStaticParams() {
@@ -98,12 +98,12 @@ export default async function CustomerDetailPage({
               </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
+              <a href={`mailto:${customer.email}`} className="flex items-center gap-1.5 hover:text-foreground hover:underline">
                 <Mail className="h-3 w-3" /> {customer.email}
-              </span>
-              <span className="flex items-center gap-1.5">
+              </a>
+              <a href={telHref(customer.phone)} className="flex items-center gap-1.5 hover:text-foreground hover:underline">
                 <Phone className="h-3 w-3" /> {customer.phone}
-              </span>
+              </a>
               <span className="flex items-center gap-1.5">
                 <Calendar className="h-3 w-3" /> Last job {customer.lastJobDate}
               </span>

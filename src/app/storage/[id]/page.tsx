@@ -32,7 +32,7 @@ import {
   type StorageItem,
   type ItemCondition,
 } from "@/lib/store/storage";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency, mapsHref, telHref } from "@/lib/utils";
 import { formatShortDateStable, formatDateTimeStable } from "@/lib/dates";
 
 export default function StorageUnitPage({ params }: { params: Promise<{ id: string }> }) {
@@ -125,12 +125,17 @@ export default function StorageUnitPage({ params }: { params: Promise<{ id: stri
                     {provider.kind === "in_house" ? "In-house" : "Third-party"}
                   </Badge>
                 </div>
-                <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                <a
+                  href={mapsHref(provider.address, provider.city)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-1.5 text-[11px] text-muted-foreground hover:text-foreground hover:underline"
+                >
                   <MapPin className="mt-0.5 h-3 w-3 shrink-0" /> {provider.address}, {provider.city}
-                </p>
-                <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                </a>
+                <a href={telHref(provider.phone)} className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground hover:underline">
                   <Phone className="h-3 w-3 shrink-0" /> {provider.phone}
-                </p>
+                </a>
                 <p className="text-[11px] text-muted-foreground">{provider.accessHours}</p>
               </CardContent>
             </Card>

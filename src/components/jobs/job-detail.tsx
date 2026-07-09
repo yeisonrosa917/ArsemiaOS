@@ -58,7 +58,7 @@ import {
   CAPACITY_STYLES,
   CAPACITY_LABEL,
 } from "@/lib/fleet/capacity";
-import { cn } from "@/lib/utils";
+import { cn, mapsHref, telHref } from "@/lib/utils";
 import { formatDateStable } from "@/lib/dates";
 
 const CONTRACTOR_COMPANIES: Record<string, { company: string; commissionPct: number }> = {
@@ -232,9 +232,9 @@ export function JobDetail({ job: initial }: { job: Job }) {
             </div>
             <h1 className="mt-1 text-2xl font-bold">{job.customer}</h1>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
+              <a href={telHref(job.customerPhone)} className="flex items-center gap-1.5 hover:text-foreground hover:underline">
                 <Phone className="h-3 w-3" /> {job.customerPhone}
-              </span>
+              </a>
               <span className="flex items-center gap-1.5">
                 <CalendarClock className="h-3 w-3" />
                 {new Date(job.scheduledAt).toLocaleString("en-US", {
@@ -854,6 +854,16 @@ function AddressBlock({
           <Badge variant="outline" className="text-[10px]">
             {building.type}
           </Badge>
+        )}
+        {address && (
+          <a
+            href={mapsHref(address)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline"
+          >
+            <MapPin className="h-3 w-3" /> Open in Maps
+          </a>
         )}
       </div>
       <Input
