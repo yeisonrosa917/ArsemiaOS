@@ -401,7 +401,24 @@ validated email + role) and a guarded "Remove user" action (the Owner can't be
 removed) into the card — both write to the activity log. Verified end to end:
 inviting adds a pending user, removing deletes it, zero console errors.
 
+## Installment L — Storage damage→claim link + crash fix (SHIPPED)
+
+Completes the Storage "damage/missing flow". A Damaged or Missing item on the
+unit detail now shows a "File a claim" action (claims-team gated) that opens a
+real Claim via a new `createClaim` store mutation — pre-filled with the customer,
+job and item context, tagged with an origin message on the claim thread — and
+links it back (`item.claimId` → "View claim CLM-####"). No backend needed; it's
+store-to-store.
+
+**Bug fixed in the same pass:** the storage detail page had a latent React #185
+infinite-render — its item selector `useStore((s) => s.items.filter(...))`
+returned a new array every render. It slipped through because the Storage
+installment was only curl-tested (SSR doesn't run the render loop); driving the
+page in a real browser surfaced the crash. Fixed by selecting the whole array and
+deriving with `useMemo`. Verified end to end in-browser: damaged item → File a
+claim → claim CLM-#### created with storage origin, zero console errors.
+
 Deferred (follow-ups): dedicated mobile scan screen + billing sync for Storage;
-route optimization / live map for Routes; auto-linking damaged storage items to
-claims; real email/SSO delivery for user invites. Every screen above reads real
-seed/store data with working actions — no empty shells or fake buttons.
+route optimization / live map for Routes; real email/SSO delivery for user
+invites. Every screen above reads real seed/store data with working actions — no
+empty shells or fake buttons.

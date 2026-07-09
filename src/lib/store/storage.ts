@@ -172,6 +172,8 @@ export interface StorageItem {
   scanHistory: ScanEvent[];
   photos?: number;
   notes?: string;
+  /** Linked claim (raised when the item is damaged/missing). */
+  claimId?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -404,6 +406,7 @@ interface StorageState {
   setStage: (itemId: string, stage: ScanStage, by: string, note?: string) => StorageItem | undefined;
   setCondition: (itemId: string, condition: ItemCondition, by: string, note?: string) => StorageItem | undefined;
   setUnitStatus: (unitId: string, status: StorageUnitStatus) => StorageUnit | undefined;
+  linkItemClaim: (itemId: string, claimId: string) => StorageItem | undefined;
 
   getProvider: (id: string) => StorageProvider | undefined;
   getUnit: (id: string) => StorageUnit | undefined;
@@ -494,6 +497,8 @@ export const useStorage = create<StorageState>()(
           }));
           return updated;
         },
+
+        linkItemClaim: (itemId, claimId) => applyItem(itemId, (i) => ({ ...i, claimId })),
 
         getProvider: (id) => get().providers.find((p) => p.id === id),
         getUnit: (id) => get().units.find((u) => u.id === id),

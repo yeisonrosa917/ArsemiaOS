@@ -434,6 +434,29 @@ const SEED: Claim[] = [
 const now = () => new Date().toISOString();
 const mid = () => `msg_${Math.random().toString(36).slice(2, 9)}`;
 
+let claimSeq = 9000;
+const mkClaimId = () => {
+  claimSeq += 1;
+  return `CLM-${claimSeq}`;
+};
+
+export interface CreateClaimInput {
+  customerName: string;
+  customerId?: string;
+  jobId?: string;
+  foremanName?: string;
+  foremanId?: string;
+  truckName?: string;
+  truckId?: string;
+  claimType: ClaimType;
+  claimAmount?: number;
+  assignedReviewer?: string;
+  priority?: ClaimPriority;
+  note?: string;
+  /** Free-text origin, e.g. "Storage unit B-114 · tag ARS-88220". */
+  source?: string;
+}
+
 const SIDE_TO_MSG: Record<ClaimEvidence["side"], { kind: ClaimMessageKind; role: string; visibility: ClaimVisibility }> = {
   customer: { kind: "customer_message", role: "Customer", visibility: "customer" },
   foreman: { kind: "foreman_response", role: "Foreman", visibility: "foreman" },
@@ -533,6 +556,7 @@ interface AddMessageInput {
 }
 
 interface ClaimsState {
+  createClaim: (input: CreateClaimInput) => Claim;
   items: Claim[];
   setStatus: (id: string, status: ClaimStatus, by: string) => Claim | undefined;
   addEvidence: (id: string, evidence: Omit<ClaimEvidence, "id" | "uploadedAt">) => Claim | undefined;
@@ -558,6 +582,44 @@ export const useClaims = create<ClaimsState>()(
 
       return {
         items: SEED.map(hydrateClaim),
+
+        createClaim: (input) => {
+          const base: Claim = {
+            id: mkClaimId(),
+            customerName: input.customerName,
+            customerId: input.customerId,
+            jobId: input.jobId ?? "—",
+            foremanName: input.foremanName ?? "Unassigned",
+            foremanId: input.foremanId ?? "—",
+            truckName: input.truckName ?? "—",
+            truckId: input.truckId ?? "—",
+            claimType: input.claimType,
+            claimAmount: input.claimAmount ?? 0,
+            status: "New",
+            assignedReviewer: input.assignedReviewer ?? "Claims Team",
+            openedAt: now(),
+            evidence: [],
+            internalReviewNote: input.note,
+            priority: input.priority,
+            read: false,
+          };
+          const hydrated = hydrateClaim(base);
+          const messages = [...(hydrated.messages ?? [])];
+          if (input.source) {
+            messages.push({
+              id: mid(),
+              createdAt: now(),
+              kind: "system_event",
+              authorName: "System",
+              authorRole: "System",
+              body: `Opened from ${input.source}.`,
+              visibility: "internal",
+            });
+          }
+          const final: Claim = { ...hydrated, messages };
+          set((s) => ({ items: [final, ...s.items] }));
+          return final;
+        },
 
         setStatus: (id, status, by) => {
           let updated: Claim | undefined;

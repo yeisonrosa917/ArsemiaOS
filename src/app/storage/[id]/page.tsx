@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { usePreferences } from "@/lib/store/preferences";
 import { resolveCapabilities } from "@/lib/auth/roles";
 import { getUserByRole } from "@/lib/auth/users";
+import { useClaims, type ClaimType } from "@/lib/store/claims";
 import {
   useStorage,
   isItemFlagged,
@@ -39,9 +40,14 @@ export default function StorageUnitPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const unit = useStorage((s) => s.units.find((u) => u.id === id));
   const provider = useStorage((s) => s.providers.find((p) => p.id === unit?.providerId));
-  const items = useStorage((s) => s.items.filter((i) => i.unitId === id));
+  // Select the whole array (stable ref) and derive with useMemo — filtering inside
+  // the selector returns a new array each render and infinite-loops the store.
+  const allItems = useStorage((s) => s.items);
+  const items = useMemo(() => allItems.filter((i) => i.unitId === id), [allItems, id]);
   const advanceScan = useStorage((s) => s.advanceScan);
   const setCondition = useStorage((s) => s.setCondition);
+  const linkItemClaim = useStorage((s) => s.linkItemClaim);
+  const createClaim = useClaims((s) => s.createClaim);
 
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const overrides = usePreferences((s) => s.capabilityOverrides);
@@ -50,6 +56,23 @@ export default function StorageUnitPage({ params }: { params: Promise<{ id: stri
   const scannerName = getUserByRole(activeRoleId).name;
 
   const [openItem, setOpenItem] = useState<string | null>(null);
+
+  const fileClaim = (item: StorageItem) => {
+    if (!unit) return;
+    const claimType: ClaimType = item.condition === "Missing" ? "Lost Item" : "Furniture Damage";
+    const lastScan = item.scanHistory[item.scanHistory.length - 1];
+    const claim = createClaim({
+      customerName: item.ownerName ?? unit.primaryCustomerName ?? "Storage customer",
+      customerId: item.ownerCustomerId ?? unit.primaryCustomerId,
+      jobId: item.jobId ?? unit.jobId,
+      foremanName: lastScan?.by,
+      claimType,
+      priority: item.condition === "Missing" ? "High" : "Normal",
+      source: `Storage unit ${unit.unitNumber} · ${item.name} (tag ${item.tag})`,
+      note: item.notes,
+    });
+    linkItemClaim(item.id, claim.id);
+  };
 
   const grouped = useMemo(() => {
     const m = new Map<string, StorageItem[]>();
@@ -210,6 +233,26 @@ export default function StorageUnitPage({ params }: { params: Promise<{ id: stri
                           {open && (
                             <div className="mt-3 space-y-3 rounded-lg border border-border bg-muted/30 p-3">
                               {i.notes && <p className="text-[11px] text-muted-foreground">{i.notes}</p>}
+
+                              {/* Damage / missing → claim */}
+                              {isItemFlagged(i) && (
+                                <div className="flex flex-wrap items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/[0.05] px-2.5 py-1.5">
+                                  <span className="text-[11px] font-semibold text-rose-700">
+                                    {i.condition === "Missing" ? "Item missing" : "Item damaged"}
+                                  </span>
+                                  {i.claimId ? (
+                                    <Link href={`/claims/${i.claimId}`} className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline">
+                                      View claim {i.claimId} <ChevronRight className="h-3 w-3" />
+                                    </Link>
+                                  ) : canManage ? (
+                                    <Button size="sm" variant="outline" className="ml-auto h-7 border-rose-500/40 text-[11px] text-rose-700" onClick={() => fileClaim(i)}>
+                                      File a claim
+                                    </Button>
+                                  ) : (
+                                    <span className="text-[10px] text-muted-foreground">Claims team can file a claim.</span>
+                                  )}
+                                </div>
+                              )}
 
                               {/* Actions */}
                               {canManage ? (
