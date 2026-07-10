@@ -12,6 +12,9 @@ import {
   claimAwaitingResponse,
   claimEvidenceMissing,
   claimState,
+  claimSource,
+  CLAIM_SOURCES,
+  CLAIM_SOURCE_LABEL,
   CLAIM_STATES,
   CLAIM_STATE_STYLE,
   OPEN_CLAIM_STATUSES,
@@ -19,6 +22,7 @@ import {
   CLAIM_PRIORITY_STYLE,
   type Claim,
   type ClaimState,
+  type ClaimSource,
 } from "@/lib/store/claims";
 import { cn, formatCurrency } from "@/lib/utils";
 import { formatDateTimeStable } from "@/lib/dates";
@@ -36,12 +40,14 @@ export default function ClaimsInboxPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [stateTab, setStateTab] = useState<"all" | ClaimState>("all");
+  const [sourceFilter, setSourceFilter] = useState<"all" | ClaimSource>("all");
 
   const rows = useMemo(() => {
     const q = search.toLowerCase();
     return [...claims]
       .filter((c) => {
         if (stateTab !== "all" && claimState(c.status) !== stateTab) return false;
+        if (sourceFilter !== "all" && claimSource(c) !== sourceFilter) return false;
         if (filter === "open" && !OPEN_CLAIM_STATUSES.includes(c.status)) return false;
         if (filter === "unread" && c.read !== false) return false;
         if (filter === "awaiting" && !claimAwaitingResponse(c)) return false;
@@ -60,7 +66,7 @@ export default function ClaimsInboxPage() {
         const lb = lastMessage(b)?.createdAt ?? b.openedAt;
         return lb.localeCompare(la);
       });
-  }, [claims, search, filter, stateTab]);
+  }, [claims, search, filter, stateTab, sourceFilter]);
 
   const counts = useMemo(
     () => ({
@@ -122,6 +128,15 @@ export default function ClaimsInboxPage() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search claim, customer, job, foreman..." className="h-9 pl-9" />
         </div>
+        <select
+          value={sourceFilter}
+          onChange={(e) => setSourceFilter(e.target.value as "all" | ClaimSource)}
+          className="h-9 rounded-md border border-border bg-background px-2 text-xs"
+          aria-label="Filter by source"
+        >
+          <option value="all">All sources</option>
+          {CLAIM_SOURCES.map((s) => <option key={s} value={s}>{CLAIM_SOURCE_LABEL[s]}</option>)}
+        </select>
         <div className="flex flex-wrap gap-1">
           {FILTERS.map(([id, label]) => (
             <button

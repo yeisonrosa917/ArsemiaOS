@@ -439,6 +439,22 @@ const now = () => new Date().toISOString();
 const mid = () => createId("claimMessage");
 const mkClaimId = () => createId("claim");
 
+export type ClaimSource = "storage" | "invoice" | "job" | "customer";
+export const CLAIM_SOURCES: ClaimSource[] = ["job", "storage", "invoice", "customer"];
+export const CLAIM_SOURCE_LABEL: Record<ClaimSource, string> = {
+  job: "Job",
+  storage: "Storage",
+  invoice: "Invoice",
+  customer: "Customer",
+};
+/** Where a claim originated, inferred from its links. */
+export function claimSource(c: Claim): ClaimSource {
+  if (c.linkedStorageUnitId) return "storage";
+  if (c.invoiceId) return "invoice";
+  if (c.jobId && c.jobId !== "—") return "job";
+  return "customer";
+}
+
 export interface CreateClaimInput {
   customerName: string;
   customerId?: string;

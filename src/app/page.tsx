@@ -18,7 +18,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { drivers } from "@/lib/mock-data";
-import { allJobs as jobs } from "@/lib/data/all-jobs";
+import { useJobsStore } from "@/lib/store/jobs";
 import { useLeads, followUpState, isOpenStage } from "@/lib/store/leads";
 import { useExpenses } from "@/lib/store/expenses";
 import { useInvoices } from "@/lib/store/invoices";
@@ -42,6 +42,7 @@ const daysUntil = (iso: string) =>
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
 
 export default function DashboardPage() {
+  const jobs = useJobsStore((s) => s.jobs);
   const leads = useLeads((s) => s.leads);
   const expenses = useExpenses((s) => s.items);
   const invoices = useInvoices((s) => s.items);
@@ -74,7 +75,7 @@ export default function DashboardPage() {
       trucksAvail: vehicles.filter((v) => v.status === "Active" || v.status === "Idle").length,
       inShop: vehicles.filter((v) => v.status === "Maintenance" || v.status === "Out of Service").length,
     };
-  }, [vehicles]);
+  }, [jobs, vehicles]);
 
   const sales = useMemo(() => {
     const open = leads.filter((l) => isOpenStage(l.stage));
@@ -126,7 +127,7 @@ export default function DashboardPage() {
         isToday: i === 0,
       };
     });
-  }, []);
+  }, [jobs]);
 
   const canFleet = caps.includes("fleet.view") || caps.includes("roles.manage");
 

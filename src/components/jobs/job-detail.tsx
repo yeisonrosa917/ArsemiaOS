@@ -1029,6 +1029,18 @@ function JobConnections({ job }: { job: Job }) {
   if (quote) rows.push({ label: "Quote", value: <Link href={`/quotes/${quote.id}`} className="font-mono text-primary hover:underline">{quote.id} · {quote.status}</Link> });
   rows.push({ label: "Customer", value: job.customerId ? <Link href={`/customers/${job.customerId}`} className="text-primary hover:underline">{job.customer}</Link> : job.customer });
   rows.push({ label: "Foreman", value: job.driverName ?? <span className="text-muted-foreground">Unassigned</span> });
+  const openClaims = claims.filter((c) => !["Resolved", "Closed", "Approved", "Denied"].includes(c.status)).length;
+  const payrollReady = job.status === "Completed" && openClaims === 0;
+  rows.push({
+    label: "Payroll readiness",
+    value: (
+      <span className="flex items-center gap-1.5">
+        <Badge variant={openClaims > 0 ? "danger" : payrollReady ? "success" : "outline"} className="text-[9px]">
+          {openClaims > 0 ? "On hold · open claim" : payrollReady ? "Ready" : job.payrollStatus}
+        </Badge>
+      </span>
+    ),
+  });
   if (storageItems.length > 0) {
     const unitId = storageItems[0].unitId;
     rows.push({

@@ -6,30 +6,21 @@ import {
   ArrowRight,
   Boxes,
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   Clock,
   MapPin,
   Route as RouteIcon,
   UserSquare2,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DateNavigator } from "@/components/calendar/date-navigator";
 import { useJobsStore } from "@/lib/store/jobs";
 import { cn, formatCurrency, formatNumber } from "@/lib/utils";
-import { formatDateStable } from "@/lib/dates";
 import type { Job } from "@/lib/types";
 
 /** Fixed "today" — matches the schedule/dashboard so the board opens populated. */
 const ROUTES_TODAY = "2026-07-02";
-
-function shiftDay(iso: string, delta: number): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d + delta));
-  return dt.toISOString().slice(0, 10);
-}
 
 /** "14:00" -> "2:00 PM" without timezone drift. */
 function fmtTime(hhmm: string): string {
@@ -92,32 +83,7 @@ export default function RoutesPage() {
         description="The day's moving jobs organized by foreman — stop order, timing, zones and load. Navigate by day to plan ahead or review history."
       />
 
-      {/* Day navigator */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setDay(shiftDay(day, -1))}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex min-w-[190px] items-center gap-2 px-1">
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-semibold">{formatDateStable(day, { weekday: "long", month: "short", day: "numeric", year: "numeric" })}</span>
-          </div>
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setDay(shiftDay(day, 1))}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          {day !== ROUTES_TODAY && (
-            <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setDay(ROUTES_TODAY)}>
-              Today
-            </Button>
-          )}
-        </div>
-        <input
-          type="date"
-          value={day}
-          onChange={(e) => e.target.value && setDay(e.target.value)}
-          className="h-8 rounded-md border border-border bg-background px-2 text-xs"
-        />
-      </div>
+      <DateNavigator selectedDate={day} onDateChange={setDay} today={ROUTES_TODAY} variant="full" />
 
       <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <Stat label="Jobs" value={String(stats.jobs)} icon={RouteIcon} />
