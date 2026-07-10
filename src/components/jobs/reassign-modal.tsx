@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AlertTriangle, ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,34 @@ export function ReassignModal({
   const actor = getUserByRole(activeRoleId);
 
   const vehicles = useFleet((s) => s.vehicles);
+  const jobs = useJobs((s) => s.jobs);
+
+  // Smart assignment — group foremen by fit for THIS job on its date.
+  const jobDay = (job.scheduledAt ?? "").slice(0, 10);
+  type FitCat = "recommended" | "available" | "review" | "conflict";
+  const grouped = useMemo(() => {
+    const g: Record<FitCat, { d: (typeof drivers)[number]; sameDay: number; warnings: string[] }[]> = {
+      recommended: [], available: [], review: [], conflict: [],
+    };
+    drivers
+      .filter((d) => d.id !== job.driverId)
+      .forEach((d) => {
+        const sameDay = jobs.filter(
+          (j) => j.id !== job.id && j.driverId === d.id && (j.scheduledAt ?? "").slice(0, 10) === jobDay,
+        ).length;
+        const truck = vehicles.find((v) => v.id === d.vehicleId);
+        const lvl = truck ? capacityLevel(job.cuFt, vehicleCapacity(truck)) : null;
+        const warnings: string[] = [];
+        let cat: FitCat;
+        if (d.status === "Offline") { cat = "conflict"; warnings.push("Off duty"); }
+        else if (lvl === "over") { cat = "conflict"; warnings.push("Over truck capacity"); }
+        else if (sameDay >= 2) { cat = "review"; warnings.push(`${sameDay} jobs already today`); }
+        else if (d.status === "Available" && sameDay === 0) { cat = "recommended"; }
+        else { cat = "available"; if (sameDay === 1) warnings.push("1 job today — check timing"); }
+        g[cat].push({ d, sameDay, warnings });
+      });
+    return g;
+  }, [jobs, vehicles, job.id, job.driverId, job.cuFt, jobDay]);
 
   const [nextForemanId, setNextForemanId] = useState<string>("");
   const [reason, setReason] = useState<Reason>("Workload balance");
@@ -182,22 +210,47 @@ export function ReassignModal({
 
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Select new foreman
+                Smart assignment — foremen ranked for this job on {jobDay}
               </p>
-              <select
-                value={nextForemanId}
-                onChange={(e) => setNextForemanId(e.target.value)}
-                className="mt-1 h-10 w-full rounded-md border border-border bg-background px-2 text-sm"
-              >
-                <option value="">— Pick a foreman —</option>
-                {drivers
-                  .filter((d) => d.id !== job.driverId)
-                  .map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name} · {d.status}
-                    </option>
-                  ))}
-              </select>
+              <div className="mt-1 max-h-[240px] space-y-2 overflow-y-auto pr-1">
+                {([
+                  ["recommended", "Recommended", "text-emerald-600"],
+                  ["available", "Available / good fit", "text-sky-600"],
+                  ["review", "Possible — review timing", "text-amber-600"],
+                  ["conflict", "Not recommended", "text-rose-600"],
+                ] as const).map(([cat, label, cls]) =>
+                  grouped[cat].length === 0 ? null : (
+                    <div key={cat}>
+                      <p className={cn("mb-1 text-[10px] font-semibold uppercase tracking-wider", cls)}>{label} ({grouped[cat].length})</p>
+                      <div className="space-y-1">
+                        {grouped[cat].map(({ d, sameDay, warnings }) => (
+                          <button
+                            key={d.id}
+                            type="button"
+                            onClick={() => setNextForemanId(d.id)}
+                            className={cn(
+                              "flex w-full items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left transition-colors",
+                              nextForemanId === d.id ? "border-primary bg-primary/10" : "border-border hover:bg-accent/30",
+                            )}
+                          >
+                            <Avatar className="h-7 w-7"><AvatarFallback className="text-[9px]">{initials(d.name)}</AvatarFallback></Avatar>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-semibold">{d.name}</span>
+                                <span className="font-mono text-[9px] text-muted-foreground">{d.id}</span>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground">{d.status} · {sameDay} job(s) this day</p>
+                            </div>
+                            <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                              {warnings.map((w) => <Badge key={w} variant={cat === "conflict" ? "danger" : "warning"} className="text-[8px]">{w}</Badge>)}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ),
+                )}
+              </div>
             </div>
 
             <div>

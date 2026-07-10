@@ -28,7 +28,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useUsers } from "@/lib/store/users";
+import { useUsers, type WorkspaceUser } from "@/lib/store/users";
+import { UserDetailDrawer } from "@/components/settings/user-detail-drawer";
 import { usePreferences } from "@/lib/store/preferences";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { getUserByRole } from "@/lib/auth/users";
@@ -47,6 +48,7 @@ export function UsersAccessCard() {
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const actor = getUserByRole(activeRoleId);
 
+  const [detailUser, setDetailUser] = useState<WorkspaceUser | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [invName, setInvName] = useState("");
   const [invEmail, setInvEmail] = useState("");
@@ -196,6 +198,7 @@ export function UsersAccessCard() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={() => setDetailUser(u)}>View details</DropdownMenuItem>
                       {u.foremanId && (
                         <DropdownMenuItem asChild>
                           <Link href={`/payroll/foreman/${u.foremanId}`}>Open foreman payroll</Link>
@@ -255,6 +258,7 @@ export function UsersAccessCard() {
           bind to.
         </p>
       </CardContent>
+      <UserDetailDrawer user={detailUser} onClose={() => setDetailUser(null)} />
     </Card>
   );
 }
