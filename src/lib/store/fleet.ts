@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { createId } from "@/lib/id";
 import { vehicles as SEED } from "@/lib/mock-data";
 import type { Vehicle, VehicleStatus } from "@/lib/types";
 import { DEFAULT_CAPACITY } from "@/lib/fleet/capacity";
@@ -91,10 +92,8 @@ interface FleetState {
   recordsForVehicle: (vehicleId: string) => MaintenanceRecord[];
 }
 
-let recordSeq = 6000;
 function mkRecordId(): string {
-  recordSeq += 1;
-  return `MNT-${recordSeq}`;
+  return createId("maintenance");
 }
 
 export const useFleet = create<FleetState>()(

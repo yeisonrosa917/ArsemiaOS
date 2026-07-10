@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { createId } from "@/lib/id";
 
 export type ClaimStatus =
   | "New"
@@ -432,13 +433,8 @@ const SEED: Claim[] = [
 ];
 
 const now = () => new Date().toISOString();
-const mid = () => `msg_${Math.random().toString(36).slice(2, 9)}`;
-
-let claimSeq = 9000;
-const mkClaimId = () => {
-  claimSeq += 1;
-  return `CLM-${claimSeq}`;
-};
+const mid = () => createId("claimMessage");
+const mkClaimId = () => createId("claim");
 
 export interface CreateClaimInput {
   customerName: string;
@@ -646,7 +642,7 @@ export const useClaims = create<ClaimsState>()(
               if (c.id !== id) return c;
               const newEv: ClaimEvidence = {
                 ...ev,
-                id: `ev_${Math.random().toString(36).slice(2, 9)}`,
+                id: createId("claimEvidence"),
                 uploadedAt: now(),
               };
               updated = appendMessage(

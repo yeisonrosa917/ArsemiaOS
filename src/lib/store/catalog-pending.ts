@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { createId } from "@/lib/id";
 import type { CatalogCategory } from "@/lib/store/company-config";
 
 /**
@@ -70,10 +71,8 @@ const SEED: PendingCatalogItem[] = [
   },
 ];
 
-let seq = 2000;
 function mkId(): string {
-  seq += 1;
-  return `PC-${seq}`;
+  return createId("catalogPending");
 }
 
 interface CatalogPendingState {

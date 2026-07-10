@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { createId } from "@/lib/id";
 
 /**
  * Storage module.
@@ -415,10 +416,8 @@ interface StorageState {
   itemsForUnit: (unitId: string) => StorageItem[];
 }
 
-let localScanSeq = 1000;
 function mkLocalScanId(): string {
-  localScanSeq += 1;
-  return `SCN-L${localScanSeq}`;
+  return createId("storageScan");
 }
 
 export const useStorage = create<StorageState>()(

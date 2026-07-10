@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { createId } from "@/lib/id";
 import { SEED_USERS } from "@/lib/auth/users";
 import type { UserRoleId } from "@/lib/auth/roles";
 
@@ -60,10 +61,8 @@ function initialsFor(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-let userSeq = 0;
 function mkUserId(): string {
-  userSeq += 1;
-  return `u_new_${Date.now().toString(36)}_${userSeq}`;
+  return createId("user");
 }
 
 interface UsersState {
