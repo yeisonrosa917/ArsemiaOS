@@ -165,6 +165,7 @@ export function QuoteBuilder() {
     const cuft = searchParams.get("cuft");
     const leadId = searchParams.get("leadId");
     const customerId = searchParams.get("customerId");
+    const md = searchParams.get("moveDate");
     const type = searchParams.get("jobType") as JobType | null;
     if (c) setCustomerName(c);
     if (p) setPhone(p);
@@ -174,6 +175,7 @@ export function QuoteBuilder() {
     if (cuft && !Number.isNaN(Number(cuft))) {
       setEstimatedCuFt(Number(cuft));
     }
+    if (md) setMoveDate(md);
     if (leadId) setFromLeadId(leadId);
     if (customerId) setFromCustomerId(customerId);
     if (type && JOB_TYPES.includes(type)) setJobType(type);

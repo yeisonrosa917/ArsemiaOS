@@ -16,6 +16,7 @@ import { useActivityLog } from "@/lib/store/activity-log";
 import { useNotifications } from "@/lib/store/notifications";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole, getSellers } from "@/lib/auth/users";
+import { createJobFromLeadOrQuote } from "@/lib/flows/create-job-from-lead-or-quote";
 import { telHref } from "@/lib/utils";
 
 /**
@@ -81,8 +82,19 @@ export function useLeadActions() {
       if (lead.stage === "New Lead" || lead.stage === "Contacted") {
         setStage(lead.id, "Quote Requested", actor.name);
       }
-      log("created", lead, `Quote started for ${lead.name}`);
-      router.push(`/quotes?leadId=${lead.id}`);
+      log("created", lead, `Draft quote created from lead ${lead.name}`);
+      // Pass the lead's known fields so the Quote Builder opens PREFILLED.
+      const q = new URLSearchParams({
+        leadId: lead.id,
+        customer: lead.name,
+        phone: lead.phone,
+        email: lead.email,
+        fromCity: lead.fromCity,
+        toCity: lead.toCity,
+        cuft: String(lead.estimatedCuFt),
+      });
+      if (lead.moveDate) q.set("moveDate", lead.moveDate);
+      router.push(`/quotes?${q.toString()}`);
     },
 
     convertToJob: (lead: Lead) => {
@@ -90,16 +102,23 @@ export function useLeadActions() {
         router.push(`/jobs/${lead.jobId}`);
         return;
       }
-      setStage(lead.id, "Booked", actor.name);
-      log("status_changed", lead, `${lead.name} marked Booked — hand off to Operations`);
-      pushNotif({
-        kind: "job_unassigned",
-        severity: "warning",
-        title: "New booking needs a job",
-        body: `${lead.name} · ${lead.fromCity} → ${lead.toCity} · ${lead.moveDate ?? "date TBD"}`,
-        href: `/leads/${lead.id}`,
-        audience: "dispatcher",
+      // Create a REAL job (files it in the jobs store, links lead+quote,
+      // notifies dispatch/owner) — not just a status change.
+      const job = createJobFromLeadOrQuote({
+        leadId: lead.id,
+        quoteId: lead.quoteId,
+        customerName: lead.name,
+        phone: lead.phone,
+        email: lead.email,
+        pickupCity: lead.fromCity,
+        deliveryCity: lead.toCity,
+        moveDate: lead.moveDate,
+        estimatedCuFt: lead.estimatedCuFt,
+        quotedAmount: lead.estimatedValue,
+        by: { id: actor.id, name: actor.name, role: activeRoleId },
       });
+      log("status_changed", lead, `${lead.name} booked → job ${job.id} created`);
+      router.push(`/jobs/${job.id}`);
     },
 
     markContacted: (lead: Lead) => {

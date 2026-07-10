@@ -23,7 +23,7 @@ import { MapPreview } from "@/components/shared/map-preview";
 import { ReassignModal } from "@/components/jobs/reassign-modal";
 import { PendingDispatchChanges } from "@/components/dispatch/pending-changes";
 import { drivers, jobStatuses, zones } from "@/lib/mock-data";
-import { allJobs as jobs } from "@/lib/data/all-jobs";
+import { useJobsStore } from "@/lib/store/jobs";
 import type { JobStatus } from "@/lib/types";
 import { cn, formatCurrency, initials } from "@/lib/utils";
 import { toISODateSafe, parseDateSafe, formatWeekdayStable } from "@/lib/dates";
@@ -44,6 +44,7 @@ function todayISO(): string {
 }
 
 export function DispatchBoard() {
+  const jobs = useJobsStore((s) => s.jobs);
   const [search, setSearch] = useState("");
   const [zoneFilter, setZoneFilter] = useState<string>("All Zones");
   const [typeFilter, setTypeFilter] = useState<string>("All Types");
@@ -74,7 +75,7 @@ export function DispatchBoard() {
       map[day] = (map[day] ?? 0) + 1;
     });
     return map;
-  }, []);
+  }, [jobs]);
 
   const filteredJobs = useMemo(() => {
     return jobs.filter((j) => {
@@ -96,11 +97,11 @@ export function DispatchBoard() {
       }
       return true;
     });
-  }, [search, zoneFilter, typeFilter, statusFilter, driverFilter, selectedDate]);
+  }, [jobs, search, zoneFilter, typeFilter, statusFilter, driverFilter, selectedDate]);
 
   const jobsOnDate = useMemo(
     () => jobs.filter((j) => (j.scheduledAt ?? "").slice(0, 10) === selectedDate).length,
-    [selectedDate],
+    [jobs, selectedDate],
   );
 
   const selectedJob =
@@ -113,7 +114,7 @@ export function DispatchBoard() {
       status: s,
       count: jobs.filter((j) => j.status === s).length,
     }));
-  }, []);
+  }, [jobs]);
 
   return (
     <div className="space-y-4">

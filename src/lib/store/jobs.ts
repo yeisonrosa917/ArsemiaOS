@@ -19,6 +19,9 @@ export interface PendingReassignment {
 interface JobsState {
   jobs: Job[];
   pendingReassignments: PendingReassignment[];
+  /** Prepend a new job (e.g. created from a lead/quote booking). */
+  addJob: (job: Job) => Job;
+  getById: (id: string) => Job | undefined;
   updateJob: (id: string, patch: Partial<Job>) => void;
   /** Apply an adjustment delta on the job — increments cuFt and price, records baseline. */
   applyAdjustment: (
@@ -44,6 +47,11 @@ export const useJobsStore = create<JobsState>()(
     (set, get) => ({
       jobs: seedJobs,
       pendingReassignments: [],
+      addJob: (job) => {
+        set((s) => ({ jobs: [job, ...s.jobs] }));
+        return job;
+      },
+      getById: (id) => get().jobs.find((j) => j.id === id),
       updateJob: (id, patch) =>
         set((s) => ({
           jobs: s.jobs.map((j) => (j.id === id ? { ...j, ...patch } : j)),

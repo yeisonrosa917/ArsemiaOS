@@ -171,6 +171,9 @@ export interface Job {
   packingByCrew?: boolean;
   confirmations?: JobConfirmations;
   adjustments?: JobAdjustment[];
+  /** Cross-module links (set when a job is created from a lead/quote). */
+  leadId?: string;
+  quoteId?: string;
 }
 
 export interface Driver {

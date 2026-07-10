@@ -1,22 +1,21 @@
+"use client";
+
+import { use } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { allJobs as jobs } from "@/lib/data/all-jobs";
 import { Button } from "@/components/ui/button";
 import { JobDetail } from "@/components/jobs/job-detail";
+import { useJobsStore } from "@/lib/store/jobs";
 
-export function generateStaticParams() {
-  return jobs.map((j) => ({ id: j.id }));
-}
-
-export default async function JobDetailPage({
+export default function JobDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const job = jobs.find((j) => j.id === id);
-  if (!job) notFound();
+  const { id } = use(params);
+  // Read from the shared jobs store (seeded from all-jobs) so jobs created from
+  // a lead/quote booking are viewable here, not just the static seed jobs.
+  const job = useJobsStore((s) => s.jobs.find((j) => j.id === id));
 
   return (
     <div className="space-y-4">
@@ -26,7 +25,16 @@ export default async function JobDetailPage({
           Back to jobs
         </Link>
       </Button>
-      <JobDetail job={job} />
+      {job ? (
+        <JobDetail job={job} />
+      ) : (
+        <div className="rounded-xl border border-border bg-card p-10 text-center">
+          <p className="text-sm font-semibold">Job not found</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            This job doesn&apos;t exist in the current workspace.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

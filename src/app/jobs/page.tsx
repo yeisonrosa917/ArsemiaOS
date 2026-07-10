@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { JobStatusBadge } from "@/components/shared/status-badge";
 import { JobsTable } from "@/components/jobs/jobs-table";
 import { drivers } from "@/lib/mock-data";
-import { allJobs as jobs } from "@/lib/data/all-jobs";
+import { useJobsStore } from "@/lib/store/jobs";
 import type { JobStatus } from "@/lib/types";
 import { usePreferences } from "@/lib/store/preferences";
 import { getActiveForemanId, getUserByRole } from "@/lib/auth/users";
@@ -56,6 +56,7 @@ export default function JobsPage() {
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const foremanId = getActiveForemanId(activeRoleId);
   const foremanName = foremanId ? getUserByRole(activeRoleId).name : null;
+  const jobs = useJobsStore((s) => s.jobs);
 
   // Land on today if it has jobs, otherwise on the most recent booked day so the
   // calendar is never empty on first load. (Future-dated seed data is a later
@@ -84,7 +85,7 @@ export default function JobsPage() {
     return jobs.filter(
       (j) => j.driverId === foremanId || j.driverName === foremanName || j.crew.includes(foremanName ?? " "),
     );
-  }, [foremanId, foremanName]);
+  }, [jobs, foremanId, foremanName]);
 
   // Week window (Mon–Sun) for the selected date.
   const weekDays = useMemo(() => {

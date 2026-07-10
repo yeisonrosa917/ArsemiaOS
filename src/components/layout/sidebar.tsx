@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
-  Bell,
   Boxes,
   Briefcase,
   ClipboardList,
@@ -44,6 +43,7 @@ const primaryNav: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Dispatch", href: "/dispatch", icon: Zap, badge: "Live" },
   { label: "Jobs", href: "/jobs", icon: ClipboardList },
+  { label: "Routes & Schedule", href: "/routes", icon: Map },
 ];
 
 const salesNav: NavItem[] = [
@@ -74,7 +74,6 @@ const insightsNav: NavItem[] = [
 ];
 
 const adminNav: NavItem[] = [
-  { label: "Notifications", href: "/notifications", icon: Bell },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
