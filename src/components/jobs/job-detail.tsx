@@ -11,6 +11,7 @@ import {
   Clock,
   DollarSign,
   History,
+  Link2,
   Mail,
   MapPin,
   Phone,
@@ -43,6 +44,10 @@ import { drivers as seedDrivers } from "@/lib/data";
 import type { BuildingDetails, Job, JobInventoryItem } from "@/lib/types";
 import { useJobsStore } from "@/lib/store/jobs";
 import { useFleet } from "@/lib/store/fleet";
+import { useLeads } from "@/lib/store/leads";
+import { useQuotesStore } from "@/lib/store/quotes";
+import { useStorage, isItemFlagged } from "@/lib/store/storage";
+import { useClaims } from "@/lib/store/claims";
 import { useNotifications } from "@/lib/store/notifications";
 import { useJobEvents } from "@/lib/store/job-events";
 import { JobEventLog } from "./job-event-log";
@@ -341,6 +346,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
+          <JobConnections job={job} />
           {/* Addresses + buildings */}
           <Card>
             <CardHeader>
@@ -1001,5 +1007,63 @@ function ConfirmRow({
         </div>
       </div>
     </label>
+  );
+}
+
+/**
+ * Connections — makes Job Detail the system center. Surfaces the linked lead,
+ * quote, customer, foreman, storage items and claims for this job so the record
+ * no longer feels isolated. Reads the shared stores by id.
+ */
+function JobConnections({ job }: { job: Job }) {
+  const lead = useLeads((s) => (job.leadId ? s.leads.find((l) => l.id === job.leadId) : undefined));
+  const quote = useQuotesStore((s) => (job.quoteId ? s.quotes.find((q) => q.id === job.quoteId) : undefined));
+  const allItems = useStorage((s) => s.items);
+  const allClaims = useClaims((s) => s.items);
+  const storageItems = allItems.filter((i) => i.jobId === job.id);
+  const claims = allClaims.filter((c) => c.jobId === job.id);
+  const flagged = storageItems.filter(isItemFlagged).length;
+
+  const rows: { label: string; value: React.ReactNode }[] = [];
+  if (lead) rows.push({ label: "Lead", value: <Link href={`/leads/${lead.id}`} className="font-mono text-primary hover:underline">{lead.id} · {lead.name}</Link> });
+  if (quote) rows.push({ label: "Quote", value: <Link href={`/quotes/${quote.id}`} className="font-mono text-primary hover:underline">{quote.id} · {quote.status}</Link> });
+  rows.push({ label: "Customer", value: job.customerId ? <Link href={`/customers/${job.customerId}`} className="text-primary hover:underline">{job.customer}</Link> : job.customer });
+  rows.push({ label: "Foreman", value: job.driverName ?? <span className="text-muted-foreground">Unassigned</span> });
+  if (storageItems.length > 0) {
+    const unitId = storageItems[0].unitId;
+    rows.push({
+      label: "Storage",
+      value: (
+        <span className="flex items-center gap-2">
+          <Link href={`/storage/${unitId}`} className="text-primary hover:underline">{storageItems.length} item(s)</Link>
+          {flagged > 0 && <Badge variant="danger" className="text-[9px]">{flagged} flagged</Badge>}
+        </span>
+      ),
+    });
+  }
+  if (claims.length > 0) {
+    rows.push({
+      label: "Claims",
+      value: <Link href={`/claims/${claims[0].id}`} className="text-primary hover:underline">{claims.length} claim(s) · {claims[0].status}</Link>,
+    });
+  }
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Link2 className="h-4 w-4 text-primary" /> Connections
+        </CardTitle>
+        <CardDescription>Everything linked to this job across the hub.</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-center justify-between gap-3 border-b border-border/50 py-1 text-sm last:border-0">
+            <span className="text-muted-foreground">{r.label}</span>
+            <span className="text-right font-medium">{r.value}</span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
