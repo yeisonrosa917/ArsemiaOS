@@ -76,7 +76,7 @@ export default function InvoicePrintPage({
         <div className="flex items-start justify-between border-b border-slate-200 pb-6">
           <div className="flex items-start gap-4">
             <img
-              src="/brand/arsemia-mark.svg"
+              src="/brand/arsemia-mark.png"
               alt="Arsemia"
               width={64}
               height={64}

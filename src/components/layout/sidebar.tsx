@@ -177,7 +177,7 @@ export function Sidebar() {
     >
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
         <img
-          src="/brand/arsemia-mark.svg"
+          src="/brand/arsemia-mark.png"
           alt="Arsemia"
           width={36}
           height={36}

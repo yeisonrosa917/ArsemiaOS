@@ -68,7 +68,7 @@ export default function QuotePrintPage({
       <div className="mx-auto max-w-[820px] p-10 print:p-6">
         <div className="flex items-start justify-between border-b border-slate-200 pb-6">
           <div className="flex items-start gap-4">
-            <img src="/brand/arsemia-mark.svg" alt="Arsemia" width={64} height={64} className="rounded-xl" />
+            <img src="/brand/arsemia-mark.png" alt="Arsemia" width={64} height={64} className="rounded-xl" />
             <div>
               <p className="text-2xl font-bold tracking-tight">{COMPANY.dba}</p>
               <p className="text-xs text-slate-500">{COMPANY.name}</p>
