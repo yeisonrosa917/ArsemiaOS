@@ -4,6 +4,7 @@ import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
+  Boxes,
   Briefcase,
   FileText,
   MessageSquare,
@@ -266,6 +267,7 @@ export default function ClaimThreadPage({ params }: { params: Promise<{ id: stri
               <Conn icon={Truck} label="Truck" value={claim.truckName} />
               {claim.invoiceId && <Conn icon={FileText} label="Invoice" value={claim.invoiceId} href={`/invoices/${claim.invoiceId}`} />}
               {claim.expenseId && <Conn icon={FileText} label="Expense" value={claim.expenseId} href={`/expenses/${claim.expenseId}`} />}
+              {claim.linkedStorageUnitId && <Conn icon={Boxes} label="Storage unit" value={claim.linkedStorageUnitId} href={`/storage/${claim.linkedStorageUnitId}`} />}
               {(claim.status === "Deduction Pending" || claim.status === "Deducted") && (
                 <p className="rounded-md border border-amber-500/40 bg-amber-500/[0.06] px-2 py-1.5 text-[11px] text-amber-700">
                   A payroll deduction is linked to this claim for {claim.foremanName}.

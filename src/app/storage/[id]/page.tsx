@@ -30,6 +30,7 @@ import {
   STORAGE_UNIT_STATUS_STYLE,
   ITEM_CONDITIONS,
   ITEM_CONDITION_STYLE,
+  EXCEPTION_TYPE_LABEL,
   type StorageItem,
   type ItemCondition,
 } from "@/lib/store/storage";
@@ -47,6 +48,8 @@ export default function StorageUnitPage({ params }: { params: Promise<{ id: stri
   const advanceScan = useStorage((s) => s.advanceScan);
   const setCondition = useStorage((s) => s.setCondition);
   const linkItemClaim = useStorage((s) => s.linkItemClaim);
+  const allExceptions = useStorage((s) => s.exceptions);
+  const resolveException = useStorage((s) => s.resolveException);
   const createClaim = useClaims((s) => s.createClaim);
 
   const activeRoleId = usePreferences((s) => s.activeRoleId);
@@ -70,6 +73,8 @@ export default function StorageUnitPage({ params }: { params: Promise<{ id: stri
       priority: item.condition === "Missing" ? "High" : "Normal",
       source: `Storage unit ${unit.unitNumber} · ${item.name} (tag ${item.tag})`,
       note: item.notes,
+      linkedStorageUnitId: unit.id,
+      linkedStorageItemId: item.id,
     });
     linkItemClaim(item.id, claim.id);
   };
@@ -86,6 +91,7 @@ export default function StorageUnitPage({ params }: { params: Promise<{ id: stri
   }, [items]);
 
   const flaggedCount = items.filter(isItemFlagged).length;
+  const openExceptions = allExceptions.filter((e) => e.unitId === id && e.status === "open");
   const totalPieces = items.reduce((s, i) => s + i.quantity, 0);
 
   if (!unit) {
@@ -174,6 +180,28 @@ export default function StorageUnitPage({ params }: { params: Promise<{ id: stri
               </div>
             </CardContent>
           </Card>
+
+          {openExceptions.length > 0 && (
+            <Card className="border-rose-500/40">
+              <CardContent className="p-0">
+                <div className="border-b border-border px-4 py-2.5">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-rose-700">Open exceptions ({openExceptions.length})</span>
+                </div>
+                <ul className="divide-y divide-border">
+                  {openExceptions.map((e) => (
+                    <li key={e.id} className="flex items-start justify-between gap-2 px-4 py-2.5">
+                      <div className="min-w-0">
+                        <Badge variant="danger" className="text-[9px]">{EXCEPTION_TYPE_LABEL[e.type]}</Badge>
+                        <p className="mt-1 text-[11px] text-muted-foreground">{e.description}</p>
+                        {e.linkedClaimId && <Link href={`/claims/${e.linkedClaimId}`} className="text-[10px] font-semibold text-primary hover:underline">→ claim {e.linkedClaimId}</Link>}
+                      </div>
+                      <Button size="sm" variant="ghost" className="h-6 shrink-0 text-[10px]" onClick={() => resolveException(e.id)}>Resolve</Button>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right: inventory grouped by destination */}

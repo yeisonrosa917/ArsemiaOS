@@ -172,6 +172,7 @@ export const ROLES: Record<UserRoleId, UserRole> = {
       "expenses.view_all", "expenses.approve",
       "payroll.view_all", "payroll.approve", "payroll.audit",
       "customers.view",
+      "storage.view",
       "analytics.view", "analytics.export",
     ],
     landing: "/payroll",

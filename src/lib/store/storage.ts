@@ -395,6 +395,116 @@ const SEED_ITEMS: StorageItem[] = [
 ];
 
 /* ------------------------------------------------------------------ */
+/* Derived item status (for the item-first table)                      */
+/* ------------------------------------------------------------------ */
+
+export type StorageItemStatus =
+  | "in_storage"
+  | "pulled_for_delivery"
+  | "delivered_out"
+  | "damaged"
+  | "missing"
+  | "claimed";
+
+export const STORAGE_ITEM_STATUS_LABEL: Record<StorageItemStatus, string> = {
+  in_storage: "In storage",
+  pulled_for_delivery: "Pulled",
+  delivered_out: "Delivered out",
+  damaged: "Damaged",
+  missing: "Missing",
+  claimed: "Claimed",
+};
+
+export const STORAGE_ITEM_STATUS_STYLE: Record<StorageItemStatus, string> = {
+  in_storage: "border-violet-500/40 bg-violet-500/10 text-violet-600",
+  pulled_for_delivery: "border-amber-500/40 bg-amber-500/10 text-amber-600",
+  delivered_out: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600",
+  damaged: "border-rose-500/40 bg-rose-500/10 text-rose-600",
+  missing: "border-rose-600/50 bg-rose-600/15 text-rose-700",
+  claimed: "border-sky-500/40 bg-sky-500/10 text-sky-600",
+};
+
+export const STORAGE_ITEM_STATUSES: StorageItemStatus[] = [
+  "in_storage", "pulled_for_delivery", "delivered_out", "damaged", "missing", "claimed",
+];
+
+export function storageItemStatus(i: StorageItem): StorageItemStatus {
+  if (i.condition === "Missing") return "missing";
+  if (i.condition === "Damaged") return i.claimId ? "claimed" : "damaged";
+  if (i.claimId) return "claimed";
+  if (i.stage === "Delivered" || i.stage === "Out for Delivery") return "delivered_out";
+  if (i.stage === "Pulled for Delivery") return "pulled_for_delivery";
+  return "in_storage";
+}
+
+/* ------------------------------------------------------------------ */
+/* Exceptions                                                          */
+/* ------------------------------------------------------------------ */
+
+export type StorageExceptionType = "damaged" | "missing" | "wrong_unit" | "condition_change";
+export type StorageExceptionStatus = "open" | "resolved";
+
+export const EXCEPTION_TYPE_LABEL: Record<StorageExceptionType, string> = {
+  damaged: "Damaged",
+  missing: "Missing",
+  wrong_unit: "Wrong unit",
+  condition_change: "Condition change",
+};
+
+export interface StorageException {
+  id: string;
+  itemId: string;
+  unitId: string;
+  jobId?: string;
+  type: StorageExceptionType;
+  severity: "low" | "medium" | "high";
+  description: string;
+  createdBy: string;
+  createdAt: string;
+  linkedClaimId?: string;
+  status: StorageExceptionStatus;
+}
+
+const SEED_EXCEPTIONS: StorageException[] = [
+  { id: "STE-0001", itemId: "ITM-0020", unitId: "UNIT-503", jobId: "JOB-10424", type: "damaged", severity: "high", description: "Water ring + cracked veneer on Antique Dresser (inbound scan).", createdBy: "Storage Desk", createdAt: "2026-06-21T14:10:00", status: "open" },
+  { id: "STE-0002", itemId: "ITM-0021", unitId: "UNIT-503", jobId: "JOB-10424", type: "missing", severity: "high", description: "Floor Lamp not located at inbound count.", createdBy: "Storage Desk", createdAt: "2026-06-21T14:20:00", status: "open" },
+  { id: "STE-0003", itemId: "ITM-0002", unitId: "UNIT-501", jobId: "JOB-10421", type: "condition_change", severity: "low", description: "Minor scuff noted on Sleeper Sofa left arm.", createdBy: "Marcus Reyes", createdAt: "2026-06-12T10:00:00", status: "resolved" },
+];
+
+/* ------------------------------------------------------------------ */
+/* Reminders                                                           */
+/* ------------------------------------------------------------------ */
+
+export type StorageReminderType = "billing" | "access_check" | "inventory_audit" | "delivery_due" | "exception_followup";
+
+export const STORAGE_REMINDER_LABEL: Record<StorageReminderType, string> = {
+  billing: "Billing due",
+  access_check: "Access check",
+  inventory_audit: "Inventory audit",
+  delivery_due: "Delivery due",
+  exception_followup: "Exception follow-up",
+};
+
+export interface StorageReminder {
+  id: string;
+  type: StorageReminderType;
+  providerId?: string;
+  unitId?: string;
+  jobId?: string;
+  dueDate: string;
+  priority: "low" | "normal" | "high";
+  status: "open" | "done";
+  note?: string;
+}
+
+const SEED_REMINDERS: StorageReminder[] = [
+  { id: "STR-0001", type: "billing", unitId: "UNIT-503", providerId: "PRV-2", dueDate: "2026-06-19", priority: "high", status: "open", note: "Autopay failed — Marcus Thompson unit overdue." },
+  { id: "STR-0002", type: "delivery_due", unitId: "UNIT-505", jobId: "JOB-10426", dueDate: "2026-07-11", priority: "high", status: "open", note: "Isabella Fernandez delivery scheduled." },
+  { id: "STR-0003", type: "billing", unitId: "UNIT-501", providerId: "PRV-1", dueDate: "2026-08-01", priority: "normal", status: "open" },
+  { id: "STR-0004", type: "inventory_audit", unitId: "UNIT-502", providerId: "PRV-1", dueDate: "2026-07-15", priority: "normal", status: "open", note: "Shared unit — quarterly audit." },
+];
+
+/* ------------------------------------------------------------------ */
 /* Store                                                               */
 /* ------------------------------------------------------------------ */
 
@@ -402,18 +512,24 @@ interface StorageState {
   providers: StorageProvider[];
   units: StorageUnit[];
   items: StorageItem[];
+  exceptions: StorageException[];
+  reminders: StorageReminder[];
 
   advanceScan: (itemId: string, by: string, note?: string) => StorageItem | undefined;
   setStage: (itemId: string, stage: ScanStage, by: string, note?: string) => StorageItem | undefined;
   setCondition: (itemId: string, condition: ItemCondition, by: string, note?: string) => StorageItem | undefined;
   setUnitStatus: (unitId: string, status: StorageUnitStatus) => StorageUnit | undefined;
   linkItemClaim: (itemId: string, claimId: string) => StorageItem | undefined;
+  reportException: (input: Omit<StorageException, "id" | "createdAt" | "status">) => StorageException;
+  resolveException: (id: string) => void;
+  resolveReminder: (id: string) => void;
 
   getProvider: (id: string) => StorageProvider | undefined;
   getUnit: (id: string) => StorageUnit | undefined;
   getItem: (id: string) => StorageItem | undefined;
   unitsForProvider: (providerId: string) => StorageUnit[];
   itemsForUnit: (unitId: string) => StorageItem[];
+  exceptionsForUnit: (unitId: string) => StorageException[];
 }
 
 function mkLocalScanId(): string {
@@ -442,6 +558,8 @@ export const useStorage = create<StorageState>()(
         providers: SEED_PROVIDERS,
         units: SEED_UNITS,
         items: SEED_ITEMS,
+        exceptions: SEED_EXCEPTIONS,
+        reminders: SEED_REMINDERS,
 
         advanceScan: (itemId, by, note) => {
           const current = get().items.find((i) => i.id === itemId);
@@ -468,8 +586,8 @@ export const useStorage = create<StorageState>()(
             ],
           })),
 
-        setCondition: (itemId, condition, by, note) =>
-          applyItem(itemId, (i) => ({
+        setCondition: (itemId, condition, by, note) => {
+          const updated = applyItem(itemId, (i) => ({
             ...i,
             condition,
             notes: note ?? i.notes,
@@ -483,7 +601,30 @@ export const useStorage = create<StorageState>()(
                 note: `Condition set to ${condition}${note ? ` — ${note}` : ""}`,
               },
             ],
-          })),
+          }));
+          // Damaged/Missing auto-raises an open exception (once).
+          if (updated && (condition === "Damaged" || condition === "Missing")) {
+            const existing = get().exceptions.find(
+              (e) => e.itemId === itemId && e.status === "open",
+            );
+            if (!existing) {
+              const exc: StorageException = {
+                id: createId("storageException"),
+                itemId,
+                unitId: updated.unitId,
+                jobId: updated.jobId,
+                type: condition === "Missing" ? "missing" : "damaged",
+                severity: "high",
+                description: `${updated.name} reported ${condition.toLowerCase()}${note ? ` — ${note}` : ""}`,
+                createdBy: by,
+                createdAt: new Date().toISOString(),
+                status: "open",
+              };
+              set((s) => ({ exceptions: [exc, ...s.exceptions] }));
+            }
+          }
+          return updated;
+        },
 
         setUnitStatus: (unitId, status) => {
           let updated: StorageUnit | undefined;
@@ -497,17 +638,46 @@ export const useStorage = create<StorageState>()(
           return updated;
         },
 
-        linkItemClaim: (itemId, claimId) => applyItem(itemId, (i) => ({ ...i, claimId })),
+        linkItemClaim: (itemId, claimId) => {
+          const updated = applyItem(itemId, (i) => ({ ...i, claimId }));
+          // Link any open exception for this item to the claim too.
+          set((s) => ({
+            exceptions: s.exceptions.map((e) =>
+              e.itemId === itemId && e.status === "open" ? { ...e, linkedClaimId: claimId } : e,
+            ),
+          }));
+          return updated;
+        },
+
+        reportException: (input) => {
+          const exc: StorageException = {
+            ...input,
+            id: createId("storageException"),
+            createdAt: new Date().toISOString(),
+            status: "open",
+          };
+          set((s) => ({ exceptions: [exc, ...s.exceptions] }));
+          return exc;
+        },
+        resolveException: (id) =>
+          set((s) => ({
+            exceptions: s.exceptions.map((e) => (e.id === id ? { ...e, status: "resolved" } : e)),
+          })),
+        resolveReminder: (id) =>
+          set((s) => ({
+            reminders: s.reminders.map((r) => (r.id === id ? { ...r, status: "done" } : r)),
+          })),
 
         getProvider: (id) => get().providers.find((p) => p.id === id),
         getUnit: (id) => get().units.find((u) => u.id === id),
         getItem: (id) => get().items.find((i) => i.id === id),
         unitsForProvider: (providerId) => get().units.filter((u) => u.providerId === providerId),
         itemsForUnit: (unitId) => get().items.filter((i) => i.unitId === unitId),
+        exceptionsForUnit: (unitId) => get().exceptions.filter((e) => e.unitId === unitId),
       };
     },
     {
-      name: "arsemia.storage.v1",
+      name: "arsemia.storage.v2",
       storage: createJSONStorage(() => localStorage),
     },
   ),

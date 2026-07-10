@@ -198,6 +198,9 @@ export interface Claim {
   /** Optional connections used by the thread header. */
   invoiceId?: string;
   expenseId?: string;
+  /** Storage back-links (set when the claim is opened from a storage item). */
+  linkedStorageUnitId?: string;
+  linkedStorageItemId?: string;
 }
 
 const SEED: Claim[] = [
@@ -451,6 +454,8 @@ export interface CreateClaimInput {
   note?: string;
   /** Free-text origin, e.g. "Storage unit B-114 · tag ARS-88220". */
   source?: string;
+  linkedStorageUnitId?: string;
+  linkedStorageItemId?: string;
 }
 
 const SIDE_TO_MSG: Record<ClaimEvidence["side"], { kind: ClaimMessageKind; role: string; visibility: ClaimVisibility }> = {
@@ -598,6 +603,8 @@ export const useClaims = create<ClaimsState>()(
             internalReviewNote: input.note,
             priority: input.priority,
             read: false,
+            linkedStorageUnitId: input.linkedStorageUnitId,
+            linkedStorageItemId: input.linkedStorageItemId,
           };
           const hydrated = hydrateClaim(base);
           const messages = [...(hydrated.messages ?? [])];
