@@ -28,6 +28,11 @@ export interface UserRole {
  */
 export const ROUTE_REQUIRES: Record<string, CapabilityId[]> = {
   "/": ["dashboard.view"],
+  // Sprint 1 workspaces. Old top-level URLs below are kept because their
+  // redirects land here and detail routes still inherit from them.
+  "/operations": ["dispatch.view", "routes.view"],
+  "/finance": ["invoices.view", "expenses.view_all", "expenses.view_own", "payroll.view_all"],
+  "/reports": ["analytics.view"],
   "/pipeline": ["leads.view"],
   "/dispatch": ["dispatch.view"],
   "/foreman-portal": ["jobs.view"],
@@ -110,7 +115,7 @@ export const ROLES: Record<UserRoleId, UserRole> = {
       "storage.view", "storage.manage",
       "customers.view",
     ],
-    landing: "/dispatch",
+    landing: "/operations",
   },
 
   /**
@@ -159,7 +164,7 @@ export const ROLES: Record<UserRoleId, UserRole> = {
       "leads.view",
       "analytics.view", "analytics.export",
     ],
-    landing: "/analytics",
+    landing: "/reports",
   },
 
   /** Accounting — finance only. NO dispatch, NO permission management. */
@@ -175,7 +180,7 @@ export const ROLES: Record<UserRoleId, UserRole> = {
       "storage.view",
       "analytics.view", "analytics.export",
     ],
-    landing: "/payroll",
+    landing: "/finance",
   },
 
   /** Claims team — claims, related job/customer/foreman context. */

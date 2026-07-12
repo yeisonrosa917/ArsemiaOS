@@ -47,7 +47,7 @@ const SECTIONS = [
   { id: "audit", icon: Activity, label: "Audit Log", external: "/activity" as const },
   { id: "notifications", icon: Bell, label: "Notifications" },
   { id: "integrations", icon: Plug, label: "Integrations" },
-  { id: "privacy", icon: Lock, label: "Privacy & Data" },
+  { id: "security", icon: Lock, label: "Security & Compliance" },
 ];
 
 export default function SettingsPage() {
@@ -236,7 +236,16 @@ export default function SettingsPage() {
 
           {section === "integrations" && <IntegrationsCard />}
 
-          {section === "privacy" && <PrivacyDataCard />}
+          {section === "security" && (
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground">
+                Security &amp; Compliance. Privacy &amp; data controls live here;
+                password, session and 2FA management require the backend and are
+                labelled accordingly in Users &amp; Access.
+              </p>
+              <PrivacyDataCard />
+            </div>
+          )}
         </div>
       </div>
     </div>

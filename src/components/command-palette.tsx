@@ -7,6 +7,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import {
   BarChart3,
   Bell,
+  Boxes,
   Briefcase,
   ClipboardList,
   Coins,
@@ -46,7 +47,7 @@ interface PageItem {
 
 const PAGES: PageItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard, hint: "Home" },
-  { label: "Dispatch", href: "/dispatch", icon: Zap, hint: "Live board" },
+  { label: "Operations Control", href: "/operations", icon: Zap, hint: "Dispatch · Schedule" },
   { label: "Jobs", href: "/jobs", icon: ClipboardList },
   { label: "Pipeline", href: "/pipeline", icon: Briefcase, hint: "Sales" },
   { label: "Leads", href: "/leads", icon: Users },
@@ -54,11 +55,12 @@ const PAGES: PageItem[] = [
   { label: "Customers", href: "/customers", icon: Users },
   { label: "Foremen", href: "/foremen", icon: UserSquare2 },
   { label: "Fleet", href: "/fleet", icon: Truck },
-  { label: "Invoices", href: "/invoices", icon: Receipt },
-  { label: "Expenses", href: "/expenses", icon: Wallet },
-  { label: "Payroll", href: "/payroll", icon: Coins },
+  { label: "Storage", href: "/storage", icon: Boxes, hint: "Command center" },
+  { label: "Invoices", href: "/finance?tab=invoices", guardPath: "/finance", icon: Receipt, hint: "Finance" },
+  { label: "Expenses", href: "/finance?tab=expenses", guardPath: "/finance", icon: Wallet, hint: "Finance" },
+  { label: "Payroll", href: "/finance?tab=payroll", guardPath: "/finance", icon: Coins, hint: "Finance" },
   { label: "Claims", href: "/claims", icon: ShieldAlert },
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "Reports", href: "/reports", icon: BarChart3, hint: "Intelligence" },
   { label: "Notifications", href: "/notifications", icon: Bell },
   { label: "Settings", href: "/settings", icon: Settings },
   { label: "Audit Log", href: "/activity", icon: ShieldAlert, hint: "Owner" },
@@ -96,7 +98,7 @@ export function CommandPalette({
     router.push(href);
   };
 
-  const visiblePages = PAGES.filter((p) => can(p.href));
+  const visiblePages = PAGES.filter((p) => can(p.guardPath ?? p.href));
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>

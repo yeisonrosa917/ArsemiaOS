@@ -12,7 +12,6 @@ import {
   LayoutDashboard,
   LifeBuoy,
   Map,
-  Receipt,
   Settings,
   ShieldAlert,
   Truck,
@@ -22,7 +21,6 @@ import {
   Wallet,
   Zap,
 } from "lucide-react";
-import { useNotifications } from "@/lib/store/notifications";
 import { cn } from "@/lib/utils";
 import { usePreferences } from "@/lib/store/preferences";
 import {
@@ -39,11 +37,15 @@ type NavItem = {
   badge?: string;
 };
 
-const primaryNav: NavItem[] = [
+/**
+ * Sprint 1 IA cleanup — workspace-first navigation.
+ * Order per master pack §3.2: Dashboard · Sales · Operations · Jobs ·
+ * Storage · Finance · Claims · Reports · Admin. Old top-level modules
+ * (Dispatch, Routes, Invoices, Expenses, Payroll, Analytics) live inside
+ * the Operations/Finance/Reports workspaces; their URLs redirect.
+ */
+const homeNav: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Dispatch", href: "/dispatch", icon: Zap, badge: "Live" },
-  { label: "Jobs", href: "/jobs", icon: ClipboardList },
-  { label: "Routes & Schedule", href: "/routes", icon: Map },
 ];
 
 const salesNav: NavItem[] = [
@@ -53,24 +55,19 @@ const salesNav: NavItem[] = [
   { label: "Customers", href: "/customers", icon: Users },
 ];
 
+/** Daily ops workspace + the people/asset registries that feed it. */
 const operationsNav: NavItem[] = [
+  { label: "Operations Control", href: "/operations", icon: Zap, badge: "Live" },
   { label: "Foremen", href: "/foremen", icon: UserSquare2 },
   { label: "Fleet", href: "/fleet", icon: Truck },
+];
+
+const workspacesNav: NavItem[] = [
+  { label: "Jobs", href: "/jobs", icon: ClipboardList },
   { label: "Storage", href: "/storage", icon: Boxes },
-];
-
-const financeNav: NavItem[] = [
-  { label: "Invoices", href: "/invoices", icon: Receipt },
-  { label: "Expenses", href: "/expenses", icon: Wallet },
-  { label: "Payroll", href: "/payroll", icon: Coins },
-];
-
-const riskNav: NavItem[] = [
+  { label: "Finance", href: "/finance", icon: Coins },
   { label: "Claims", href: "/claims", icon: ShieldAlert },
-];
-
-const insightsNav: NavItem[] = [
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "Reports", href: "/reports", icon: BarChart3 },
 ];
 
 const adminNav: NavItem[] = [
@@ -92,7 +89,7 @@ function NavGroup({
   caps,
   badges,
 }: {
-  label: string;
+  label?: string;
   items: NavItem[];
   pathname: string;
   caps: CapabilityId[];
@@ -102,9 +99,11 @@ function NavGroup({
   if (visible.length === 0) return null;
   return (
     <div className="px-3">
-      <p className="px-3 pb-1.5 pt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/45">
-        {label}
-      </p>
+      {label && (
+        <p className="px-3 pb-1.5 pt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/45">
+          {label}
+        </p>
+      )}
       <ul className="space-y-0.5">
         {visible.map((item) => {
           const Icon = item.icon;
@@ -162,8 +161,6 @@ export function Sidebar() {
   const { sidebarSide, activeRoleId, capabilityOverrides } = usePreferences();
   const role = ROLES[activeRoleId];
   const caps = resolveCapabilities(activeRoleId, capabilityOverrides);
-  const unread = useNotifications((s) => s.items.filter((n) => !n.read).length);
-  const adminBadges = unread > 0 ? { "/notifications": unread > 9 ? "9+" : String(unread) } : undefined;
 
   return (
     <aside
@@ -195,13 +192,11 @@ export function Sidebar() {
           <NavGroup label="My Portal" items={foremanPortalNav} pathname={pathname} caps={caps} />
         ) : (
           <>
-            <NavGroup label="Operate" items={primaryNav} pathname={pathname} caps={caps} />
+            <NavGroup items={homeNav} pathname={pathname} caps={caps} />
             <NavGroup label="Sales" items={salesNav} pathname={pathname} caps={caps} />
-            <NavGroup label="People & Assets" items={operationsNav} pathname={pathname} caps={caps} />
-            <NavGroup label="Finance" items={financeNav} pathname={pathname} caps={caps} />
-            <NavGroup label="Risk" items={riskNav} pathname={pathname} caps={caps} />
-            <NavGroup label="Insights" items={insightsNav} pathname={pathname} caps={caps} />
-            <NavGroup label="Admin" items={adminNav} pathname={pathname} caps={caps} badges={adminBadges} />
+            <NavGroup label="Operations" items={operationsNav} pathname={pathname} caps={caps} />
+            <NavGroup label="Workspaces" items={workspacesNav} pathname={pathname} caps={caps} />
+            <NavGroup label="Admin" items={adminNav} pathname={pathname} caps={caps} />
           </>
         )}
       </nav>
