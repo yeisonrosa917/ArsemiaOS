@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Plus, Receipt, Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ const STATUS_STYLES: Record<InvoiceStatus, string> = {
 const FILTERS: ("All" | InvoiceStatus)[] = ["All", ...INVOICE_STATUSES];
 
 export default function InvoicesPage() {
+  const router = useRouter();
   const items = useInvoices((s) => s.items);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
   const [query, setQuery] = useState("");
@@ -136,7 +138,11 @@ export default function InvoicesPage() {
           </TableHeader>
           <TableBody>
             {filtered.map((i) => (
-              <TableRow key={i.id} className="cursor-pointer hover:bg-accent/30">
+              <TableRow
+                key={i.id}
+                className="cursor-pointer hover:bg-accent/30"
+                onClick={() => router.push(`/invoices/${i.id}`)}
+              >
                 <TableCell className="pl-5">
                   <Link href={`/invoices/${i.id}`} className="font-mono text-xs hover:underline">
                     {i.id}

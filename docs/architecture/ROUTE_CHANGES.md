@@ -44,6 +44,17 @@ in the tree: their URLs redirect, but the workspace shells lazy-import these
 components as tab content (single implementation, no duplicated stores). Do not
 delete them without moving their bodies into the shells first.
 
+## Sprint 1.1 QA note — invoice row click
+
+Reported after Sprint 1 review: clicking an invoice (e.g. Sofia Martinez) in
+Finance → Invoices "did nothing". **Not a Sprint 1 regression** — the invoices
+page was untouched by Sprint 1 and the behavior exists at the pre-sprint commit
+(`8e6fda0`): the table row was styled `cursor-pointer` but only the small ID and
+customer-name cells were actual links, so clicks on any other cell were dead.
+The workspace relocation only surfaced it during review. Fixed by adding
+row-level navigation (`onClick → /invoices/[id]`) while keeping the inner links
+(so open-in-new-tab still works). No invoice business logic changed.
+
 ## Role landing changes
 
 | Role | Old landing | New landing |
