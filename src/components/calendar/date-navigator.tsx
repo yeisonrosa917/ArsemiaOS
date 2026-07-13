@@ -30,6 +30,8 @@ export function DateNavigator({
   today,
   mode = "day",
   variant = "full",
+  dayCounts,
+  countLabel = "jobs",
   className,
 }: {
   selectedDate: string;
@@ -38,6 +40,9 @@ export function DateNavigator({
   today?: string;
   mode?: "day" | "week";
   variant?: "full" | "compact";
+  /** Optional per-day record counts (ISO date → count) shown under each day. */
+  dayCounts?: Record<string, number>;
+  countLabel?: string;
   className?: string;
 }) {
   const todayIso = today ?? new Date().toISOString().slice(0, 10);
@@ -93,6 +98,11 @@ export function DateNavigator({
                 <span className={cn("text-sm font-semibold", isToday && !active && "text-primary")}>
                   {formatDateStable(d, { day: "numeric" })}
                 </span>
+                {dayCounts && (
+                  <span className={cn("text-[9px]", active ? "text-primary/80" : "text-muted-foreground")}>
+                    {isToday ? "today" : `${dayCounts[d] ?? 0} ${countLabel}`}
+                  </span>
+                )}
               </button>
             );
           })}

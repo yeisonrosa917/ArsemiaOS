@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   JobStatusBadge,
   DriverStatusBadge,
@@ -43,14 +42,29 @@ function todayISO(): string {
   return toISODateSafe(new Date());
 }
 
-export function DispatchBoard() {
+export function DispatchBoard({
+  selectedDate: controlledDate,
+  onDateChange,
+  hideDateStrip = false,
+}: {
+  /** Controlled mode — the Operations shell owns the selected date. */
+  selectedDate?: string;
+  onDateChange?: (iso: string) => void;
+  /** Hide the internal date strip when a shared navigator is rendered above. */
+  hideDateStrip?: boolean;
+} = {}) {
   const jobs = useJobsStore((s) => s.jobs);
   const [search, setSearch] = useState("");
   const [zoneFilter, setZoneFilter] = useState<string>("All Zones");
   const [typeFilter, setTypeFilter] = useState<string>("All Types");
   const [statusFilter, setStatusFilter] = useState<JobStatus | "All">("All");
   const [driverFilter, setDriverFilter] = useState<string>("All Foremen");
-  const [selectedDate, setSelectedDate] = useState<string>(todayISO());
+  const [internalDate, setInternalDate] = useState<string>(todayISO());
+  const selectedDate = controlledDate ?? internalDate;
+  const setSelectedDate = (iso: string) => {
+    if (onDateChange) onDateChange(iso);
+    else setInternalDate(iso);
+  };
   const [selectedJobId, setSelectedJobId] = useState<string | null>(
     jobs[0]?.id ?? null,
   );
@@ -118,7 +132,9 @@ export function DispatchBoard() {
 
   return (
     <div className="space-y-4">
-      {/* Date strip — easy day navigation */}
+      {/* Date strip — easy day navigation (hidden when the Operations shell
+          renders the shared full-width DateNavigator above the tabs). */}
+      {!hideDateStrip && (
       <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2 shadow-soft">
         <Button
           size="sm"
@@ -197,6 +213,7 @@ export function DispatchBoard() {
           </Button>
         )}
       </div>
+      )}
 
       <PendingDispatchChanges />
 
@@ -283,7 +300,7 @@ export function DispatchBoard() {
             </div>
           </div>
 
-          <ScrollArea className="max-h-[640px] flex-1">
+          <div className="max-h-[640px] flex-1 overflow-y-auto scrollbar-thin">
             <ul className="space-y-1.5 p-3">
               {filteredJobs.map((job) => {
                 const active = selectedJob?.id === job.id;
@@ -363,7 +380,7 @@ export function DispatchBoard() {
                 </li>
               )}
             </ul>
-          </ScrollArea>
+          </div>
         </div>
       </aside>
 
@@ -477,7 +494,7 @@ export function DispatchBoard() {
             </div>
           </div>
 
-          <ScrollArea className="max-h-[640px] flex-1">
+          <div className="max-h-[640px] flex-1 overflow-y-auto scrollbar-thin">
             <ul className="space-y-2 p-3">
               {drivers.map((d) => (
                 <li
@@ -530,7 +547,7 @@ export function DispatchBoard() {
                 </li>
               ))}
             </ul>
-          </ScrollArea>
+          </div>
 
           <div className="border-t p-3">
             <Button asChild variant="outline" className="w-full gap-2 text-xs">
