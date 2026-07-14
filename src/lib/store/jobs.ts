@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { allJobs as seedJobs } from "@/lib/data/all-jobs";
-import type { Job } from "@/lib/types";
+import type { AssignmentStatus, Job } from "@/lib/types";
 
 export interface PendingReassignment {
   jobId: string;
@@ -23,6 +23,24 @@ interface JobsState {
   addJob: (job: Job) => Job;
   getById: (id: string) => Job | undefined;
   updateJob: (id: string, patch: Partial<Job>) => void;
+  /** Assignments board (Sprint 2.2) — all local/in-app; no real delivery. */
+  assignJobToForeman: (jobId: string, foremanId: string, foremanName: string) => void;
+  unassignJob: (jobId: string) => void;
+  /** Set the truck for ALL of a foreman's jobs on a given day. */
+  assignTruckForDay: (foremanId: string, dayIso: string, truckId: string | undefined) => void;
+  /** Batch-transition assignment status for a foreman's jobs on a day. */
+  setAssignmentForDay: (
+    foremanId: string,
+    dayIso: string,
+    status: AssignmentStatus,
+    opts?: { by?: string; reason?: string },
+  ) => void;
+  /** Per-job transition (used by the Foreman Portal confirm/decline). */
+  setJobAssignment: (
+    jobId: string,
+    status: AssignmentStatus,
+    opts?: { by?: string; reason?: string },
+  ) => void;
   /** Apply an adjustment delta on the job — increments cuFt and price, records baseline. */
   applyAdjustment: (
     id: string,
@@ -56,6 +74,87 @@ export const useJobsStore = create<JobsState>()(
         set((s) => ({
           jobs: s.jobs.map((j) => (j.id === id ? { ...j, ...patch } : j)),
         })),
+      assignJobToForeman: (jobId, foremanId, foremanName) =>
+        set((s) => ({
+          jobs: s.jobs.map((j) =>
+            j.id === jobId
+              ? {
+                  ...j,
+                  driverId: foremanId,
+                  driverName: foremanName,
+                  status: j.status === "Unassigned" ? "Assigned" : j.status,
+                  assignment: { status: "Draft" },
+                }
+              : j,
+          ),
+        })),
+      unassignJob: (jobId) =>
+        set((s) => ({
+          jobs: s.jobs.map((j) =>
+            j.id === jobId
+              ? {
+                  ...j,
+                  driverId: undefined,
+                  driverName: undefined,
+                  truckId: undefined,
+                  status: "Unassigned",
+                  assignment: undefined,
+                }
+              : j,
+          ),
+        })),
+      assignTruckForDay: (foremanId, dayIso, truckId) =>
+        set((s) => ({
+          jobs: s.jobs.map((j) =>
+            j.driverId === foremanId && (j.scheduledAt ?? "").slice(0, 10) === dayIso
+              ? { ...j, truckId }
+              : j,
+          ),
+        })),
+      setAssignmentForDay: (foremanId, dayIso, status, opts) => {
+        const now = new Date().toISOString();
+        set((s) => ({
+          jobs: s.jobs.map((j) => {
+            if (j.driverId !== foremanId || (j.scheduledAt ?? "").slice(0, 10) !== dayIso) return j;
+            if (j.status === "Cancelled" || j.status === "Completed") return j;
+            return {
+              ...j,
+              assignment: {
+                ...(j.assignment ?? { status: "Draft" }),
+                status,
+                by: opts?.by ?? j.assignment?.by,
+                ...(status === "Notified" ? { notifiedAt: now } : {}),
+                ...(status === "Confirmed" ? { confirmedAt: now } : {}),
+                ...(status === "Declined"
+                  ? { declinedAt: now, declineReason: opts?.reason }
+                  : {}),
+              },
+            };
+          }),
+        }));
+      },
+      setJobAssignment: (jobId, status, opts) => {
+        const now = new Date().toISOString();
+        set((s) => ({
+          jobs: s.jobs.map((j) =>
+            j.id === jobId
+              ? {
+                  ...j,
+                  assignment: {
+                    ...(j.assignment ?? { status: "Draft" }),
+                    status,
+                    by: opts?.by ?? j.assignment?.by,
+                    ...(status === "Notified" ? { notifiedAt: now } : {}),
+                    ...(status === "Confirmed" ? { confirmedAt: now } : {}),
+                    ...(status === "Declined"
+                      ? { declinedAt: now, declineReason: opts?.reason }
+                      : {}),
+                  },
+                }
+              : j,
+          ),
+        }));
+      },
       applyAdjustment: (id, delta) => {
         const job = get().jobs.find((j) => j.id === id);
         if (!job) return undefined;
@@ -152,7 +251,8 @@ export const useJobsStore = create<JobsState>()(
       reset: () => set({ jobs: seedJobs, pendingReassignments: [] }),
     }),
     {
-      name: "arsemia.jobs.v2",
+      // v3 — Sprint 2.2: date re-anchored seed + assignment/truck fields.
+      name: "arsemia.jobs.v3",
       storage: createJSONStorage(() => localStorage),
     },
   ),

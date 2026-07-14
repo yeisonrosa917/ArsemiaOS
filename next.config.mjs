@@ -13,7 +13,8 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/dispatch", destination: "/operations?tab=board", permanent: false },
-      { source: "/routes", destination: "/operations?tab=schedule", permanent: false },
+      // Sprint 2.2: the Schedule tab folded into Assignments.
+      { source: "/routes", destination: "/operations?tab=assignments", permanent: false },
       { source: "/invoices", destination: "/finance?tab=invoices", permanent: false },
       { source: "/expenses", destination: "/finance?tab=expenses", permanent: false },
       { source: "/payroll", destination: "/finance?tab=payroll", permanent: false },

@@ -11,33 +11,22 @@ import { resolveCapabilities } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
 
 /**
- * Operations Control workspace (Sprint 2).
+ * Operations Control workspace (Sprint 2.2).
  *
- * The daily command room: Dispatch Board · Schedule/Routes · Foreman Roster ·
- * Truck Assignment · Capacity & Load · Alerts. One shared selected date drives
- * every tab via the full-width DateNavigator. Tabs lazy-mount; Board and
- * Schedule reuse the existing components unchanged in behavior. All data is
- * the existing local demo stores.
+ * Exactly three tabs — Board · Assignments · Alerts — sharing one operational
+ * date via the full-width DateNavigator. The old Schedule/Roster/Trucks/
+ * Capacity tabs were folded in, not lost: roster info lives in the Board's
+ * crew panel and the Assignments lanes; truck assignment and capacity KPIs
+ * live in Assignments; capacity breaches also surface in Alerts. Old
+ * ?tab= values fall back gracefully. All data is local demo stores.
  */
 
 const DispatchBoard = dynamic(
   () => import("@/components/dispatch/dispatch-board").then((m) => m.DispatchBoard),
   { ssr: false, loading: () => <TabLoading /> },
 );
-const ScheduleView = dynamic(
-  () => import("@/components/operations/schedule-view").then((m) => m.ScheduleView),
-  { ssr: false, loading: () => <TabLoading /> },
-);
-const ForemanRoster = dynamic(
-  () => import("@/components/operations/foreman-roster").then((m) => m.ForemanRoster),
-  { ssr: false, loading: () => <TabLoading /> },
-);
-const TruckAssignment = dynamic(
-  () => import("@/components/operations/truck-assignment").then((m) => m.TruckAssignment),
-  { ssr: false, loading: () => <TabLoading /> },
-);
-const CapacityLoad = dynamic(
-  () => import("@/components/operations/capacity-load").then((m) => m.CapacityLoad),
+const AssignmentsBoard = dynamic(
+  () => import("@/components/operations/assignments-board").then((m) => m.AssignmentsBoard),
   { ssr: false, loading: () => <TabLoading /> },
 );
 const OpsAlerts = dynamic(
@@ -45,7 +34,15 @@ const OpsAlerts = dynamic(
   { ssr: false, loading: () => <TabLoading /> },
 );
 
-type TabId = "board" | "schedule" | "roster" | "trucks" | "capacity" | "alerts";
+type TabId = "board" | "assignments" | "alerts";
+
+/** Pre-2.2 tab ids → their new home (roster folded into Board's crew panel). */
+const LEGACY_TABS: Record<string, TabId> = {
+  schedule: "assignments",
+  roster: "board",
+  trucks: "assignments",
+  capacity: "assignments",
+};
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
@@ -62,16 +59,20 @@ function OperationsContent() {
   const canDispatch = caps.includes("dispatch.view");
   const canRoutes = caps.includes("routes.view");
   const tabs: { id: TabId; label: string; allowed: boolean }[] = [
-    { id: "board", label: "Dispatch Board", allowed: canDispatch },
-    { id: "schedule", label: "Schedule / Routes", allowed: canRoutes },
-    { id: "roster", label: "Foreman Roster", allowed: caps.includes("drivers.view") },
-    { id: "trucks", label: "Truck Assignment", allowed: caps.includes("fleet.view") },
-    { id: "capacity", label: "Capacity & Load", allowed: canDispatch || canRoutes },
+    { id: "board", label: "Board", allowed: canDispatch },
+    { id: "assignments", label: "Assignments", allowed: canDispatch || canRoutes },
     { id: "alerts", label: "Alerts", allowed: canDispatch || canRoutes },
   ];
   const visible = tabs.filter((t) => t.allowed);
 
-  const param = searchParams.get("tab") as TabId | null;
+  const rawParam = searchParams.get("tab");
+  const param: TabId | null = rawParam
+    ? tabs.some((t) => t.id === rawParam)
+      ? (rawParam as TabId)
+      : (LEGACY_TABS[rawParam] ?? null)
+    : null;
+  const focus = searchParams.get("focus");
+
   const initial: TabId =
     param && visible.some((t) => t.id === param) ? param : (visible[0]?.id ?? "board");
   const [tab, setTab] = useState<TabId>(initial);
@@ -91,7 +92,7 @@ function OperationsContent() {
     return m;
   }, [jobs]);
 
-  // Keep tab state in sync when arriving via redirect with ?tab=.
+  // Keep tab state in sync when arriving via redirect/legacy ?tab=.
   useEffect(() => {
     if (param && param !== tab && visible.some((t) => t.id === param)) setTab(param);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,7 +109,7 @@ function OperationsContent() {
     <div className="space-y-4">
       <PageHeader
         title="Operations Control"
-        description="The daily command room — dispatch, schedule, roster, trucks, capacity and alerts share one operational date. Demo data (local only)."
+        description="The daily command room — board, assignments and alerts share one operational date. Demo data (local only)."
       />
 
       <DateNavigator
@@ -138,12 +139,9 @@ function OperationsContent() {
       {tab === "board" && allowed("board") && (
         <DispatchBoard selectedDate={date} onDateChange={setDate} hideDateStrip />
       )}
-      {tab === "schedule" && allowed("schedule") && (
-        <ScheduleView selectedDate={date} onDateChange={setDate} />
+      {tab === "assignments" && allowed("assignments") && (
+        <AssignmentsBoard selectedDate={date} focus={focus} />
       )}
-      {tab === "roster" && allowed("roster") && <ForemanRoster selectedDate={date} />}
-      {tab === "trucks" && allowed("trucks") && <TruckAssignment selectedDate={date} />}
-      {tab === "capacity" && allowed("capacity") && <CapacityLoad selectedDate={date} />}
       {tab === "alerts" && allowed("alerts") && <OpsAlerts selectedDate={date} />}
     </div>
   );

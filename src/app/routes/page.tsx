@@ -3,10 +3,10 @@
 import { ScheduleView } from "@/components/operations/schedule-view";
 
 /**
- * /routes is redirected to /operations?tab=schedule (next.config.mjs).
- * The view body lives in components/operations/schedule-view.tsx and is
- * mounted by the Operations shell; this wrapper keeps the module valid if
- * the redirect is ever removed.
+ * /routes is redirected to /operations?tab=assignments (next.config.mjs).
+ * Since Sprint 2.2 the Schedule tab no longer exists in the Operations
+ * shell; this wrapper keeps the old daily schedule reachable only if the
+ * redirect is ever removed.
  */
 export default function RoutesPage() {
   return <ScheduleView />;

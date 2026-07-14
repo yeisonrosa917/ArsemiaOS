@@ -3,12 +3,16 @@
 Per `ARSEMIAOS_MASTER_PACK.md` §3/§17/§18 (tickets IA-001…IA-010).
 All redirects are `permanent: false` in `next.config.mjs` (exact-path only).
 
+> **Updated in Sprint 2.2** — see the "Sprint 2.2 changes" section at the
+> bottom: `/routes` now lands on `/operations?tab=assignments` and the old
+> Operations tab ids fall back gracefully.
+
 ## Moved / redirected top-level routes
 
 | Old URL | New home | Redirect |
 |---|---|---|
-| `/dispatch` | Operations Control → Dispatch Board tab | `/operations?tab=board` |
-| `/routes` | Operations Control → Schedule / Routes tab | `/operations?tab=schedule` |
+| `/dispatch` | Operations Control → Board tab | `/operations?tab=board` |
+| `/routes` | Operations Control → Assignments tab (was Schedule) | `/operations?tab=assignments` |
 | `/invoices` | Finance → Invoices tab | `/finance?tab=invoices` |
 | `/expenses` | Finance → Expenses tab | `/finance?tab=expenses` |
 | `/payroll` | Finance → Payroll tab | `/finance?tab=payroll` |
@@ -75,3 +79,29 @@ row-level navigation (`onClick → /invoices/[id]`) while keeping the inner link
 Old entries (`/dispatch`, `/routes`, `/invoices`, `/expenses`, `/payroll`,
 `/analytics`) are kept: detail routes inherit permissions from them and the
 guard still evaluates them during client-side transitions.
+
+## Sprint 2.2 changes (Assignments & Identity)
+
+Per `OPERATIONS_ASSIGNMENTS_SPRINT_2_2.md`. Operations Control was reduced
+from six tabs to exactly three: **Board · Assignments · Alerts**.
+
+| URL / param | Behavior since Sprint 2.2 |
+|---|---|
+| `/routes` | Redirects to `/operations?tab=assignments` (was `?tab=schedule`) |
+| `/dispatch` | Unchanged — `/operations?tab=board` |
+| `/operations?tab=schedule` | Graceful fallback → Assignments tab |
+| `/operations?tab=trucks` | Graceful fallback → Assignments tab (Truck Assignment folded in) |
+| `/operations?tab=capacity` | Graceful fallback → Assignments tab (KPIs folded into its header) |
+| `/operations?tab=roster` | Graceful fallback → Board tab (roster folded into the crew panel) |
+| `/operations?tab=assignments&focus=FM-####` | Assignments tab, scrolls/rings that foreman's lane (used by Alerts CTAs) |
+| `/operations?tab=assignments&focus=unassigned` | Assignments tab, highlights the unassigned-jobs panel |
+
+No ROUTE_REQUIRES changes: `/operations` still requires `dispatch.view` OR
+`routes.view`; the Assignments and Alerts tabs are visible with either.
+
+Removed files (folded, 0 importers left): `foreman-roster.tsx`,
+`truck-assignment.tsx`, `capacity-load.tsx` (all under
+`src/components/operations/`). `schedule-view.tsx` and
+`src/app/routes/page.tsx` are kept — the redirect covers the URL, and the
+wrapper keeps the old daily schedule board reachable if the redirect is ever
+removed.

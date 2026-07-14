@@ -174,6 +174,27 @@ export interface Job {
   /** Cross-module links (set when a job is created from a lead/quote). */
   leadId?: string;
   quoteId?: string;
+  /** Truck assigned by dispatch for this job's day (Sprint 2.2). */
+  truckId?: string;
+  /** Foreman confirmation workflow state (local/in-app only — no real delivery). */
+  assignment?: JobAssignment;
+}
+
+export type AssignmentStatus =
+  | "Draft"
+  | "Notified"
+  | "Confirmed"
+  | "Declined"
+  | "Needs Attention";
+
+export interface JobAssignment {
+  status: AssignmentStatus;
+  notifiedAt?: string;
+  confirmedAt?: string;
+  declinedAt?: string;
+  declineReason?: string;
+  /** Who performed the last transition (dispatcher or the foreman). */
+  by?: string;
 }
 
 export interface Driver {

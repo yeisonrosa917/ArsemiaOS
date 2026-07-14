@@ -13,18 +13,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   JobStatusBadge,
   DriverStatusBadge,
 } from "@/components/shared/status-badge";
 import { MapPreview } from "@/components/shared/map-preview";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { ReassignModal } from "@/components/jobs/reassign-modal";
 import { PendingDispatchChanges } from "@/components/dispatch/pending-changes";
 import { drivers, jobStatuses, zones } from "@/lib/mock-data";
 import { useJobsStore } from "@/lib/store/jobs";
-import type { JobStatus } from "@/lib/types";
-import { cn, formatCurrency, initials } from "@/lib/utils";
+import {
+  useForemanAvailability,
+  AVAILABILITY_LABEL,
+  AVAILABILITY_STYLES,
+} from "@/lib/store/foreman-availability";
+import { useUsers } from "@/lib/store/users";
+import type { Driver, JobStatus } from "@/lib/types";
+import { cn, formatCurrency, telHref } from "@/lib/utils";
 import { toISODateSafe, parseDateSafe, formatWeekdayStable } from "@/lib/dates";
 
 const JOB_TYPES = [
@@ -65,10 +71,12 @@ export function DispatchBoard({
     if (onDateChange) onDateChange(iso);
     else setInternalDate(iso);
   };
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(
-    jobs[0]?.id ?? null,
-  );
+  // No auto-selection: Reassign and the detail strip only appear once the
+  // dispatcher explicitly clicks a job in the queue.
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [reassignOpen, setReassignOpen] = useState(false);
+  const availabilityOverrides = useForemanAvailability((s) => s.overrides);
+  const users = useUsers((s) => s.users);
 
   const dateStrip = useMemo(() => {
     // Never trust selectedDate — a cleared date picker yields "" → Invalid Date
@@ -118,10 +126,44 @@ export function DispatchBoard({
     [jobs, selectedDate],
   );
 
-  const selectedJob =
-    filteredJobs.find((j) => j.id === selectedJobId) ??
-    filteredJobs[0] ??
-    null;
+  const selectedJob = filteredJobs.find((j) => j.id === selectedJobId) ?? null;
+
+  // Crew panel groups (folds the old Foreman Roster info into the Board):
+  // assigned on this date / available / off duty.
+  const crewGroups = useMemo(() => {
+    const assignedIds = new Set(
+      jobs
+        .filter(
+          (j) =>
+            (j.scheduledAt ?? "").slice(0, 10) === selectedDate &&
+            j.status !== "Cancelled" &&
+            j.driverId,
+        )
+        .map((j) => j.driverId as string),
+    );
+    const jobCount = (d: Driver) =>
+      jobs.filter(
+        (j) =>
+          (j.scheduledAt ?? "").slice(0, 10) === selectedDate &&
+          j.status !== "Cancelled" &&
+          j.driverId === d.id,
+      ).length;
+    const availabilityOf = (d: Driver) =>
+      availabilityOverrides[d.id] ??
+      (d.status === "Offline" ? "offline" : d.status === "Break" ? "break" : "available");
+    const rows = drivers.map((d) => ({
+      d,
+      availability: availabilityOf(d),
+      override: availabilityOverrides[d.id],
+      dayJobCount: jobCount(d),
+      photoUrl: users.find((u) => u.foremanId === d.id)?.photoUrl,
+    }));
+    return {
+      assigned: rows.filter((r) => assignedIds.has(r.d.id)),
+      available: rows.filter((r) => !assignedIds.has(r.d.id) && r.availability !== "offline"),
+      off: rows.filter((r) => !assignedIds.has(r.d.id) && r.availability === "offline"),
+    };
+  }, [jobs, selectedDate, availabilityOverrides, users]);
 
   const counts = useMemo(() => {
     return jobStatuses.map((s) => ({
@@ -315,16 +357,46 @@ export function DispatchBoard({
                           : "border-border/70 bg-background hover:bg-muted/40",
                       )}
                     >
+                      {/* Operational info first: time · status · crew · route. */}
                       <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="text-xs font-mono text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-sm font-bold leading-tight">
+                            {job.scheduledAt.slice(11, 16)}
+                          </span>
+                          <span className="font-mono text-[10px] text-muted-foreground">
                             {job.id}
-                          </p>
-                          <p className="text-sm font-semibold leading-tight">
-                            {job.customer}
-                          </p>
+                          </span>
                         </div>
                         <JobStatusBadge status={job.status} />
+                      </div>
+                      <div className="mt-1.5 flex items-center justify-between gap-2">
+                        {job.driverName ? (
+                          <div className="flex min-w-0 items-center gap-1.5">
+                            <UserAvatar name={job.driverName} size="xs" />
+                            <span className="truncate text-[11px] font-semibold text-foreground">
+                              {job.driverName}
+                            </span>
+                          </div>
+                        ) : (
+                          <Badge variant="danger" className="text-[9px]">Needs foreman</Badge>
+                        )}
+                        {job.truckId ? (
+                          <span className="font-mono text-[10px] text-muted-foreground">
+                            {job.truckId}
+                          </span>
+                        ) : job.driverName ? (
+                          <span className="text-[10px] text-amber-500">no truck</span>
+                        ) : null}
+                      </div>
+                      <div className="mt-1.5 flex items-center justify-between text-[11px]">
+                        <span className="font-medium text-muted-foreground">
+                          {job.type} • {job.zone}
+                        </span>
+                        <div className="flex items-center gap-2 text-foreground/80">
+                          <span>{job.cuFt} CuFt</span>
+                          <span>•</span>
+                          <span>{job.miles} mi</span>
+                        </div>
                       </div>
                       <div className="mt-2 space-y-1 text-xs">
                         <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -341,31 +413,10 @@ export function DispatchBoard({
                         </div>
                       </div>
                       <Separator className="my-2" />
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-medium text-muted-foreground">
-                          {job.type} • {job.zone}
+                      <div className="flex items-center justify-between">
+                        <span className="truncate text-[11px] text-muted-foreground">
+                          {job.customer}
                         </span>
-                        <div className="flex items-center gap-2 text-foreground/80">
-                          <span>{job.cuFt} CuFt</span>
-                          <span>•</span>
-                          <span>{job.miles} mi</span>
-                        </div>
-                      </div>
-                      <div className="mt-2 flex items-center justify-between">
-                        {job.driverName ? (
-                          <div className="flex items-center gap-1.5">
-                            <Avatar className="h-5 w-5">
-                              <AvatarFallback className="bg-brand-500/15 text-[9px] text-brand-700 dark:text-brand-300">
-                                {initials(job.driverName)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-[11px] font-medium text-foreground">
-                              {job.driverName}
-                            </span>
-                          </div>
-                        ) : (
-                          <Badge variant="slate">Needs assignment</Badge>
-                        )}
                         <span className="text-xs font-semibold">
                           {formatCurrency(job.price)}
                         </span>
@@ -389,9 +440,12 @@ export function DispatchBoard({
         <div className="flex h-full flex-col rounded-2xl border bg-card shadow-card">
           <div className="flex items-center justify-between gap-3 border-b p-4">
             <div>
-              <p className="text-sm font-semibold">Live dispatch map</p>
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                Planned routes
+                <Badge variant="outline" className="text-[9px] uppercase">Simulated</Badge>
+              </p>
               <p className="text-xs text-muted-foreground">
-                {drivers.length} foremen • {jobs.length} jobs in scope
+                Illustrative demo map — not live GPS. {jobsOnDate} job{jobsOnDate === 1 ? "" : "s"} on this date.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -464,7 +518,10 @@ export function DispatchBoard({
                     label="Price"
                     value={formatCurrency(selectedJob.price)}
                   />
-                  <Metric label="ETA" value={selectedJob.eta ?? "—"} />
+                  <Metric
+                    label="Start time"
+                    value={selectedJob.scheduledAt.slice(11, 16) || "—"}
+                  />
                 </div>
               </div>
 
@@ -479,74 +536,30 @@ export function DispatchBoard({
         </div>
       </section>
 
-      {/* Drivers right panel */}
+      {/* Crew panel — foremen grouped by their day, folded from the old
+          Foreman Roster tab. */}
       <aside className="col-span-12 xl:col-span-3">
         <div className="flex h-full flex-col rounded-2xl border bg-card shadow-card">
           <div className="border-b p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold">Foremen on duty</p>
+                <p className="text-sm font-semibold">Foremen — selected date</p>
                 <p className="text-xs text-muted-foreground">
-                  {drivers.filter((d) => d.status !== "Offline").length} active
-                  • {drivers.length} total
+                  {crewGroups.assigned.length} assigned • {crewGroups.available.length} available
+                  • {crewGroups.off.length} off
                 </p>
               </div>
             </div>
           </div>
 
           <div className="max-h-[640px] flex-1 overflow-y-auto scrollbar-thin">
-            <ul className="space-y-2 p-3">
-              {drivers.map((d) => (
-                <li
-                  key={d.id}
-                  className="rounded-xl border border-border/70 bg-background p-3 transition-colors hover:bg-muted/30"
-                >
-                  <div className="flex items-start gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback
-                        className={cn("text-white", d.avatarColor)}
-                      >
-                        {initials(d.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">
-                            {d.name}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {d.vehicleName}
-                          </p>
-                        </div>
-                        <DriverStatusBadge status={d.status} />
-                      </div>
-                      <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {d.currentLocation}
-                        </span>
-                        {d.eta && (
-                          <span className="font-medium text-foreground">
-                            ETA {d.eta}
-                          </span>
-                        )}
-                      </div>
-                      {d.currentJobId && (
-                        <div className="mt-2 flex items-center justify-between rounded-md bg-muted px-2 py-1.5 text-[11px]">
-                          <span className="text-muted-foreground">
-                            Current job
-                          </span>
-                          <span className="font-mono font-semibold">
-                            {d.currentJobId}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-3 p-3">
+              <CrewGroup title="Assigned today" rows={crewGroups.assigned} showPhotoWarning
+                empty="No foremen assigned on this date yet." />
+              <CrewGroup title="Available" rows={crewGroups.available}
+                empty="No idle foremen — everyone is assigned or off." />
+              <CrewGroup title="Off duty" rows={crewGroups.off} empty="Nobody is off." />
+            </div>
           </div>
 
           <div className="border-t p-3">
@@ -637,6 +650,91 @@ function DetailBlock({
         </p>
       </div>
       <p className="mt-1.5 text-xs font-medium text-foreground">{value}</p>
+    </div>
+  );
+}
+
+interface CrewRow {
+  d: Driver;
+  availability: "available" | "break" | "offline";
+  override?: "available" | "break" | "offline";
+  dayJobCount: number;
+  photoUrl?: string;
+}
+
+function CrewGroup({
+  title,
+  rows,
+  empty,
+  showPhotoWarning = false,
+}: {
+  title: string;
+  rows: CrewRow[];
+  empty: string;
+  /** Assigned foremen without a profile photo get an identity warning. */
+  showPhotoWarning?: boolean;
+}) {
+  return (
+    <div>
+      <p className="px-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {title} ({rows.length})
+      </p>
+      {rows.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-border px-2 py-2 text-[10px] text-muted-foreground">
+          {empty}
+        </p>
+      ) : (
+        <ul className="space-y-1.5">
+          {rows.map((r) => (
+            <li
+              key={r.d.id}
+              className="rounded-xl border border-border/70 bg-background p-2.5 transition-colors hover:bg-muted/30"
+            >
+              <div className="flex items-start gap-2.5">
+                <UserAvatar name={r.d.name} photoUrl={r.photoUrl} size="md" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{r.d.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">
+                        {r.d.vehicleName}
+                      </p>
+                    </div>
+                    {r.override ? (
+                      <span
+                        className={cn(
+                          "rounded border px-1.5 py-0.5 text-[9px] font-semibold",
+                          AVAILABILITY_STYLES[r.override],
+                        )}
+                      >
+                        {AVAILABILITY_LABEL[r.override]}
+                      </span>
+                    ) : (
+                      <DriverStatusBadge status={r.d.status} />
+                    )}
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
+                    {r.dayJobCount > 0 && (
+                      <Badge variant="success" className="text-[9px]">
+                        {r.dayJobCount} job{r.dayJobCount === 1 ? "" : "s"}
+                      </Badge>
+                    )}
+                    {showPhotoWarning && !r.photoUrl && (
+                      <Badge variant="warning" className="text-[9px]">No photo</Badge>
+                    )}
+                    <a
+                      href={telHref(r.d.phone)}
+                      className="inline-flex items-center gap-1 text-primary hover:underline"
+                    >
+                      <Phone className="h-3 w-3" /> Call
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

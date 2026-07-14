@@ -18,8 +18,19 @@ export interface WorkspaceUser {
   status: UserStatus;
   /** FM-#### this user maps to, if they are a foreman. */
   foremanId?: string;
+  /** Local profile photo (data URI). No photo → initials avatar everywhere. */
+  photoUrl?: string;
   /** Placeholder until real auth/session tracking exists. */
   lastActive: string;
+}
+
+/** Profile completeness — drives the "complete your profile" flags. */
+export function profileFlags(u: Pick<WorkspaceUser, "name" | "email" | "photoUrl">) {
+  const missing: string[] = [];
+  if (!u.name?.trim()) missing.push("name");
+  if (!u.email?.trim()) missing.push("email");
+  if (!u.photoUrl) missing.push("photo");
+  return { complete: missing.length === 0, missing };
 }
 
 const LAST_ACTIVE = [
@@ -69,7 +80,12 @@ interface UsersState {
   users: WorkspaceUser[];
   setRole: (id: string, roleId: UserRoleId) => void;
   setStatus: (id: string, status: UserStatus) => void;
-  updateProfile: (id: string, patch: Partial<Pick<WorkspaceUser, "name" | "email">>) => void;
+  updateProfile: (
+    id: string,
+    patch: Partial<Pick<WorkspaceUser, "name" | "email" | "photoUrl">>,
+  ) => void;
+  /** Set or clear the local profile photo (data URI; local only). */
+  setPhoto: (id: string, photoUrl: string | undefined) => void;
   inviteUser: (input: { name: string; email: string; roleId: UserRoleId }) => WorkspaceUser;
   removeUser: (id: string) => void;
 }
@@ -89,6 +105,10 @@ export const useUsers = create<UsersState>()(
       updateProfile: (id, patch) =>
         set((s) => ({
           users: s.users.map((u) => (u.id === id ? { ...u, ...patch } : u)),
+        })),
+      setPhoto: (id, photoUrl) =>
+        set((s) => ({
+          users: s.users.map((u) => (u.id === id ? { ...u, photoUrl } : u)),
         })),
       inviteUser: ({ name, email, roleId }) => {
         const count = get().users.length;

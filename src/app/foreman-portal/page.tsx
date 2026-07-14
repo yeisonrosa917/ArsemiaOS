@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Briefcase, ClipboardList, Coins, Phone, Smartphone } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
+import { PendingAssignments } from "@/components/foreman-portal/pending-assignments";
 import {
   Card,
   CardContent,
@@ -35,6 +36,8 @@ export default function ForemanPortalPage() {
           </div>
         </CardContent>
       </Card>
+
+      <PendingAssignments />
 
       <div className="grid gap-3 sm:grid-cols-3">
         <PortalLink
