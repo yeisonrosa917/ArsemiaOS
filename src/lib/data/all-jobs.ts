@@ -62,12 +62,12 @@ function hydrate(job: Job): Job {
     const roll = h % 20;
     out.assignment =
       roll === 19
-        ? { status: "Declined", declinedAt: `${realTodayIso}T08:00:00`, declineReason: "Schedule conflict — needs reassignment", by: out.driverName }
+        ? { status: "Declined", declinedAt: `${realTodayIso}T08:00:00`, declineReason: "Schedule conflict — needs reassignment", by: out.driverName, source: "foreman" as const }
         : roll >= 14
           ? { status: "Draft" }
           : roll >= 8
             ? { status: "Notified", notifiedAt: `${realTodayIso}T07:30:00` }
-            : { status: "Confirmed", notifiedAt: `${realTodayIso}T07:30:00`, confirmedAt: `${realTodayIso}T07:45:00`, by: out.driverName };
+            : { status: "Confirmed", notifiedAt: `${realTodayIso}T07:30:00`, confirmedAt: `${realTodayIso}T07:45:00`, by: out.driverName, source: "foreman" as const };
 
     // Default truck = the foreman's paired vehicle; a few are left truckless
     // on purpose so the "job has no truck" alert has something real to show.

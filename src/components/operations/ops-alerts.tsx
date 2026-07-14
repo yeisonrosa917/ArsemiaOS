@@ -155,24 +155,37 @@ export function OpsAlerts({ selectedDate }: { selectedDate: string }) {
         }
       }
 
-      // 5) Confirmation state: declined is urgent; draft/notified needs follow-up.
+      // 5) Confirmation state: declined is urgent; draft/sent needs follow-up;
+      //    changes made after sending must be re-sent to the foreman.
       const open = sorted.filter((j) => j.status !== "Completed");
       const declined = open.filter((j) => j.assignment?.status === "Declined");
+      const needsUpdate = open.filter((j) => j.assignment?.status === "Needs Attention");
       const unconfirmed = open.filter(
-        (j) => !j.assignment || j.assignment.status === "Draft" || j.assignment.status === "Notified" || j.assignment.status === "Needs Attention",
+        (j) => !j.assignment || j.assignment.status === "Draft" || j.assignment.status === "Notified",
       );
       if (declined.length > 0) {
-        const reason = declined[0].assignment?.declineReason;
+        const a = declined[0].assignment;
         out.push({
           id: `declined-${foremanId}`,
           severity: "danger",
           icon: BellOff,
-          title: `${name} declined ${declined.length} assignment(s)`,
-          detail: `${declined.map((j) => j.id).join(", ")}${reason ? ` — "${reason}"` : ""} — reassign or follow up.`,
+          title: `${name} declined ${declined.length} assignment(s)${a?.declinedAt ? ` at ${a.declinedAt.slice(11, 16)}` : ""}`,
+          detail: `${declined.map((j) => j.id).join(", ")}${a?.declineReason ? ` — reason: ${a.declineReason}` : ""}. Next: move the job to another foreman, change the truck, or call to resolve.`,
           href: fixHref(foremanId),
         });
-      } else if (unconfirmed.length > 0) {
-        const notNotified = unconfirmed.filter(
+      }
+      if (needsUpdate.length > 0) {
+        out.push({
+          id: `needsupdate-${foremanId}`,
+          severity: "warning",
+          icon: BellOff,
+          title: `Update not sent — ${name} hasn't seen ${needsUpdate.length} change(s)`,
+          detail: `${needsUpdate.map((j) => j.id).join(", ")} changed after sending. Next: send the update from the Assignments board.`,
+          href: fixHref(foremanId),
+        });
+      }
+      if (declined.length === 0 && unconfirmed.length > 0) {
+        const notSent = unconfirmed.filter(
           (j) => !j.assignment || j.assignment.status === "Draft",
         ).length;
         out.push({
@@ -181,9 +194,9 @@ export function OpsAlerts({ selectedDate }: { selectedDate: string }) {
           icon: BellOff,
           title: `${name} has not confirmed ${unconfirmed.length} job(s)`,
           detail:
-            notNotified > 0
-              ? `${notNotified} still in draft (not even notified) — notify and get confirmation.`
-              : `Notified but no confirmation yet — follow up before the day starts.`,
+            notSent > 0
+              ? `${notSent} still in draft — not sent to the foreman yet. Next: send the day plan.`
+              : `Sent to app but no confirmation yet — follow up before the day starts.`,
           href: fixHref(foremanId),
         });
       }

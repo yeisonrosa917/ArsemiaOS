@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useJobsStore } from "@/lib/store/jobs";
 import { useActivityLog } from "@/lib/store/activity-log";
+import { useJobEvents } from "@/lib/store/job-events";
 import { usePreferences } from "@/lib/store/preferences";
 import { getActiveForemanId, getUserByRole } from "@/lib/auth/users";
 import { fmtDate } from "@/lib/utils";
@@ -23,6 +24,7 @@ export function PendingAssignments() {
   const jobs = useJobsStore((s) => s.jobs);
   const setJobAssignment = useJobsStore((s) => s.setJobAssignment);
   const pushActivity = useActivityLog((s) => s.push);
+  const pushJobEvent = useJobEvents((s) => s.push);
   const [decliningId, setDecliningId] = useState<string | null>(null);
   const [reason, setReason] = useState("");
 
@@ -46,10 +48,9 @@ export function PendingAssignments() {
       )
       .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
     return {
-      pending: mine.filter((j) => {
-        const s = j.assignment?.status ?? "Draft";
-        return s === "Notified" || s === "Draft" || s === "Needs Attention";
-      }),
+      // Only what dispatch actually SENT is pending for the foreman —
+      // drafts and unsent changes are dispatcher-side state they never saw.
+      pending: mine.filter((j) => j.assignment?.status === "Notified"),
       confirmed: mine.filter((j) => j.assignment?.status === "Confirmed"),
     };
   }, [jobs, foremanId]);
@@ -60,6 +61,7 @@ export function PendingAssignments() {
     setJobAssignment(jobId, status, {
       by: me.name,
       reason: declineReason?.trim() || undefined,
+      source: "foreman",
     });
     pushActivity({
       actorId: me.id,
@@ -71,6 +73,15 @@ export function PendingAssignments() {
       objectId: jobId,
       title: status === "Confirmed" ? "Foreman confirmed assignment" : "Foreman declined assignment",
       notes: declineReason?.trim() || undefined,
+    });
+    pushJobEvent({
+      jobId,
+      type: status === "Confirmed" ? "confirmed_by_foreman" : "status_changed",
+      actor: me.name,
+      message:
+        status === "Confirmed"
+          ? "Foreman confirmed the assignment via the portal."
+          : `Foreman declined the assignment${declineReason?.trim() ? ` — reason: ${declineReason.trim()}` : ""}.`,
     });
     setDecliningId(null);
     setReason("");

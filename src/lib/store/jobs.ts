@@ -33,13 +33,13 @@ interface JobsState {
     foremanId: string,
     dayIso: string,
     status: AssignmentStatus,
-    opts?: { by?: string; reason?: string },
+    opts?: { by?: string; reason?: string; source?: "dispatcher" | "foreman" },
   ) => void;
   /** Per-job transition (used by the Foreman Portal confirm/decline). */
   setJobAssignment: (
     jobId: string,
     status: AssignmentStatus,
-    opts?: { by?: string; reason?: string },
+    opts?: { by?: string; reason?: string; source?: "dispatcher" | "foreman" },
   ) => void;
   /** Apply an adjustment delta on the job — increments cuFt and price, records baseline. */
   applyAdjustment: (
@@ -76,17 +76,24 @@ export const useJobsStore = create<JobsState>()(
         })),
       assignJobToForeman: (jobId, foremanId, foremanName) =>
         set((s) => ({
-          jobs: s.jobs.map((j) =>
-            j.id === jobId
-              ? {
-                  ...j,
-                  driverId: foremanId,
-                  driverName: foremanName,
-                  status: j.status === "Unassigned" ? "Assigned" : j.status,
-                  assignment: { status: "Draft" },
-                }
-              : j,
-          ),
+          jobs: s.jobs.map((j) => {
+            if (j.id !== jobId) return j;
+            // If the previous foreman already saw this job (sent/confirmed/
+            // declined), the change hasn't reached the new foreman yet.
+            const wasSent = j.assignment && j.assignment.status !== "Draft";
+            return {
+              ...j,
+              driverId: foremanId,
+              driverName: foremanName,
+              status: j.status === "Unassigned" ? "Assigned" : j.status,
+              assignment: wasSent
+                ? {
+                    status: "Needs Attention",
+                    changeNote: `Moved to ${foremanName} after sending — update not sent yet`,
+                  }
+                : { status: "Draft" },
+            };
+          }),
         })),
       unassignJob: (jobId) =>
         set((s) => ({
@@ -105,11 +112,27 @@ export const useJobsStore = create<JobsState>()(
         })),
       assignTruckForDay: (foremanId, dayIso, truckId) =>
         set((s) => ({
-          jobs: s.jobs.map((j) =>
-            j.driverId === foremanId && (j.scheduledAt ?? "").slice(0, 10) === dayIso
-              ? { ...j, truckId }
-              : j,
-          ),
+          jobs: s.jobs.map((j) => {
+            if (j.driverId !== foremanId || (j.scheduledAt ?? "").slice(0, 10) !== dayIso)
+              return j;
+            if (j.status === "Cancelled" || j.status === "Completed") return j;
+            if (j.truckId === truckId) return j;
+            // A truck change after the plan was sent/confirmed must be re-sent.
+            const wasSent =
+              j.assignment &&
+              (j.assignment.status === "Notified" || j.assignment.status === "Confirmed");
+            return {
+              ...j,
+              truckId,
+              assignment: wasSent
+                ? {
+                    ...j.assignment!,
+                    status: "Needs Attention",
+                    changeNote: "Truck changed after sending — update not sent yet",
+                  }
+                : j.assignment,
+            };
+          }),
         })),
       setAssignmentForDay: (foremanId, dayIso, status, opts) => {
         const now = new Date().toISOString();
@@ -123,8 +146,10 @@ export const useJobsStore = create<JobsState>()(
                 ...(j.assignment ?? { status: "Draft" }),
                 status,
                 by: opts?.by ?? j.assignment?.by,
-                ...(status === "Notified" ? { notifiedAt: now } : {}),
-                ...(status === "Confirmed" ? { confirmedAt: now } : {}),
+                source: opts?.source ?? j.assignment?.source,
+                // (Re)sending delivers any pending change to the foreman.
+                ...(status === "Notified" ? { notifiedAt: now, changeNote: undefined } : {}),
+                ...(status === "Confirmed" ? { confirmedAt: now, changeNote: undefined } : {}),
                 ...(status === "Declined"
                   ? { declinedAt: now, declineReason: opts?.reason }
                   : {}),
@@ -144,8 +169,9 @@ export const useJobsStore = create<JobsState>()(
                     ...(j.assignment ?? { status: "Draft" }),
                     status,
                     by: opts?.by ?? j.assignment?.by,
-                    ...(status === "Notified" ? { notifiedAt: now } : {}),
-                    ...(status === "Confirmed" ? { confirmedAt: now } : {}),
+                    source: opts?.source ?? j.assignment?.source,
+                    ...(status === "Notified" ? { notifiedAt: now, changeNote: undefined } : {}),
+                    ...(status === "Confirmed" ? { confirmedAt: now, changeNote: undefined } : {}),
                     ...(status === "Declined"
                       ? { declinedAt: now, declineReason: opts?.reason }
                       : {}),

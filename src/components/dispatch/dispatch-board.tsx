@@ -13,23 +13,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  JobStatusBadge,
-  DriverStatusBadge,
-} from "@/components/shared/status-badge";
+import { JobStatusBadge } from "@/components/shared/status-badge";
 import { MapPreview } from "@/components/shared/map-preview";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { ReassignModal } from "@/components/jobs/reassign-modal";
 import { PendingDispatchChanges } from "@/components/dispatch/pending-changes";
 import { drivers, jobStatuses, zones } from "@/lib/mock-data";
 import { useJobsStore } from "@/lib/store/jobs";
+import { useFleet } from "@/lib/store/fleet";
 import {
   useForemanAvailability,
   AVAILABILITY_LABEL,
   AVAILABILITY_STYLES,
 } from "@/lib/store/foreman-availability";
 import { useUsers } from "@/lib/store/users";
-import type { Driver, JobStatus } from "@/lib/types";
+import {
+  buildForemanDayStatuses,
+  foremanDayLabel,
+  type ForemanDayStatus,
+} from "@/lib/operations/day-status";
+import type { JobStatus } from "@/lib/types";
 import { cn, formatCurrency, telHref } from "@/lib/utils";
 import { toISODateSafe, parseDateSafe, formatWeekdayStable } from "@/lib/dates";
 
@@ -128,42 +131,25 @@ export function DispatchBoard({
 
   const selectedJob = filteredJobs.find((j) => j.id === selectedJobId) ?? null;
 
-  // Crew panel groups (folds the old Foreman Roster info into the Board):
-  // assigned on this date / available / off duty.
+  // Crew panel groups (folds the old Foreman Roster info into the Board),
+  // derived through the same shared selector Assignments and Foremen use —
+  // one source of truth for who actually works on this date.
+  const vehicles = useFleet((s) => s.vehicles);
   const crewGroups = useMemo(() => {
-    const assignedIds = new Set(
-      jobs
-        .filter(
-          (j) =>
-            (j.scheduledAt ?? "").slice(0, 10) === selectedDate &&
-            j.status !== "Cancelled" &&
-            j.driverId,
-        )
-        .map((j) => j.driverId as string),
-    );
-    const jobCount = (d: Driver) =>
-      jobs.filter(
-        (j) =>
-          (j.scheduledAt ?? "").slice(0, 10) === selectedDate &&
-          j.status !== "Cancelled" &&
-          j.driverId === d.id,
-      ).length;
-    const availabilityOf = (d: Driver) =>
-      availabilityOverrides[d.id] ??
-      (d.status === "Offline" ? "offline" : d.status === "Break" ? "break" : "available");
-    const rows = drivers.map((d) => ({
-      d,
-      availability: availabilityOf(d),
-      override: availabilityOverrides[d.id],
-      dayJobCount: jobCount(d),
-      photoUrl: users.find((u) => u.foremanId === d.id)?.photoUrl,
-    }));
+    const rows = buildForemanDayStatuses({
+      date: selectedDate,
+      jobs,
+      drivers,
+      vehicles,
+      users,
+      overrides: availabilityOverrides,
+    });
     return {
-      assigned: rows.filter((r) => assignedIds.has(r.d.id)),
-      available: rows.filter((r) => !assignedIds.has(r.d.id) && r.availability !== "offline"),
-      off: rows.filter((r) => !assignedIds.has(r.d.id) && r.availability === "offline"),
+      assigned: rows.filter((r) => r.workingToday),
+      available: rows.filter((r) => !r.workingToday && r.availability !== "offline"),
+      off: rows.filter((r) => !r.workingToday && r.availability === "offline"),
     };
-  }, [jobs, selectedDate, availabilityOverrides, users]);
+  }, [jobs, selectedDate, availabilityOverrides, users, vehicles]);
 
   const counts = useMemo(() => {
     return jobStatuses.map((s) => ({
@@ -654,13 +640,13 @@ function DetailBlock({
   );
 }
 
-interface CrewRow {
-  d: Driver;
-  availability: "available" | "break" | "offline";
-  override?: "available" | "break" | "offline";
-  dayJobCount: number;
-  photoUrl?: string;
-}
+const CREW_TONE: Record<string, string> = {
+  slate: "border-slate-400/40 bg-slate-500/10 text-slate-600 dark:text-slate-300",
+  sky: "border-sky-500/40 bg-sky-500/10 text-sky-600 dark:text-sky-300",
+  emerald: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+  rose: "border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-300",
+  amber: "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+};
 
 function CrewGroup({
   title,
@@ -669,7 +655,7 @@ function CrewGroup({
   showPhotoWarning = false,
 }: {
   title: string;
-  rows: CrewRow[];
+  rows: ForemanDayStatus[];
   empty: string;
   /** Assigned foremen without a profile photo get an identity warning. */
   showPhotoWarning?: boolean;
@@ -687,43 +673,56 @@ function CrewGroup({
         <ul className="space-y-1.5">
           {rows.map((r) => (
             <li
-              key={r.d.id}
+              key={r.foremanId}
               className="rounded-xl border border-border/70 bg-background p-2.5 transition-colors hover:bg-muted/30"
             >
               <div className="flex items-start gap-2.5">
-                <UserAvatar name={r.d.name} photoUrl={r.photoUrl} size="md" />
+                <UserAvatar name={r.name} photoUrl={r.photoUrl} size="md" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">{r.d.name}</p>
+                      <p className="truncate text-sm font-semibold">{r.name}</p>
                       <p className="truncate text-[10px] text-muted-foreground">
-                        {r.d.vehicleName}
+                        {r.truck
+                          ? r.truck.name.split(" - ")[0]
+                          : r.workingToday
+                            ? "No truck picked yet"
+                            : `${r.driver.vehicleName.split(" - ")[0]} (default)`}
                       </p>
                     </div>
-                    {r.override ? (
+                    <span
+                      className={cn(
+                        "rounded border px-1.5 py-0.5 text-[9px] font-semibold",
+                        AVAILABILITY_STYLES[r.availability],
+                      )}
+                    >
+                      {AVAILABILITY_LABEL[r.availability]}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
+                    {foremanDayLabel(r)}
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
+                    {r.jobs.length > 0 && (
+                      <Badge variant="success" className="text-[9px]">
+                        {r.jobs.length} job{r.jobs.length === 1 ? "" : "s"}
+                      </Badge>
+                    )}
+                    {r.workingToday && r.assignmentHuman && (
                       <span
                         className={cn(
                           "rounded border px-1.5 py-0.5 text-[9px] font-semibold",
-                          AVAILABILITY_STYLES[r.override],
+                          CREW_TONE[r.assignmentHuman.tone],
                         )}
                       >
-                        {AVAILABILITY_LABEL[r.override]}
+                        {r.assignmentHuman.label}
                       </span>
-                    ) : (
-                      <DriverStatusBadge status={r.d.status} />
                     )}
-                  </div>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
-                    {r.dayJobCount > 0 && (
-                      <Badge variant="success" className="text-[9px]">
-                        {r.dayJobCount} job{r.dayJobCount === 1 ? "" : "s"}
-                      </Badge>
-                    )}
-                    {showPhotoWarning && !r.photoUrl && (
+                    {showPhotoWarning && !r.hasPhoto && (
                       <Badge variant="warning" className="text-[9px]">No photo</Badge>
                     )}
                     <a
-                      href={telHref(r.d.phone)}
+                      href={telHref(r.driver.phone)}
                       className="inline-flex items-center gap-1 text-primary hover:underline"
                     >
                       <Phone className="h-3 w-3" /> Call

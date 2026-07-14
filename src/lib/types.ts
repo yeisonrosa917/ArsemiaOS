@@ -195,6 +195,16 @@ export interface JobAssignment {
   declineReason?: string;
   /** Who performed the last transition (dispatcher or the foreman). */
   by?: string;
+  /**
+   * Where a Confirmed came from: the foreman via the portal, or the
+   * dispatcher confirming on the foreman's behalf. They are not the same.
+   */
+  source?: "dispatcher" | "foreman";
+  /**
+   * Set when the assignment changed after it was sent/confirmed
+   * (status becomes "Needs Attention" until the update is re-sent).
+   */
+  changeNote?: string;
 }
 
 export interface Driver {

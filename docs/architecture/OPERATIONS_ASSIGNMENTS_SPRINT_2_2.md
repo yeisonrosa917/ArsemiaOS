@@ -161,6 +161,98 @@ address-validation field yet and we don't invent signals.
   unassigned panel, portal confirm removes a pending item, no blank avatars,
   no page errors.
 
+## QA Patch — Human Dispatch & Assignments Unification
+
+Applied after manual QA of Sprint 2.2. No routes changed (ROUTE_CHANGES.md
+untouched); page behavior changed as follows.
+
+### Source of truth
+
+`src/lib/operations/day-status.ts` is the single derivation layer for "who
+works on a date". Operations Board (crew panel), Assignments, Foremen &
+Contractors, and Alerts all call the same selectors:
+
+- `buildForemanDayStatuses({date, jobs, drivers, vehicles, users, overrides})`
+  → per foreman: availability (override > roster), **assignment lifecycle**
+  (aggregate of the day's jobs), **live work status** (derived from job
+  statuses: no job / scheduled / en route / on job / done), jobs, truck for
+  the day, default truck, load/capacity, conflicts, decline info, unsent
+  changes, needs-attention reasons.
+- `buildAssignmentDaySummary({date, jobs})` → Day Plan header counts.
+- `getAvailableTrucksForDate(...)` → truck picker intelligence
+  (current / suggested-default / good / warning / conflict / blocked).
+- `getAssignmentHumanStatus(assignment, name)` → human label + meaning +
+  next action for every lifecycle state.
+
+The roster's static `status` field ("On Job", "En Route") is **no longer
+shown as truth anywhere** — it only seeds the availability fallback.
+
+### Assignment lifecycle (human language)
+
+| Store status | Shown as | Meaning |
+|---|---|---|
+| `Draft` | Draft | Not sent to the foreman yet |
+| `Notified` | Sent to app | Waiting for foreman confirmation (in-app demo) |
+| `Confirmed` + `source: "foreman"` | Confirmed by foreman | Accepted in the portal |
+| `Confirmed` + `source: "dispatcher"` | Confirmed by dispatch | Forced on the foreman's behalf — not the same thing |
+| `Declined` | Declined by foreman | Shows reason + timestamp + next action |
+| `Needs Attention` | Update not sent | Changed after sending (`changeNote` says what) |
+
+Store rules (`jobs.ts`): moving a job or changing the truck **after** the
+assignment was sent/confirmed automatically flips it to "Update not sent"
+with a change note; re-sending (per job or per lane) clears it. Only the
+affected foreman's jobs are touched — never the whole fleet.
+
+### Assignments board (Daily Dispatch Control Board)
+
+Four areas: **Day Plan header** (date, jobs / unassigned / draft / sent /
+confirmed / declined / update-not-sent / critical-conflict counts + **Send
+day plan** which sends all drafts and unsent changes), **Unassigned jobs**
+(rich cards: time, id, customer, route, type/zone/cuft/miles/price, Assign +
+View job), **Foreman lanes** (human status line with "Next:" action, decline
+panel with who/when/why/next, smart truck picker with ★ suggested default /
+⚠ warnings / ✕ blocked hints, per-job Move with pre-move warnings, per-job
+Send update, Send to foreman / Confirm on behalf / Unconfirm), and
+**Trucks for the day** (in use by whom / free / in shop).
+
+Default truck: assigning a job auto-applies the foreman's default truck when
+it is free and usable that day; otherwise the picker explains why not.
+
+Every transition writes both the Activity Log and the per-job timeline
+(`job-events` store).
+
+### Foremen & Contractors
+
+Rebuilt on the shared selector: reads the **live jobs store** (was reading
+the static seed — assignments made on the board never showed up). Cards show
+"Available — no job today" / "Offline — no job today" / live work status +
+assignment lifecycle chip with meaning and next action. Filter chips with
+live counts: All · Working today · Scheduled today · Confirmed · Not
+confirmed · Declined · Update not sent · En route · On job · Available — no
+job today · Off duty · Offline · Needs attention. "Open on board" deep-links
+to the foreman's Assignments lane. The Directory tab's status column now
+shows the derived day label instead of the stale roster status.
+
+### Foreman portal
+
+Pending = only what dispatch actually **sent** (drafts/unsent changes are
+dispatcher-side state the foreman never saw). Confirm/decline stamps
+`source: "foreman"` and writes the job timeline.
+
+### QA patch deferrals
+
+- "Mark delayed" / "blocked" live statuses — requires extending the
+  `JobStatus` enum across every badge/filter surface; deferred.
+- Job **swap** between two foremen — the move flow covers the QA scenario;
+  swap would be two moves; deferred as a dedicated action.
+- Branch/market on job cards — the Job model has no branch field (zones
+  only, shown instead). Branch/franchise work stays out of scope.
+- Truck "same branch" hint — no branch data on vehicles.
+- Notifying the **old** foreman when a job is moved away from an
+  already-sent day (their remaining plan is unchanged; the moved job's new
+  foreman gets the needs-update flag). Documented limitation.
+- Drag-and-drop — deliberately not built; action menu is the QA-patch scope.
+
 ## Known risks / notes
 
 - Time-overlap detection still estimates duration as `hours ?? 4`.
