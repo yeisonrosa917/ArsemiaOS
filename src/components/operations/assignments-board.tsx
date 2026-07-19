@@ -9,7 +9,9 @@ import {
   CheckCircle2,
   Clock,
   Send,
+  ShieldAlert,
   Undo2,
+  Warehouse,
   Wrench,
   X,
 } from "lucide-react";
@@ -26,6 +28,11 @@ import {
   AVAILABILITY_STYLES,
 } from "@/lib/store/foreman-availability";
 import { useUsers } from "@/lib/store/users";
+import {
+  usePreloadTasks,
+  PRELOAD_STATUS_STYLE,
+  type PreloadTask,
+} from "@/lib/store/preload-tasks";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
 import { capacityLevel } from "@/lib/fleet/capacity";
@@ -125,6 +132,15 @@ export function AssignmentsBoard({
     [jobs, selectedDate],
   );
 
+  // Warehouse preload tasks landing on this date (internal ops, not jobs).
+  const preloadTasks = usePreloadTasks((s) => s.tasks);
+  const setPreloadStatus = usePreloadTasks((s) => s.setStatus);
+  const dayPreloads = useMemo(
+    () => preloadTasks.filter((t) => t.date === selectedDate),
+    [preloadTasks, selectedDate],
+  );
+  const orphanPreloads = dayPreloads.filter((t) => !t.foremanId);
+
   // Critical conflicts that a dispatcher must resolve before the day is safe.
   const critical = useMemo(() => {
     const issues: string[] = [];
@@ -208,10 +224,20 @@ export function AssignmentsBoard({
     });
   };
 
-  const confirmOnBehalf = (lane: ForemanDayStatus) => {
+  /**
+   * Dispatch override — RARE. For when a foreman confirmed by phone or an
+   * emergency forces the plan. Requires a reason; the timeline records it
+   * explicitly as NOT foreman acceptance.
+   */
+  const dispatchOverride = (lane: ForemanDayStatus) => {
+    const reason = window.prompt(
+      `Dispatch override for ${lane.name} — this is NOT the same as ${lane.name} accepting in the app.\n\nWhy is dispatch marking this confirmed? (e.g. "confirmed by phone at 7:10 AM")`,
+    );
+    if (!reason?.trim()) return;
     setAssignmentForDay(lane.foremanId, selectedDate, "Confirmed", {
       by: actor.name,
       source: "dispatcher",
+      reason: reason.trim(),
       actorId: actor.id,
       actorRole: actor.roleId,
     });
@@ -242,6 +268,11 @@ export function AssignmentsBoard({
 
   const workingLanes = lanes.filter((l) => l.workingToday);
   const benchLanes = lanes.filter((l) => !l.workingToday);
+  // A preload can land on a day the foreman has no customer jobs (load today,
+  // deliver tomorrow) — those must surface even for "not working" foremen.
+  const benchWithTasks = benchLanes.filter((l) =>
+    dayPreloads.some((t) => t.foremanId === l.foremanId),
+  );
 
   return (
     <div className="space-y-4">
@@ -259,10 +290,13 @@ export function AssignmentsBoard({
                 <PlanChip label="Unassigned" value={summary.unassigned} tone={summary.unassigned > 0 ? "rose" : "emerald"} />
                 <PlanChip label="Draft — not sent" value={summary.draft} tone={summary.draft > 0 ? "slate" : undefined} />
                 <PlanChip label="Sent to app" value={summary.sent} tone={summary.sent > 0 ? "sky" : undefined} />
-                <PlanChip label="Confirmed" value={summary.confirmed} tone="emerald" />
+                <PlanChip label="Accepted" value={summary.confirmed} tone="emerald" />
                 <PlanChip label="Declined" value={summary.declined} tone={summary.declined > 0 ? "rose" : undefined} />
                 <PlanChip label="Update not sent" value={summary.needsUpdate} tone={summary.needsUpdate > 0 ? "amber" : undefined} />
                 <PlanChip label="Critical conflicts" value={critical.length} tone={critical.length > 0 ? "rose" : "emerald"} />
+                {dayPreloads.length > 0 && (
+                  <PlanChip label="Warehouse preloads" value={dayPreloads.length} tone="slate" />
+                )}
               </div>
             </div>
             <div className="flex flex-col items-end gap-1">
@@ -321,6 +355,26 @@ export function AssignmentsBoard({
         </CardContent>
       </Card>
 
+      {/* Operational preloads whose delivery job has no foreman yet */}
+      {orphanPreloads.length > 0 && (
+        <div className="rounded-xl border border-violet-500/40 bg-violet-500/[0.04] p-2.5">
+          <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-300">
+            <Warehouse className="h-3.5 w-3.5" /> Warehouse preloads without a foreman
+          </p>
+          <ul className="mt-1 space-y-0.5 text-[11px] text-muted-foreground">
+            {orphanPreloads.map((t) => (
+              <li key={t.id}>
+                Load at {t.warehouse} for delivery{" "}
+                <Link href={`/jobs/${t.deliveryJobId}`} className="font-mono text-primary hover:underline">
+                  {t.deliveryJobId}
+                </Link>{" "}
+                ({t.deliveryDate}) — assign the delivery job first.
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* ── 3. Foreman lanes ── */}
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -340,6 +394,7 @@ export function AssignmentsBoard({
                 focus={focus}
                 selectedDate={selectedDate}
                 jobs={jobs}
+                preloads={dayPreloads.filter((t) => t.foremanId === l.foremanId)}
                 movingJobId={movingJobId}
                 setMovingJobId={setMovingJobId}
                 onMove={handleMove}
@@ -347,8 +402,11 @@ export function AssignmentsBoard({
                 onTruck={handleTruck}
                 onSendLane={sendLane}
                 onSendJobUpdate={sendJobUpdate}
-                onConfirmOnBehalf={confirmOnBehalf}
+                onDispatchOverride={dispatchOverride}
                 onUnconfirm={unconfirm}
+                onPreloadStatus={(id, status, note) =>
+                  setPreloadStatus(id, status, { ...ctx, note })
+                }
               />
             ))}
           </div>
@@ -357,6 +415,41 @@ export function AssignmentsBoard({
         <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Not working this day ({benchLanes.length})
         </p>
+        {/* Free foremen who still owe a warehouse preload this day */}
+        {benchWithTasks.length > 0 && (
+          <div className="mb-2 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {benchWithTasks.map((l) => (
+              <Card key={`bench-${l.foremanId}`} className="border-violet-500/40">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2.5">
+                    <UserAvatar name={l.name} photoUrl={l.photoUrl} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{l.name}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        No customer jobs this day — warehouse preload only.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    {dayPreloads
+                      .filter((t) => t.foremanId === l.foremanId)
+                      .map((t) => (
+                        <PreloadTaskBlock
+                          key={t.id}
+                          task={t}
+                          showFatigue={false}
+                          truckInShop={false}
+                          onStatus={(status, note) =>
+                            setPreloadStatus(t.id, status, { ...ctx, note })
+                          }
+                        />
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
         <div className="flex flex-wrap gap-2">
           {benchLanes.map((l) => (
             <div
@@ -505,6 +598,7 @@ function ForemanLane({
   focus,
   selectedDate,
   jobs,
+  preloads,
   movingJobId,
   setMovingJobId,
   onMove,
@@ -512,14 +606,16 @@ function ForemanLane({
   onTruck,
   onSendLane,
   onSendJobUpdate,
-  onConfirmOnBehalf,
+  onDispatchOverride,
   onUnconfirm,
+  onPreloadStatus,
 }: {
   lane: ForemanDayStatus;
   lanes: ForemanDayStatus[];
   focus?: string | null;
   selectedDate: string;
   jobs: Job[];
+  preloads: PreloadTask[];
   movingJobId: string | null;
   setMovingJobId: (id: string | null) => void;
   onMove: (job: Job, target: ForemanDayStatus) => void;
@@ -527,10 +623,14 @@ function ForemanLane({
   onTruck: (lane: ForemanDayStatus, truckId: string) => void;
   onSendLane: (lane: ForemanDayStatus) => void;
   onSendJobUpdate: (job: Job) => void;
-  onConfirmOnBehalf: (lane: ForemanDayStatus) => void;
+  onDispatchOverride: (lane: ForemanDayStatus) => void;
   onUnconfirm: (lane: ForemanDayStatus) => void;
+  onPreloadStatus: (id: string, status: "Completed" | "Skipped", note?: string) => void;
 }) {
   const vehicles = useFleet((s) => s.vehicles);
+  // Manual truck choice is an OVERRIDE — the picker stays collapsed while a
+  // truck is set; it opens automatically only when a choice is required.
+  const [pickerOpen, setPickerOpen] = useState(false);
   const truckOptions = useMemo(
     () =>
       getAvailableTrucksForDate({
@@ -543,6 +643,26 @@ function ForemanLane({
       }),
     [selectedDate, jobs, vehicles, lane.foremanId, lane.load],
   );
+
+  const firstName = lane.name.split(" ")[0];
+  const defaultOption = truckOptions.find((o) => o.vehicle.id === lane.defaultTruckId);
+  const defaultUsable =
+    defaultOption &&
+    (defaultOption.kind === "suggested" ||
+      defaultOption.kind === "good" ||
+      defaultOption.kind === "current" ||
+      (defaultOption.kind === "warning" && defaultOption.fit === "tight"));
+  const defaultBlockReason = !lane.defaultTruckId
+    ? "No default truck assigned — choose a truck."
+    : defaultOption?.kind === "blocked"
+      ? `${firstName}'s default truck ${defaultOption.vehicle.name.split(" - ")[0]} is in shop — choose another truck.`
+      : defaultOption?.kind === "conflict"
+        ? `${firstName}'s default truck ${defaultOption.vehicle.name.split(" - ")[0]} is already assigned to ${defaultOption.assignedTo?.join(", ")} today.`
+        : defaultOption?.fit === "over"
+          ? `${firstName}'s default truck ${defaultOption.vehicle.name.split(" - ")[0]} may be too small for this day's load.`
+          : null;
+  const usingDefault = Boolean(lane.truck && lane.truckId === lane.defaultTruckId);
+  const showPicker = pickerOpen || (!lane.truck && !defaultUsable);
 
   const human = lane.assignmentHuman;
   const sendableJobs = lane.jobs.filter((j) => {
@@ -610,31 +730,73 @@ function ForemanLane({
           </div>
         )}
 
-        {/* Truck for the day — suggested first, hints on every option */}
-        <div className="mt-3 flex items-center gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Truck</span>
-          <select
-            className={cn(
-              "h-8 min-w-0 flex-1 rounded-md border bg-background px-2 text-xs",
-              !lane.truck ? "border-rose-500/60" : "border-input",
-            )}
-            value={lane.truckId ?? ""}
-            onChange={(e) => onTruck(lane, e.target.value)}
-          >
-            <option value="">— no truck picked —</option>
-            {truckOptions.map((o) => (
-              <option key={o.vehicle.id} value={o.vehicle.id} disabled={o.kind === "blocked"}>
-                {o.kind === "current" ? "✓ " : o.kind === "suggested" ? "★ " : o.kind === "blocked" ? "✕ " : o.kind === "conflict" || o.kind === "warning" ? "⚠ " : ""}
-                {o.vehicle.name.split(" - ")[0]} — {o.hint}
-              </option>
-            ))}
-          </select>
+        {/* Truck for the day — default truck is automatic; the picker is an override. */}
+        <div className="mt-3">
+          {lane.truck ? (
+            <div className="flex items-center justify-between gap-2">
+              <p className="min-w-0 truncate text-[11px]">
+                <span className="font-semibold uppercase tracking-wide text-[10px] text-muted-foreground">Truck </span>
+                <span className="font-medium">{lane.truck.name.split(" - ")[0]}</span>{" "}
+                <span className="text-muted-foreground">
+                  {usingDefault ? `— ${firstName}'s default truck` : "— override"}
+                </span>
+              </p>
+              <button
+                onClick={() => setPickerOpen((o) => !o)}
+                className="shrink-0 text-[10px] font-medium text-primary hover:underline"
+              >
+                {showPicker ? "Hide" : "Change truck"}
+              </button>
+            </div>
+          ) : defaultUsable && defaultOption ? (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 gap-1 text-[11px]"
+                onClick={() => onTruck(lane, defaultOption.vehicle.id)}
+              >
+                Use {firstName}&apos;s default truck ({defaultOption.vehicle.name.split(" - ")[0]})
+              </Button>
+              <button
+                onClick={() => setPickerOpen((o) => !o)}
+                className="text-[10px] font-medium text-primary hover:underline"
+              >
+                {showPicker ? "Hide trucks" : "Other trucks"}
+              </button>
+            </div>
+          ) : (
+            <p className="text-[10px] text-rose-500">{defaultBlockReason ?? "No truck picked — choose a truck."}</p>
+          )}
+
+          {defaultUsable && defaultOption?.fit === "tight" && (usingDefault || !lane.truck) && (
+            <p className="mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+              {defaultOption.vehicle.name.split(" - ")[0]} is near capacity for this day&apos;s load.
+            </p>
+          )}
+
+          {showPicker && (
+            <select
+              className={cn(
+                "mt-1.5 h-8 w-full rounded-md border bg-background px-2 text-xs",
+                !lane.truck ? "border-rose-500/60" : "border-input",
+              )}
+              value={lane.truckId ?? ""}
+              onChange={(e) => {
+                onTruck(lane, e.target.value);
+                setPickerOpen(false);
+              }}
+            >
+              <option value="">— no truck picked —</option>
+              {truckOptions.map((o) => (
+                <option key={o.vehicle.id} value={o.vehicle.id} disabled={o.kind === "blocked"}>
+                  {o.kind === "current" ? "✓ " : o.kind === "suggested" ? "★ " : o.kind === "blocked" ? "✕ " : o.kind === "conflict" || o.kind === "warning" ? "⚠ " : ""}
+                  {o.vehicle.name.split(" - ")[0]} — {o.hint}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
-        {!lane.truck && (
-          <p className="mt-1 text-[10px] text-rose-500">
-            No truck picked. {truckOptions.find((o) => o.kind === "suggested") ? `Suggested: ${truckOptions.find((o) => o.kind === "suggested")!.vehicle.name.split(" - ")[0]} (${lane.name.split(" ")[0]}'s default).` : "Their default truck is unavailable today — pick another."}
-          </p>
-        )}
         {lane.truckInShop && (
           <p className="mt-1 flex items-center gap-1 text-[10px] text-rose-500">
             <Wrench className="h-3 w-3" /> {lane.truck?.name.split(" - ")[0]} is in shop — pick another truck.
@@ -761,32 +923,112 @@ function ForemanLane({
           })}
         </ul>
 
-        {/* Day actions — all in-app/local only */}
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        {/* Warehouse preload tasks — internal ops, not customer jobs */}
+        {preloads.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {preloads.map((t) => (
+              <PreloadTaskBlock
+                key={t.id}
+                task={t}
+                showFatigue={lane.jobs.length >= 2}
+                truckInShop={lane.truckInShop}
+                onStatus={(status, note) => onPreloadStatus(t.id, status, note)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Day actions — all in-app/local only. Acceptance belongs to the
+            foreman; dispatch only sends, updates, or (rarely) overrides. */}
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {sendableJobs.length > 0 && (
             <Button size="sm" variant="outline" className="h-7 gap-1 text-[11px]" onClick={() => onSendLane(lane)}>
               <BellRing className="h-3 w-3" />
               {lane.needsUpdateCount > 0 ? "Send update" : "Send to foreman"} ({sendableJobs.length})
             </Button>
           )}
-          {lane.assignment !== "Confirmed" ? (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1 text-[11px]"
-              title="Marks the day confirmed on the foreman's behalf — not the same as the foreman accepting."
-              onClick={() => onConfirmOnBehalf(lane)}
-            >
-              <CheckCircle2 className="h-3 w-3" /> Confirm on behalf
-            </Button>
-          ) : (
+          {lane.assignment === "Confirmed" && (
             <Button size="sm" variant="ghost" className="h-7 gap-1 text-[11px]" onClick={() => onUnconfirm(lane)}>
               <Undo2 className="h-3 w-3" /> Unconfirm
             </Button>
           )}
+          {lane.assignment !== "Confirmed" && lane.assignment !== null && (
+            <button
+              onClick={() => onDispatchOverride(lane)}
+              title={`Rare emergency action: mark the day confirmed after a phone call or outside confirmation. This is NOT the same as ${firstName} accepting in the app — acceptance only happens in the Foreman Portal. Requires a reason.`}
+              className="ml-auto inline-flex items-center gap-1 text-[10px] text-muted-foreground/70 hover:text-amber-600 hover:underline"
+            >
+              <ShieldAlert className="h-3 w-3" /> Dispatch override…
+            </button>
+          )}
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/** One warehouse preload task — shared by working lanes and bench cards. */
+function PreloadTaskBlock({
+  task,
+  showFatigue,
+  truckInShop,
+  onStatus,
+}: {
+  task: PreloadTask;
+  showFatigue: boolean;
+  truckInShop: boolean;
+  onStatus: (status: "Completed" | "Skipped", note?: string) => void;
+}) {
+  const open = task.status === "Assigned" || task.status === "Needed";
+  return (
+    <div data-preload={task.deliveryJobId} className="rounded-md border border-violet-500/40 bg-violet-500/[0.05] p-2">
+      <div className="flex items-start justify-between gap-2">
+        <p className="flex min-w-0 items-start gap-1.5 text-[11px] text-violet-700 dark:text-violet-300">
+          <Warehouse className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            <span className="font-semibold">Operational task:</span> load at {task.warehouse} for{" "}
+            <Link href={`/jobs/${task.deliveryJobId}`} className="font-mono hover:underline">
+              {task.deliveryJobId}
+            </Link>{" "}
+            ({task.deliveryDate} delivery).
+          </span>
+        </p>
+        <span className={cn("shrink-0 rounded border px-1.5 py-0.5 text-[9px] font-semibold", PRELOAD_STATUS_STYLE[task.status])}>
+          {task.status}
+        </span>
+      </div>
+      {showFatigue && open && (
+        <p className="mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+          After-job warehouse load — watch fatigue/overtime.
+        </p>
+      )}
+      {truckInShop && open && (
+        <p className="mt-1 text-[10px] text-rose-500">Truck in shop — resolve before the preload.</p>
+      )}
+      {open && (
+        <div className="mt-1.5 flex gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-[10px]"
+            onClick={() => onStatus("Completed")}
+          >
+            Mark loaded
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 px-2 text-[10px]"
+            onClick={() => {
+              const note = window.prompt("Why is this preload being skipped?");
+              if (note?.trim()) onStatus("Skipped", note.trim());
+            }}
+          >
+            Skip…
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
 

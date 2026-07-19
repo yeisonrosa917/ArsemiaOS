@@ -72,6 +72,9 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
   const pushActivity = useActivityLog((s) => s.push);
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const actor = getUserByRole(activeRoleId);
+  // Foreman requests adjustments in the field; advancing/rejecting the
+  // review flow is a sales/admin action (Sprint 3 QA patch).
+  const canReview = activeRoleId !== "foreman";
 
   const handleAdvance = (id: string, current: AdjustmentStatus) => {
     const idx = ADJUSTMENT_FLOW.indexOf(current);
@@ -355,7 +358,7 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
                       )}
                     </div>
 
-                    {!isTerminal && next && (
+                    {!isTerminal && next && canReview && (
                       <div className="flex flex-wrap gap-2">
                         <Button
                           size="sm"
@@ -375,6 +378,11 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
                           Reject
                         </Button>
                       </div>
+                    )}
+                    {!isTerminal && next && !canReview && (
+                      <p className="text-[10px] text-muted-foreground">
+                        Waiting on sales/admin review — dispatch will follow up.
+                      </p>
                     )}
                   </div>
                 )}

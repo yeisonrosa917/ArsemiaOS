@@ -80,6 +80,9 @@ export function JobDocumentsPanel({
   const pushActivity = useActivityLog((s) => s.push);
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const user = getUserByRole(activeRoleId);
+  // Foreman is execution-only: may view/print documents, never generate,
+  // send, sign-as, or void them (Sprint 3 QA patch).
+  const canManage = activeRoleId !== "foreman";
 
   const [previewId, setPreviewId] = useState<string | null>(null);
   const preview = items.find((d) => d.id === previewId) ?? null;
@@ -120,29 +123,31 @@ export function JobDocumentsPanel({
             release. Templates are configured in Settings → Calculator & Pricing.
           </CardDescription>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="sm" className="gap-1">
-              <Plus className="h-3.5 w-3.5" />
-              Generate
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
-            {activeTemplates.map((t) => (
-              <DropdownMenuItem key={t.id} onClick={() => handleGenerate(t.id)}>
-                {t.title}
-                <span className="ml-auto text-[10px] text-muted-foreground">
-                  v{t.version}
-                </span>
-              </DropdownMenuItem>
-            ))}
-            {activeTemplates.length === 0 && (
-              <DropdownMenuItem disabled>
-                No active templates
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {canManage && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" className="gap-1">
+                <Plus className="h-3.5 w-3.5" />
+                Generate
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              {activeTemplates.map((t) => (
+                <DropdownMenuItem key={t.id} onClick={() => handleGenerate(t.id)}>
+                  {t.title}
+                  <span className="ml-auto text-[10px] text-muted-foreground">
+                    v{t.version}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+              {activeTemplates.length === 0 && (
+                <DropdownMenuItem disabled>
+                  No active templates
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </CardHeader>
       <CardContent className="space-y-3">
         {items.length === 0 ? (
@@ -204,7 +209,7 @@ export function JobDocumentsPanel({
                       Print
                     </Link>
                   </Button>
-                  {d.status !== "voided" && d.status !== "signed" && (
+                  {canManage && d.status !== "voided" && d.status !== "signed" && (
                     <>
                       {d.status === "ready" && (
                         <Button

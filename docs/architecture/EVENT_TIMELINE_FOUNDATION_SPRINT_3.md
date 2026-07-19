@@ -101,6 +101,73 @@ expenses) but reads events only from the unified store + legacy reader.
   rendering unified events with filters intact, zero page errors.
 - Regression: QA-patch-2 suite still 26/26.
 
+## Sprint 3 QA Patch — acceptance semantics, default truck, role safety, preloads
+
+Applied after manual QA of Sprint 3. No routes changed.
+
+### Acceptance semantics
+- "Confirm on behalf" is GONE as a primary action. The lifecycle is:
+  Draft → Sent to app → **Accepted by foreman** / Declined by foreman,
+  with Update not sent / Update sent for changes after sending.
+- Acceptance only happens in the Foreman Portal (`source: foreman_portal`,
+  eventType `assignment_accepted_by_foreman`).
+- **Dispatch override** is the rare emergency escape hatch: a small muted
+  action on the lane, requires a reason (e.g. "confirmed by phone at
+  7:10 AM"), renders as an amber "Dispatch override" chip — never as
+  acceptance — and emits `assignment_dispatch_override` with the reason.
+  The old event type names remain readable for persisted entries.
+- Wording aligned across Assignments, Foremen, Portal, Alerts, Timeline:
+  "waiting for {name} to accept", "Accepted by foreman", "has not
+  accepted", "Dispatch override — foreman did not accept in app."
+
+### Default truck behavior
+- The truck dropdown is no longer the first step. Lanes show
+  "Truck #04 — Marcus's default truck" (or "— override") with a
+  **Change truck** link that opens the picker on demand.
+- A truckless lane with a usable default shows a one-click
+  "Use Marcus's default truck (#04)" button; assigning a job still
+  auto-applies the default when free and usable (tight capacity applies
+  with a warning; over-capacity, in-shop, and conflicts do not).
+- When the default can't be used, the lane says exactly why: in shop /
+  already assigned to X today / may be too small / no default assigned.
+
+### Foreman role safety (temporary web portal era)
+- Job Detail in the foreman role is a read-only **field view**: no
+  Transfer/Reassign, no pending-reassignment confirm, no address/building/
+  inventory/notes/confirmations edits, no document Generate/Mark sent/
+  Sign-as/Void (Preview + Print stay), no adjustment review actions
+  (foreman sees "waiting on sales/admin review"). Mutation helpers are
+  also guarded, not just hidden.
+- A foreman can only open jobs assigned to their own FM-#### id; other
+  jobs show "This job is not assigned to you."
+- Foreman Portal shows the linked identity (name · FM-####), splits
+  "Waiting for your response" from "Upcoming accepted", explains empty
+  states, renames Confirm → **Accept**, and shows an explicit
+  "not linked to a foreman profile" card when the mapping is missing.
+
+### Warehouse preload / load-before-delivery tasks
+- New lightweight store `src/lib/store/preload-tasks.ts`: internal
+  operational tasks ("load at Doral warehouse the day before delivery")
+  linked to a delivery job, seeded deterministically from upcoming
+  Delivery/Storage-Out demo jobs. Statuses: Needed / Assigned /
+  Completed / Skipped (skip requires a note).
+- Visible on Assignments lanes (violet operational block with fatigue and
+  truck-in-shop warnings, Mark loaded / Skip actions), in the Day Plan
+  header count, in a "preloads without a foreman" strip, and in the
+  Foreman Portal ("Load at … before leaving that day" + Mark loaded).
+- Completing/skipping emits `warehouse_preload_completed/skipped` on the
+  delivery job's timeline.
+- **Deferred (documented TODO):** automatic task creation for new
+  bookings, warehouse/scanning/pallet systems, LD travel blocks.
+
+### Backlog note — future sales / AI intake (documented only, NOT built)
+Future flow: inquiry → Lead → Quote Draft → seller review → quote sent →
+customer accepts → Job → Operations assignment. Sources will include the
+website form, an AI website assistant, SMS/email/phone, referrals and
+repeat customers. Rule: AI may create a Lead or Quote Draft, but a human
+seller must review before the final quote is sent. Nothing of this exists
+in code yet.
+
 ## Known limitations
 
 - Seed timeline history exists for JOB-10421 only; other jobs accumulate

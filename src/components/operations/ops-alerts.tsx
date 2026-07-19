@@ -192,11 +192,11 @@ export function OpsAlerts({ selectedDate }: { selectedDate: string }) {
           id: `unconfirmed-${foremanId}`,
           severity: "warning",
           icon: BellOff,
-          title: `${name} has not confirmed ${unconfirmed.length} job(s)`,
+          title: `${name} has not accepted ${unconfirmed.length} job(s)`,
           detail:
             notSent > 0
               ? `${notSent} still in draft — not sent to the foreman yet. Next: send the day plan.`
-              : `Sent to app but no confirmation yet — follow up before the day starts.`,
+              : `Sent to app but no acceptance yet — follow up before start time.`,
           href: fixHref(foremanId),
         });
       }

@@ -41,6 +41,9 @@ const EVENT_META: Record<string, { icon: React.ComponentType<{ className?: strin
   assignment_drafted: { icon: Truck, color: "text-slate-600 bg-slate-500/15" },
   assignment_sent: { icon: BellRing, color: "text-sky-600 bg-sky-500/15" },
   assignment_update_sent: { icon: Send, color: "text-sky-600 bg-sky-500/15" },
+  assignment_accepted_by_foreman: { icon: CheckCircle2, color: "text-emerald-600 bg-emerald-500/15" },
+  assignment_dispatch_override: { icon: CheckCircle2, color: "text-amber-600 bg-amber-500/15" },
+  // Pre-QA-patch event type names (still present in persisted entries).
   assignment_confirmed_by_foreman: { icon: CheckCircle2, color: "text-emerald-600 bg-emerald-500/15" },
   assignment_confirmed_by_dispatch: { icon: CheckCircle2, color: "text-teal-600 bg-teal-500/15" },
   assignment_declined_by_foreman: { icon: XCircle, color: "text-rose-600 bg-rose-500/15" },
@@ -49,6 +52,8 @@ const EVENT_META: Record<string, { icon: React.ComponentType<{ className?: strin
   job_reassigned: { icon: RefreshCw, color: "text-amber-600 bg-amber-500/15" },
   truck_changed: { icon: Truck, color: "text-cyan-600 bg-cyan-500/15" },
   job_updated: { icon: FileText, color: "text-slate-600 bg-slate-500/15" },
+  warehouse_preload_completed: { icon: CheckCircle2, color: "text-violet-600 bg-violet-500/15" },
+  warehouse_preload_skipped: { icon: XCircle, color: "text-slate-600 bg-slate-500/15" },
   document_event: { icon: FileText, color: "text-blue-600 bg-blue-500/15" },
   adjustment_event: { icon: FileText, color: "text-violet-600 bg-violet-500/15" },
 };

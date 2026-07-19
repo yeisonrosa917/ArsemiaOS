@@ -82,23 +82,25 @@ export function getAssignmentHumanStatus(
       return {
         status: "Notified",
         label: "Sent to app",
-        detail: `Sent to ${foremanName}${a.notifiedAt ? ` at ${timeOf(a.notifiedAt)}` : ""} — waiting for confirmation.`,
-        next: "Follow up if there's no answer before the day starts.",
+        detail: `Sent to ${foremanName}${a.notifiedAt ? ` at ${timeOf(a.notifiedAt)}` : ""} — waiting for ${foremanName} to accept.`,
+        next: "Follow up if there's no response before start time.",
         tone: "sky",
       };
     case "Confirmed":
+      // Dispatch override is NOT foreman acceptance — keep them visually
+      // and verbally distinct everywhere.
       return a.source === "dispatcher"
         ? {
             status: "Confirmed",
-            label: "Confirmed by dispatch",
-            detail: `Marked confirmed on ${foremanName}'s behalf${a.by ? ` by ${a.by}` : ""} — not confirmed by the foreman personally.`,
+            label: "Dispatch override",
+            detail: `Marked confirmed by dispatch${a.by ? ` (${a.by})` : ""} after outside/phone confirmation — ${foremanName} did not accept in the app.`,
             next: "",
-            tone: "emerald",
+            tone: "amber",
           }
         : {
             status: "Confirmed",
-            label: "Confirmed by foreman",
-            detail: `${foremanName} confirmed${a.confirmedAt ? ` at ${timeOf(a.confirmedAt)}` : ""}.`,
+            label: "Accepted by foreman",
+            detail: `${foremanName} accepted${a.confirmedAt ? ` at ${timeOf(a.confirmedAt)}` : ""} from the Foreman Portal.`,
             next: "",
             tone: "emerald",
           };

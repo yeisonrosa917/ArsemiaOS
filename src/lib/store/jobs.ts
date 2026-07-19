@@ -412,20 +412,22 @@ function emitAssignmentEvent(prevJob: Job, status: AssignmentStatus, opts?: Assi
         message:
           prevStatus === "Needs Attention"
             ? `Update sent to ${name} (in-app).`
-            : `Assignment sent to ${name}'s app (in-app demo) — waiting for confirmation.`,
+            : `Assignment sent to ${name}'s app (in-app demo) — waiting for ${name} to accept.`,
       });
       break;
     case "Confirmed":
+      // Dispatch override must never read as foreman acceptance.
       logEvent({
         ...base,
         eventType:
           opts?.source === "foreman"
-            ? "assignment_confirmed_by_foreman"
-            : "assignment_confirmed_by_dispatch",
+            ? "assignment_accepted_by_foreman"
+            : "assignment_dispatch_override",
         message:
           opts?.source === "foreman"
-            ? `${name} confirmed this assignment from the Foreman Portal.`
-            : `Assignment confirmed on ${name}'s behalf by dispatch — not confirmed by the foreman personally.`,
+            ? `${name} accepted this assignment from the Foreman Portal.`
+            : `Dispatch override — assignment marked confirmed for ${name}${opts?.reason ? ` (${opts.reason})` : ""}. Foreman did not accept in app.`,
+        notes: opts?.source === "foreman" ? undefined : opts?.reason,
       });
       break;
     case "Declined":

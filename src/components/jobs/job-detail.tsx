@@ -50,7 +50,7 @@ import { useStorage, isItemFlagged } from "@/lib/store/storage";
 import { useClaims } from "@/lib/store/claims";
 import { useNotifications } from "@/lib/store/notifications";
 import { usePreferences } from "@/lib/store/preferences";
-import { getUserByRole } from "@/lib/auth/users";
+import { getUserByRole, getActiveForemanId } from "@/lib/auth/users";
 import { JobEventLog } from "./job-event-log";
 import { JobAdjustmentsPanel } from "./job-adjustments-panel";
 import { JobDocumentsPanel } from "./job-documents-panel";
@@ -106,6 +106,11 @@ export function JobDetail({ job: initial }: { job: Job }) {
     actorRole: activeRoleId,
     source: "owner_web" as const,
   };
+  // Foreman is execution-only (Sprint 3 QA patch): read-only field view, no
+  // core-data edits, no transfer/reassign, no admin document actions.
+  const isForeman = activeRoleId === "foreman";
+  const canEdit = !isForeman;
+  const myForemanId = getActiveForemanId(activeRoleId);
   const contractor = job.driverId ? CONTRACTOR_COMPANIES[job.driverId] : undefined;
 
   // Assigned truck capacity vs this job's CuFt.
@@ -159,22 +164,26 @@ export function JobDetail({ job: initial }: { job: Job }) {
   };
 
   const updateBuilding = (which: "pickupBuilding" | "deliveryBuilding", patch: Partial<BuildingDetails>) => {
+    if (!canEdit) return;
     const existing = (job[which] ?? { type: "Apartment" }) as BuildingDetails;
     updateJob(job.id, { [which]: { ...existing, ...patch } } as Partial<Job>);
   };
 
   const updateInventoryItem = (idx: number, patch: Partial<JobInventoryItem>) => {
+    if (!canEdit) return;
     const inv = [...(job.inventoryItems ?? [])];
     inv[idx] = { ...inv[idx], ...patch };
     updateJob(job.id, { inventoryItems: inv });
   };
 
   const removeInventoryItem = (idx: number) => {
+    if (!canEdit) return;
     const inv = (job.inventoryItems ?? []).filter((_, i) => i !== idx);
     updateJob(job.id, { inventoryItems: inv });
   };
 
   const addInventoryItem = () => {
+    if (!canEdit) return;
     const inv = [
       ...(job.inventoryItems ?? []),
       { name: "New item", qty: 1, cuft: 5 },
@@ -213,8 +222,30 @@ export function JobDetail({ job: initial }: { job: Job }) {
     },
   ];
 
+  // A foreman may only open their own assigned jobs.
+  if (isForeman && job.driverId !== myForemanId) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <p className="text-sm font-semibold">This job is not assigned to you.</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            You can only open jobs on your own schedule. Go back to{" "}
+            <Link href="/jobs" className="text-primary hover:underline">My jobs</Link> or the{" "}
+            <Link href="/foreman-portal" className="text-primary hover:underline">Foreman Portal</Link>.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
+      {isForeman && (
+        <p className="rounded-lg border border-border bg-muted/20 px-3 py-2 text-[11px] text-muted-foreground">
+          Field view — read-only. You can review everything needed for execution;
+          changes to job, customer, or pricing data are made by dispatch/admin.
+        </p>
+      )}
       {/* Header */}
       <Card className="border-primary/20">
         <CardContent className="grid gap-4 p-4 lg:grid-cols-12">
@@ -263,15 +294,17 @@ export function JobDetail({ job: initial }: { job: Job }) {
                 <History className="h-3.5 w-3.5" />
                 Job History
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8 gap-1.5 text-xs"
-                onClick={() => setReassignOpen(true)}
-              >
-                <UserCog className="h-3.5 w-3.5" />
-                Transfer / Reassign
-              </Button>
+              {canEdit && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 gap-1.5 text-xs"
+                  onClick={() => setReassignOpen(true)}
+                >
+                  <UserCog className="h-3.5 w-3.5" />
+                  Transfer / Reassign
+                </Button>
+              )}
             </div>
             <div className="grid grid-cols-3 gap-2">
               <Stat
@@ -295,11 +328,13 @@ export function JobDetail({ job: initial }: { job: Job }) {
         open={historyOpen}
         onOpenChange={setHistoryOpen}
       />
-      <ReassignModal
-        job={job}
-        open={reassignOpen}
-        onOpenChange={setReassignOpen}
-      />
+      {canEdit && (
+        <ReassignModal
+          job={job}
+          open={reassignOpen}
+          onOpenChange={setReassignOpen}
+        />
+      )}
 
       {/* Lifecycle strip — customer journey from call to invoice */}
       <Card>
@@ -349,23 +384,27 @@ export function JobDetail({ job: initial }: { job: Job }) {
                 <MapPin className="h-4 w-4 text-primary" /> Addresses & buildings
               </CardTitle>
               <CardDescription>
-                Editable. Building requirements flow to the foreman app.
+                {canEdit
+                  ? "Editable. Building requirements flow to the foreman app."
+                  : "Read-only — building requirements for your move."}
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <AddressBlock
                 label="Pickup"
                 address={job.pickup}
-                onAddressChange={(v) => updateJob(job.id, { pickup: v })}
+                onAddressChange={canEdit ? (v) => updateJob(job.id, { pickup: v }) : undefined}
                 building={job.pickupBuilding}
                 onBuildingChange={(p) => updateBuilding("pickupBuilding", p)}
+                readOnly={!canEdit}
               />
               <AddressBlock
                 label="Delivery"
                 address={job.delivery}
-                onAddressChange={(v) => updateJob(job.id, { delivery: v })}
+                onAddressChange={canEdit ? (v) => updateJob(job.id, { delivery: v }) : undefined}
                 building={job.deliveryBuilding}
                 onBuildingChange={(p) => updateBuilding("deliveryBuilding", p)}
+                readOnly={!canEdit}
               />
             </CardContent>
           </Card>
@@ -381,18 +420,20 @@ export function JobDetail({ job: initial }: { job: Job }) {
                   {(job.inventoryItems ?? []).length} items · {totalCuft} ft³ total
                 </CardDescription>
               </div>
-              <div className="flex gap-1">
-                <Button
-                  variant={editingInv ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setEditingInv((v) => !v)}
-                >
-                  {editingInv ? "Done" : "Edit"}
-                </Button>
-                <Button variant="outline" size="sm" onClick={addInventoryItem} className="gap-1">
-                  <Plus className="h-3.5 w-3.5" /> Add
-                </Button>
-              </div>
+              {canEdit && (
+                <div className="flex gap-1">
+                  <Button
+                    variant={editingInv ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setEditingInv((v) => !v)}
+                  >
+                    {editingInv ? "Done" : "Edit"}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={addInventoryItem} className="gap-1">
+                    <Plus className="h-3.5 w-3.5" /> Add
+                  </Button>
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               {(job.inventoryItems ?? []).length === 0 ? (
@@ -468,11 +509,14 @@ export function JobDetail({ job: initial }: { job: Job }) {
                               onClick={() =>
                                 updateInventoryItem(idx, { packByCrew: !it.packByCrew })
                               }
+                              disabled={!canEdit}
                               className={cn(
                                 "rounded px-1.5 py-0.5 text-[10px] font-semibold transition-colors",
                                 it.packByCrew
                                   ? "bg-success/15 text-success"
-                                  : "bg-muted text-muted-foreground hover:bg-accent",
+                                  : "bg-muted text-muted-foreground",
+                                canEdit && !it.packByCrew && "hover:bg-accent",
+                                !canEdit && "cursor-default",
                               )}
                             >
                               {it.packByCrew ? "✓ Crew" : "—"}
@@ -538,9 +582,17 @@ export function JobDetail({ job: initial }: { job: Job }) {
             <CardContent>
               <textarea
                 value={job.notes ?? ""}
-                onChange={(e) => updateJob(job.id, { notes: e.target.value })}
-                placeholder="Foreman-facing notes — building access, fragile items, customer preferences..."
-                className="min-h-24 w-full rounded-lg border border-border bg-background p-3 text-sm focus:border-primary focus:outline-none"
+                onChange={(e) => canEdit && updateJob(job.id, { notes: e.target.value })}
+                readOnly={!canEdit}
+                placeholder={
+                  canEdit
+                    ? "Foreman-facing notes — building access, fragile items, customer preferences..."
+                    : "No field notes for this job."
+                }
+                className={cn(
+                  "min-h-24 w-full rounded-lg border border-border bg-background p-3 text-sm focus:outline-none",
+                  canEdit && "focus:border-primary",
+                )}
               />
             </CardContent>
           </Card>
@@ -578,20 +630,22 @@ export function JobDetail({ job: initial }: { job: Job }) {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button size="sm" className="flex-1 gap-1" onClick={handleConfirmPending}>
-                    <Check className="h-3.5 w-3.5" />
-                    Confirm
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={handleCancelPending}
-                  >
-                    Cancel
-                  </Button>
-                </div>
+                {canEdit && (
+                  <div className="flex gap-2">
+                    <Button size="sm" className="flex-1 gap-1" onClick={handleConfirmPending}>
+                      <Check className="h-3.5 w-3.5" />
+                      Confirm
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={handleCancelPending}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -618,17 +672,19 @@ export function JobDetail({ job: initial }: { job: Job }) {
                       <p className="text-sm font-semibold">{job.driverName}</p>
                       <p className="text-[10px] text-muted-foreground">{job.driverId}</p>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1"
-                      disabled={!!pendingForJob}
-                      onClick={() => setReassignOpen(true)}
-                    >
-                      Reassign
-                    </Button>
+                    {canEdit && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        disabled={!!pendingForJob}
+                        onClick={() => setReassignOpen(true)}
+                      >
+                        Reassign
+                      </Button>
+                    )}
                   </div>
-                ) : (
+                ) : canEdit ? (
                   <Button
                     variant="outline"
                     className="mt-1 w-full"
@@ -637,6 +693,10 @@ export function JobDetail({ job: initial }: { job: Job }) {
                   >
                     Assign foreman
                   </Button>
+                ) : (
+                  <p className="mt-1 rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
+                    No foreman assigned yet.
+                  </p>
                 )}
 
                 {/* Assigned truck capacity status */}
@@ -692,12 +752,13 @@ export function JobDetail({ job: initial }: { job: Job }) {
                 <Check className="h-4 w-4 text-primary" /> Confirmations
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className={cn("space-y-2", !canEdit && "pointer-events-none opacity-90")}>
               <ConfirmRow
                 label="Customer confirmed"
                 checked={!!job.confirmations?.customerConfirmed}
                 at={job.confirmations?.customerConfirmedAt}
                 onChange={(v) =>
+                  canEdit &&
                   updateJob(job.id, {
                     confirmations: {
                       ...(job.confirmations ?? {
@@ -838,12 +899,15 @@ function AddressBlock({
   onAddressChange,
   building,
   onBuildingChange,
+  readOnly = false,
 }: {
   label: string;
   address: string;
-  onAddressChange: (v: string) => void;
+  onAddressChange?: (v: string) => void;
   building?: BuildingDetails;
   onBuildingChange: (p: Partial<BuildingDetails>) => void;
+  /** Field view (foreman): show everything, edit nothing. */
+  readOnly?: boolean;
 }) {
   return (
     <div className="space-y-2">
@@ -869,10 +933,16 @@ function AddressBlock({
       </div>
       <Input
         value={address}
-        onChange={(e) => onAddressChange(e.target.value)}
+        onChange={(e) => onAddressChange?.(e.target.value)}
+        readOnly={readOnly || !onAddressChange}
         className="text-sm"
       />
-      <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted/20 p-2">
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted/20 p-2",
+          readOnly && "pointer-events-none",
+        )}
+      >
         <BuildingFlag
           label="Elevator"
           icon={Building2}
