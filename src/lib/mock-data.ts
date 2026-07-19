@@ -2348,7 +2348,8 @@ export const jobs: Job[] = [
     pickupLng: -80.1939,
     deliveryLat: 26.0987,
     deliveryLng: -80.1325,
-    type: "Long Distance",
+    // 31 miles is not Long Distance — office relocation within the metro.
+    type: "Commercial",
     cuFt: 471,
     miles: 31,
     status: "Unassigned",

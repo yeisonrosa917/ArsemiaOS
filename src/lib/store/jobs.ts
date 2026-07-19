@@ -277,8 +277,10 @@ export const useJobsStore = create<JobsState>()(
       reset: () => set({ jobs: seedJobs, pendingReassignments: [] }),
     }),
     {
+      // v4 — QA patch: Long Distance seed jobs get real long-distance
+      // destinations (was: in-city pairs mislabeled LD).
       // v3 — Sprint 2.2: date re-anchored seed + assignment/truck fields.
-      name: "arsemia.jobs.v3",
+      name: "arsemia.jobs.v4",
       storage: createJSONStorage(() => localStorage),
     },
   ),

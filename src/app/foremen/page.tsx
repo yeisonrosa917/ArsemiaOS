@@ -246,48 +246,83 @@ export default function ForemenPage() {
             return (
               <Card key={d.id} className={cn("overflow-hidden", s.assignment === "Declined" && "border-rose-500/50")}>
                 <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <UserAvatar name={d.name} photoUrl={s.photoUrl} size="lg" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-semibold">{d.name}</p>
-                        <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-semibold", TONE_CHIP[s.workingToday ? (human?.tone ?? "slate") : "slate"])}>
-                          {foremanDayLabel(s)}
-                        </span>
-                        {s.workingToday && human && (
-                          <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-semibold", TONE_CHIP[human.tone])}>
-                            {human.label}
-                          </span>
-                        )}
-                        <span className={cn("rounded-md border px-1.5 py-0.5 text-[10px] font-semibold", AVAILABILITY_STYLES[avail])}>
-                          {AVAILABILITY_LABEL[avail]}
-                        </span>
+                  {/* Header — identity left, two aligned status chips right */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <UserAvatar name={d.name} photoUrl={s.photoUrl} size="lg" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">{d.name}</p>
+                        <p className="font-mono text-[10px] text-muted-foreground">{d.id}</p>
                       </div>
-                      {s.workingToday && human && (human.detail || human.next) && (
-                        <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
-                          {human.detail}
-                          {human.next && <span className="font-medium text-foreground"> Next: {human.next}</span>}
-                        </p>
-                      )}
-                      <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-                        <span className="flex items-center gap-1 truncate"><Truck className="h-3 w-3 shrink-0" />{truckLabel}</span>
-                        <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 shrink-0" />{d.currentLocation}</span>
-                        <span>Jobs this date: <span className="font-semibold text-foreground">{s.jobs.length}</span></span>
-                        <span>First: <span className="font-semibold text-foreground">{s.jobs[0] ? formatDateTimeStable(s.jobs[0].scheduledAt, { hour: "numeric", minute: "2-digit" }) : "—"}</span></span>
-                        <span className="flex items-center gap-1">
-                          Docs: {d.documentsOk ? <span className="text-emerald-600">OK</span> : <span className="text-amber-600">Expiring</span>}
-                        </span>
-                        <span className="truncate">Day: {LIVE_WORK_LABEL[s.liveWork]}</span>
-                      </div>
-                      {s.needsAttentionReasons.length > 0 && (
-                        <p className="mt-1 text-[10px] text-amber-600 dark:text-amber-400">
-                          ⚠ {s.needsAttentionReasons.join(" · ")}
-                        </p>
-                      )}
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <span className={cn("rounded border px-1.5 py-0.5 text-[10px] font-semibold", TONE_CHIP[s.workingToday ? (human?.tone ?? "slate") : "slate"])}>
+                        {foremanDayLabel(s)}
+                      </span>
+                      <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-semibold", AVAILABILITY_STYLES[avail])}>
+                        {AVAILABILITY_LABEL[avail]}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  {/* Operational — the selected date's plan */}
+                  <div className="mt-3 rounded-lg border border-border/60 bg-muted/20 p-2.5">
+                    <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {formatDateStable(selectedDate, { weekday: "short", month: "short", day: "numeric" })}
+                    </p>
+                    {s.workingToday && human ? (
+                      <>
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                          <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-semibold", TONE_CHIP[human.tone])}>
+                            {human.label}
+                          </span>
+                          <span className="text-[11px] font-medium">
+                            {s.jobs.length} job{s.jobs.length !== 1 ? "s" : ""}
+                          </span>
+                          {s.jobs[0] && (
+                            <span className="text-[11px] text-muted-foreground">
+                              · first at {formatDateTimeStable(s.jobs[0].scheduledAt, { hour: "numeric", minute: "2-digit" })}
+                            </span>
+                          )}
+                          <span className="text-[11px] text-muted-foreground">· {LIVE_WORK_LABEL[s.liveWork]}</span>
+                        </div>
+                        {(human.detail || human.next) && (
+                          <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
+                            {human.detail}
+                            {human.next && <span className="font-medium text-foreground"> Next: {human.next}</span>}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="mt-1 text-[11px] text-muted-foreground">{foremanDayLabel(s)}.</p>
+                    )}
+                    {s.needsAttentionReasons.length > 0 && (
+                      <p className="mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+                        ⚠ {s.needsAttentionReasons.join(" · ")}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Logistics + compliance */}
+                  <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <Truck className="h-3 w-3 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{truckLabel}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 truncate">
+                      <MapPin className="h-3 w-3 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{d.currentLocation}</span>
+                    </div>
+                    <div className="text-muted-foreground">
+                      Docs:{" "}
+                      {d.documentsOk ? <span className="font-medium text-emerald-600">OK</span> : <span className="font-medium text-amber-600">Expiring</span>}
+                    </div>
+                    <div className="truncate text-muted-foreground">
+                      Rating: <span className="font-medium text-foreground">{d.rating}</span>
+                    </div>
+                  </dl>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t pt-3">
                     <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => setExpanded(isOpen ? null : d.id)}>
                       <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")} />
                       {s.jobs.length} job{s.jobs.length !== 1 ? "s" : ""} this date

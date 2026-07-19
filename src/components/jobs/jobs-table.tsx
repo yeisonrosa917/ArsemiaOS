@@ -20,7 +20,7 @@ import {
   PayrollStatusBadge,
 } from "@/components/shared/status-badge";
 import { jobStatuses } from "@/lib/mock-data";
-import { allJobs as jobs } from "@/lib/data/all-jobs";
+import { useJobsStore } from "@/lib/store/jobs";
 import type { JobStatus, JobType } from "@/lib/types";
 import { usePreferences } from "@/lib/store/preferences";
 import { getActiveForemanId, getUserByRole } from "@/lib/auth/users";
@@ -46,6 +46,9 @@ export function JobsTable() {
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const foremanId = getActiveForemanId(activeRoleId);
   const foremanName = foremanId ? getUserByRole(activeRoleId).name : null;
+  // Live jobs store — the same source Operations reads, so the list can
+  // never disagree with the board.
+  const jobs = useJobsStore((s) => s.jobs);
 
   // A foreman only sees the jobs they are assigned to (driver or crew member).
   const scopedJobs = useMemo(() => {
@@ -56,7 +59,7 @@ export function JobsTable() {
         j.driverName === foremanName ||
         j.crew.includes(foremanName ?? " "),
     );
-  }, [foremanId, foremanName]);
+  }, [jobs, foremanId, foremanName]);
 
   const rows = useMemo(() => {
     return scopedJobs.filter((j) => {

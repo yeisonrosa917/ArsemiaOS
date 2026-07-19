@@ -253,6 +253,36 @@ dispatcher-side state the foreman never saw). Confirm/decline stamps
   foreman gets the needs-update flag). Documented limitation.
 - Drag-and-drop — deliberately not built; action menu is the QA-patch scope.
 
+## QA Patch 2 — Calendar, selected-date consistency, empty states, polish
+
+- **DateNavigator** (`src/components/calendar/date-navigator.tsx`) gained an
+  inline expandable month view: compact 7-day strip stays the default, the
+  "Month" button opens a Monday-aligned month grid (equal cells, day number,
+  per-day job count, today marker, selected highlight, prev/next month).
+  Used by Operations and now also by **/jobs** (day + week views), replacing
+  the page's ad-hoc prev/Today/Tomorrow/next/date-input cluster — "Tomorrow"
+  was removed; arrows/month/date input cover it.
+- **Honest counts**: the Board's job-queue status chips are scoped to the
+  selected date (labeled "Status — selected date only"); the "All" chip shows
+  the day's total, never the whole database. Zero-count chips are dimmed.
+- **Empty planned routes**: 0 jobs on the selected date renders "No planned
+  routes for this date — choose another date or assign jobs to build the day
+  plan" instead of the simulated map; with jobs, the map keeps its
+  "Simulated — not live GPS" label.
+- **Same date = same reality**: the Jobs **list** view was still reading the
+  static seed (`allJobs`) instead of the live jobs store — fixed; every Jobs
+  view now reads `useJobsStore`, matching Operations exactly.
+- **Demo classification**: schedule-seed Long Distance jobs now get real
+  long-distance destinations (Orlando/Tampa/Jacksonville/Naples/Atlanta/
+  Savannah/Charlotte/Nashville) instead of in-city pairs; hand-written
+  JOB-10431 (Wynwood → Fort Lauderdale, 31 mi) reclassified Commercial.
+  Jobs persist key bumped `arsemia.jobs.v3 → v4` so cached seeds refresh.
+- **Foremen cards** restructured into clean sections: header (avatar + name
+  + right-aligned day-status and availability chips), operational block for
+  the selected date (lifecycle chip, jobs, first start, live status, meaning
+  + next action), logistics/compliance grid (truck, base, docs, rating),
+  actions row. Filters, counts, and the shared selector are unchanged.
+
 ## Known risks / notes
 
 - Time-overlap detection still estimates duration as `hours ?? 4`.

@@ -2,15 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  MapPin,
-  Search,
-  Truck,
-} from "lucide-react";
+import { CalendarDays, MapPin, Search, Truck } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
+import { DateNavigator } from "@/components/calendar/date-navigator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +21,6 @@ import { cn, formatCurrency, formatNumber, initials } from "@/lib/utils";
 import {
   toISODateSafe,
   parseDateSafe,
-  formatWeekdayStable,
   formatDateStable,
   formatDateTimeStable,
 } from "@/lib/dates";
@@ -138,11 +131,6 @@ export default function JobsPage() {
     return days[0] ?? null;
   }, [jobCountByDay, selectedDate]);
 
-  const shiftDay = (n: number) => {
-    const d = parseDateSafe(selectedDate) ?? new Date();
-    setSelectedDate(toISODateSafe(addDays(d, n)));
-  };
-
   const foremenNames = useMemo(
     () => ["All", ...Array.from(new Set(scoped.map((j) => j.driverName).filter(Boolean) as string[]))],
     [scoped],
@@ -155,36 +143,27 @@ export default function JobsPage() {
         description="The operational schedule. Pick a day to see the moves running, or switch to the list to search everything."
       />
 
-      {/* Date + view controls */}
-      <div className="flex flex-col gap-2 rounded-2xl border bg-card p-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => shiftDay(-1)} aria-label="Previous day">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setSelectedDate(toISODateSafe(new Date()))}>
-            Today
-          </Button>
-          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setSelectedDate(toISODateSafe(addDays(new Date(), 1)))}>
-            Tomorrow
-          </Button>
-          <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => shiftDay(1)} aria-label="Next day">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => {
-              const v = e.target.value;
-              setSelectedDate(v && parseDateSafe(v) ? v : toISODateSafe(new Date()));
-            }}
-            className="h-8 rounded-md border border-border bg-background px-2 text-xs"
-          />
-          <span className="ml-1 text-sm font-semibold">
-            {view === "week"
-              ? `Week of ${formatDateStable(weekDays[0])}`
-              : formatDateStable(selectedDate)}
-          </span>
-        </div>
+      {/* Shared date navigator — same component Operations uses, so the
+          selected date reads identically across the app. */}
+      {view !== "list" && (
+        <DateNavigator
+          selectedDate={selectedDate}
+          onDateChange={(iso) => setSelectedDate(parseDateSafe(iso) ? iso : toISODateSafe(new Date()))}
+          variant="full"
+          mode={view === "week" ? "week" : "day"}
+          dayCounts={jobCountByDay}
+        />
+      )}
+
+      {/* View toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-xs font-semibold text-muted-foreground">
+          {view === "week"
+            ? `Week of ${formatDateStable(weekDays[0])}`
+            : view === "list"
+              ? "All jobs — searchable list (not date-scoped)"
+              : null}
+        </span>
         <div className="flex overflow-hidden rounded-md border border-border text-xs">
           {(["day", "week", "list"] as const).map((v) => (
             <button

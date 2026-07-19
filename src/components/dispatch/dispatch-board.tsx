@@ -124,10 +124,11 @@ export function DispatchBoard({
     });
   }, [jobs, search, zoneFilter, typeFilter, statusFilter, driverFilter, selectedDate]);
 
-  const jobsOnDate = useMemo(
-    () => jobs.filter((j) => (j.scheduledAt ?? "").slice(0, 10) === selectedDate).length,
+  const dayJobsAll = useMemo(
+    () => jobs.filter((j) => (j.scheduledAt ?? "").slice(0, 10) === selectedDate),
     [jobs, selectedDate],
   );
+  const jobsOnDate = dayJobsAll.length;
 
   const selectedJob = filteredJobs.find((j) => j.id === selectedJobId) ?? null;
 
@@ -151,12 +152,14 @@ export function DispatchBoard({
     };
   }, [jobs, selectedDate, availabilityOverrides, users, vehicles]);
 
+  // Status chip counts are scoped to the SELECTED DATE — a day with 0 jobs
+  // must never imply the whole database is on today's board.
   const counts = useMemo(() => {
     return jobStatuses.map((s) => ({
       status: s,
-      count: jobs.filter((j) => j.status === s).length,
+      count: dayJobsAll.filter((j) => j.status === s).length,
     }));
-  }, [jobs]);
+  }, [dayJobsAll]);
 
   return (
     <div className="space-y-4">
@@ -295,7 +298,7 @@ export function DispatchBoard({
 
             <div className="mt-3">
               <p className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Status
+                Status — selected date only
               </p>
               <div className="flex flex-wrap gap-1">
                 <button
@@ -307,7 +310,7 @@ export function DispatchBoard({
                       : "border-border text-muted-foreground hover:bg-muted",
                   )}
                 >
-                  All <span className="text-foreground/60">({jobs.length})</span>
+                  All <span className="text-foreground/60">({jobsOnDate})</span>
                 </button>
                 {counts.map((c) => (
                   <button
@@ -318,6 +321,7 @@ export function DispatchBoard({
                       statusFilter === c.status
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border text-muted-foreground hover:bg-muted",
+                      c.count === 0 && statusFilter !== c.status && "opacity-50",
                     )}
                   >
                     {c.status}{" "}
@@ -450,7 +454,18 @@ export function DispatchBoard({
           </div>
 
           <div className="relative min-h-[420px] flex-1 p-4">
-            <MapPreview className="h-full min-h-[420px]" />
+            {jobsOnDate === 0 ? (
+              // No jobs = no routes. Never show fake markers for an empty day.
+              <div className="flex h-full min-h-[420px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border text-center">
+                <MapPin className="h-8 w-8 text-muted-foreground/50" />
+                <p className="text-sm font-semibold">No planned routes for this date.</p>
+                <p className="max-w-xs text-xs text-muted-foreground">
+                  Choose another date or assign jobs to build the day plan.
+                </p>
+              </div>
+            ) : (
+              <MapPreview className="h-full min-h-[420px]" />
+            )}
           </div>
 
           {selectedJob && (

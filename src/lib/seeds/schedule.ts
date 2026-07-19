@@ -36,6 +36,12 @@ const CITIES = [
   "Miami Beach", "North Miami", "Pinecrest", "Hialeah", "Coconut Grove",
   "Key Biscayne", "Sunny Isles", "Miami Lakes", "Palmetto Bay",
 ];
+// Long Distance jobs must actually go somewhere far — an in-city pair
+// labeled "Long Distance" is wrong demo data (QA patch).
+const LD_DESTINATIONS = [
+  "Orlando, FL", "Tampa, FL", "Jacksonville, FL", "Naples, FL",
+  "Atlanta, GA", "Savannah, GA", "Charlotte, NC", "Nashville, TN",
+];
 const TYPES: { type: JobType; weight: number }[] = [
   { type: "Local Move", weight: 6 },
   { type: "Long Distance", weight: 2 },
@@ -92,12 +98,14 @@ function build(): Job[] {
       const hour = 7 + Math.floor(r() * 6);
       const foreman = drivers[Math.floor(r() * drivers.length)];
       const type = pickType(r());
-      const cuFt = type === "Long Distance" ? 700 + Math.floor(r() * 900) : 300 + Math.floor(r() * 700);
-      const miles = type === "Long Distance" ? 120 + Math.floor(r() * 220) : 4 + Math.floor(r() * 30);
+      const isLD = type === "Long Distance";
+      const cuFt = isLD ? 700 + Math.floor(r() * 900) : 300 + Math.floor(r() * 700);
+      const miles = isLD ? 120 + Math.floor(r() * 220) : 4 + Math.floor(r() * 30);
       const price = Math.round((cuFt * 2.6 + miles * 3 + 150) / 5) * 5;
       const from = pick(CITIES, r());
-      let to = pick(CITIES, r());
-      if (to === from) to = CITIES[(CITIES.indexOf(to) + 1) % CITIES.length];
+      const toRoll = r();
+      let to = isLD ? pick(LD_DESTINATIONS, toRoll) : pick(CITIES, toRoll);
+      if (!isLD && to === from) to = CITIES[(CITIES.indexOf(to) + 1) % CITIES.length];
       const { status, payroll } = statusForDate(day, r());
       const assigned = status !== "Unassigned";
       const cust = `${pick(CUSTOMERS, r())} ${pick(SUFFIX, r())}`;
@@ -106,7 +114,7 @@ function build(): Job[] {
         customer: cust,
         customerPhone: `(305) 555-${pad(10 + (n % 89))}${pad(n % 99)}`.slice(0, 14),
         pickup: `${100 + (n % 900)} ${from} Ave`,
-        delivery: `${100 + ((n * 7) % 900)} ${to} St`,
+        delivery: isLD ? `${100 + ((n * 7) % 900)} Main St, ${to}` : `${100 + ((n * 7) % 900)} ${to} St`,
         pickupCity: from,
         deliveryCity: to,
         type,
