@@ -12,8 +12,7 @@ import {
   Wallet,
   X,
 } from "lucide-react";
-import { useActivityLog } from "@/lib/store/activity-log";
-import { useJobEvents } from "@/lib/store/job-events";
+import { useActivityLog, readLegacyJobEvents } from "@/lib/store/activity-log";
 import { useJobDocuments } from "@/lib/store/job-documents";
 import { useInvoices } from "@/lib/store/invoices";
 import { useClaims } from "@/lib/store/claims";
@@ -74,7 +73,6 @@ export function JobHistoryDrawer({
   onOpenChange: (next: boolean) => void;
 }) {
   const activity = useActivityLog((s) => s.entries);
-  const events = useJobEvents((s) => s.events);
   const documents = useJobDocuments((s) => s.items);
   const invoices = useInvoices((s) => s.items);
   const claims = useClaims((s) => s.items);
@@ -84,26 +82,31 @@ export function JobHistoryDrawer({
     const list: TimelineEntry[] = [];
 
     activity
-      .filter((a) => a.objectId === jobId || a.metadata?.jobId === jobId)
+      .filter(
+        (a) =>
+          a.objectId === jobId ||
+          a.metadata?.jobId === jobId ||
+          (a.linkedType === "job" && a.linkedId === jobId),
+      )
       .forEach((a) =>
         list.push({
           ts: a.timestamp,
           source: "activity",
-          message: humanizeActivity(a),
+          // Unified entries carry the human sentence as the title.
+          message: a.eventType ? a.title : humanizeActivity(a),
           actor: a.actorName,
         }),
       );
 
-    events
-      .filter((e) => e.jobId === jobId)
-      .forEach((e) =>
-        list.push({
-          ts: e.createdAt,
-          source: "event",
-          message: e.message,
-          actor: e.actor,
-        }),
-      );
+    // Read-only history from the retired job-events store (pre-Sprint 3).
+    readLegacyJobEvents(jobId).forEach((e) =>
+      list.push({
+        ts: e.createdAt,
+        source: "event",
+        message: e.message,
+        actor: e.actor,
+      }),
+    );
 
     documents
       .filter((d) => d.jobId === jobId)
@@ -175,7 +178,7 @@ export function JobHistoryDrawer({
       );
 
     return list.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
-  }, [activity, events, documents, invoices, claims, expenses, jobId]);
+  }, [activity, documents, invoices, claims, expenses, jobId]);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>

@@ -26,8 +26,6 @@ import {
   AVAILABILITY_STYLES,
 } from "@/lib/store/foreman-availability";
 import { useUsers } from "@/lib/store/users";
-import { useActivityLog } from "@/lib/store/activity-log";
-import { useJobEvents } from "@/lib/store/job-events";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
 import { capacityLevel } from "@/lib/fleet/capacity";
@@ -38,7 +36,7 @@ import {
   getAssignmentHumanStatus,
   type ForemanDayStatus,
 } from "@/lib/operations/day-status";
-import type { ActivityAction, Job } from "@/lib/types";
+import type { Job } from "@/lib/types";
 import { cn, formatCurrency, formatNumber } from "@/lib/utils";
 
 /**
@@ -83,10 +81,16 @@ export function AssignmentsBoard({
   const vehicles = useFleet((s) => s.vehicles);
   const overrides = useForemanAvailability((s) => s.overrides);
   const users = useUsers((s) => s.users);
-  const pushActivity = useActivityLog((s) => s.push);
-  const pushJobEvent = useJobEvents((s) => s.push);
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const actor = getUserByRole(activeRoleId);
+  // Actor context passed into store mutations — the store writes the
+  // unified timeline events itself (Sprint 3); this board never dual-logs.
+  const ctx = {
+    actorId: actor.id,
+    actorName: actor.name,
+    actorRole: actor.roleId,
+    source: "owner_web" as const,
+  };
 
   const [movingJobId, setMovingJobId] = useState<string | null>(null);
 
@@ -137,35 +141,12 @@ export function AssignmentsBoard({
 
   const sendable = summary.draft + summary.needsUpdate;
 
-  /* ── logging (activity log + job timeline) ── */
-
-  const log = (action: ActivityAction, objectId: string, title: string, notes?: string) =>
-    pushActivity({
-      actorId: actor.id,
-      actorName: actor.name,
-      actorRole: actor.roleId,
-      module: "Dispatch",
-      action,
-      objectType: "Assignment",
-      objectId,
-      title,
-      notes,
-    });
-
-  const timeline = (
-    jobId: string,
-    type: "assigned" | "reassigned" | "status_changed" | "edited",
-    message: string,
-  ) => pushJobEvent({ jobId, type, actor: actor.name, message });
-
-  /* ── actions ── */
+  /* ── actions — every mutation writes its own timeline event in the store ── */
 
   const handleAssign = (job: Job, foremanId: string) => {
     const lane = lanes.find((l) => l.foremanId === foremanId);
     if (!lane) return;
-    assignJobToForeman(job.id, lane.foremanId, lane.name);
-    log("assigned", job.id, `Job assigned to ${lane.name}`, `${selectedDate} · via Assignments board`);
-    timeline(job.id, "assigned", `Assigned to ${lane.name} (${lane.foremanId}) — draft, not sent yet.`);
+    assignJobToForeman(job.id, lane.foremanId, lane.name, ctx);
 
     // Suggest the foreman's default truck automatically: apply it when the
     // lane has no truck yet and the default is actually usable today.
@@ -180,79 +161,69 @@ export function AssignmentsBoard({
       });
       const def = options.find((o) => o.vehicle.id === lane.defaultTruckId);
       if (def && (def.kind === "suggested" || def.kind === "good" || def.kind === "current")) {
-        assignTruckForDay(lane.foremanId, selectedDate, lane.defaultTruckId);
-        log(
-          "updated",
-          lane.foremanId,
-          `${def.vehicle.name.split(" - ")[0]} auto-suggested for ${lane.name}`,
-          `${selectedDate} · default truck`,
-        );
+        assignTruckForDay(lane.foremanId, selectedDate, lane.defaultTruckId, {
+          ...ctx,
+          note: "Default truck auto-suggested",
+        });
       }
     }
   };
 
   const handleMove = (job: Job, target: ForemanDayStatus) => {
-    const from = job.driverName ?? "unassigned";
-    assignJobToForeman(job.id, target.foremanId, target.name);
-    log("reassigned", job.id, `Job moved: ${from} → ${target.name}`, `${selectedDate} · same-day move`);
-    timeline(job.id, "reassigned", `Moved from ${from} to ${target.name} (${target.foremanId}).`);
+    assignJobToForeman(job.id, target.foremanId, target.name, ctx);
     setMovingJobId(null);
   };
 
   const handleRemove = (job: Job) => {
-    unassignJob(job.id);
-    log("updated", job.id, `Job removed from ${job.driverName ?? "foreman"}`, `${selectedDate} · via Assignments board`);
-    timeline(job.id, "reassigned", `Removed from ${job.driverName ?? "foreman"} — back to unassigned.`);
+    unassignJob(job.id, ctx);
   };
 
   const handleTruck = (lane: ForemanDayStatus, truckId: string) => {
-    assignTruckForDay(lane.foremanId, selectedDate, truckId || undefined);
-    const truckName = vehicles.find((v) => v.id === truckId)?.name.split(" - ")[0];
-    log(
-      "updated",
-      lane.foremanId,
-      truckId ? `Truck ${truckName ?? truckId} assigned to ${lane.name}` : `Truck cleared for ${lane.name}`,
-      `${selectedDate} · day-level truck assignment`,
-    );
-    lane.jobs.forEach((j) =>
-      timeline(j.id, "edited", truckId ? `Truck for the day: ${truckName ?? truckId}.` : "Truck cleared for the day."),
-    );
+    assignTruckForDay(lane.foremanId, selectedDate, truckId || undefined, ctx);
   };
 
   /** Send drafts + unsent changes for one lane (in-app only). */
   const sendLane = (lane: ForemanDayStatus) => {
-    const toSend = lane.jobs.filter((j) => {
-      const s = j.assignment?.status ?? "Draft";
-      return j.status !== "Completed" && (s === "Draft" || s === "Needs Attention");
-    });
-    toSend.forEach((j) => {
-      setJobAssignment(j.id, "Notified", { by: actor.name, source: "dispatcher" });
-      timeline(j.id, "status_changed", `Assignment sent to ${lane.name}'s app (in-app demo) — waiting for confirmation.`);
-    });
-    if (toSend.length > 0)
-      log("status_changed", lane.foremanId, `Day plan sent to ${lane.name} (in-app)`, `${selectedDate} · ${toSend.length} job(s)`);
+    lane.jobs
+      .filter((j) => {
+        const s = j.assignment?.status ?? "Draft";
+        return j.status !== "Completed" && (s === "Draft" || s === "Needs Attention");
+      })
+      .forEach((j) => {
+        setJobAssignment(j.id, "Notified", {
+          by: actor.name,
+          source: "dispatcher",
+          actorId: actor.id,
+          actorRole: actor.roleId,
+        });
+      });
   };
 
   const sendJobUpdate = (job: Job) => {
-    setJobAssignment(job.id, "Notified", { by: actor.name, source: "dispatcher" });
-    log("status_changed", job.id, `Update sent to ${job.driverName} (in-app)`, selectedDate);
-    timeline(job.id, "status_changed", `Update sent to ${job.driverName} (in-app demo).`);
+    setJobAssignment(job.id, "Notified", {
+      by: actor.name,
+      source: "dispatcher",
+      actorId: actor.id,
+      actorRole: actor.roleId,
+    });
   };
 
   const confirmOnBehalf = (lane: ForemanDayStatus) => {
     setAssignmentForDay(lane.foremanId, selectedDate, "Confirmed", {
       by: actor.name,
       source: "dispatcher",
+      actorId: actor.id,
+      actorRole: actor.roleId,
     });
-    log("status_changed", lane.foremanId, `Day confirmed on behalf of ${lane.name}`, `${selectedDate} · by dispatch, not the foreman`);
-    lane.jobs.forEach((j) =>
-      timeline(j.id, "status_changed", `Confirmed by dispatch on behalf of ${lane.name}.`),
-    );
   };
 
   const unconfirm = (lane: ForemanDayStatus) => {
-    setAssignmentForDay(lane.foremanId, selectedDate, "Draft", { by: actor.name, source: "dispatcher" });
-    log("status_changed", lane.foremanId, `Day assignment set back to draft for ${lane.name}`, selectedDate);
+    setAssignmentForDay(lane.foremanId, selectedDate, "Draft", {
+      by: actor.name,
+      source: "dispatcher",
+      actorId: actor.id,
+      actorRole: actor.roleId,
+    });
   };
 
   const publishDayPlan = () => {

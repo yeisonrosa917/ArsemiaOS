@@ -387,6 +387,24 @@ export type ActivityAction =
   | "settings_changed"
   | "login";
 
+/** Where a unified event originated (Sprint 3 event foundation). */
+export type EventSource = "owner_web" | "foreman_portal" | "system";
+
+/**
+ * What a unified event is linked to. "job" and "truck" are emitted today;
+ * the rest are reserved for future modules (do NOT emit them before those
+ * modules exist).
+ */
+export type EventLinkedType =
+  | "job"
+  | "truck"
+  | "user"
+  | "assignment"
+  | "document"
+  | "ticket"
+  | "claim"
+  | "invoice";
+
 export interface ActivityEntry {
   id: string;
   timestamp: string;
@@ -403,6 +421,15 @@ export interface ActivityEntry {
   notes?: string;
   metadata?: Record<string, unknown>;
   attachments?: string[];
+  /**
+   * Sprint 3 unified-event fields. Older persisted entries lack them —
+   * readers must treat them as optional and fall back to module/action/
+   * objectId.
+   */
+  eventType?: string;
+  source?: EventSource;
+  linkedType?: EventLinkedType;
+  linkedId?: string;
 }
 
 /* ─────────────────────────────────────────────────────────────

@@ -25,7 +25,6 @@ import {
   type AdjustmentStatus,
 } from "@/lib/store/adjustments";
 import { useNotifications } from "@/lib/store/notifications";
-import { useJobEvents } from "@/lib/store/job-events";
 import { useJobsStore } from "@/lib/store/jobs";
 import { useActivityLog } from "@/lib/store/activity-log";
 import { usePreferences } from "@/lib/store/preferences";
@@ -52,7 +51,6 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
   const advance = useAdjustments((s) => s.advance);
   const reject = useAdjustments((s) => s.reject);
   const pushNotif = useNotifications((s) => s.push);
-  const pushEvent = useJobEvents((s) => s.push);
 
   const adjustments = useMemo(
     () =>
@@ -79,12 +77,6 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
     const idx = ADJUSTMENT_FLOW.indexOf(current);
     const next = ADJUSTMENT_FLOW[idx + 1];
     advance(id, actor.name);
-    pushEvent({
-      jobId,
-      type: "adjustment_added",
-      actor: actor.name,
-      message: `Adjustment ${id}: ${current} → ${next}.`,
-    });
     pushActivity({
       actorId: actor.id,
       actorName: actor.name,
@@ -93,10 +85,14 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
       action: "status_changed",
       objectType: "Adjustment",
       objectId: id,
-      title: `Adjustment ${id} advanced`,
+      title: `Adjustment ${id}: ${current} → ${next}.`,
       beforeValue: { status: current },
       afterValue: { status: next },
       metadata: { jobId },
+      eventType: "adjustment_event",
+      source: "owner_web",
+      linkedType: "job",
+      linkedId: jobId,
     });
     pushNotif({
       kind: "info",
@@ -116,12 +112,6 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
           adjustmentId: id,
         });
         if (updated) {
-          pushEvent({
-            jobId,
-            type: "edited",
-            actor: actor.name,
-            message: `Job updated by adjustment ${id}: +${adj.extraCuFt} ft³, +${fmtUSD(adj.extraBill)}.`,
-          });
           pushActivity({
             actorId: actor.id,
             actorName: actor.name,
@@ -130,9 +120,13 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
             action: "updated",
             objectType: "Job",
             objectId: jobId,
-            title: `Job ${jobId} updated by adjustment ${id}`,
+            title: `Job updated by adjustment ${id}: +${adj.extraCuFt} ft³, +${fmtUSD(adj.extraBill)}.`,
             beforeValue: { cuFt: adj.beforeCuFt, price: adj.beforeBill },
             afterValue: { cuFt: adj.afterCuFt, price: adj.afterBill },
+            eventType: "adjustment_event",
+            source: "owner_web",
+            linkedType: "job",
+            linkedId: jobId,
           });
         }
       }
@@ -143,12 +137,6 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
     const reason = window.prompt("Reason for rejection:");
     if (!reason) return;
     reject(id, actor.name, reason);
-    pushEvent({
-      jobId,
-      type: "adjustment_added",
-      actor: actor.name,
-      message: `Adjustment ${id} rejected: ${reason}`,
-    });
     pushActivity({
       actorId: actor.id,
       actorName: actor.name,
@@ -157,9 +145,13 @@ export function JobAdjustmentsPanel({ jobId }: { jobId: string }) {
       action: "rejected",
       objectType: "Adjustment",
       objectId: id,
-      title: `Adjustment ${id} rejected`,
+      title: `Adjustment ${id} rejected: ${reason}`,
       notes: reason,
       metadata: { jobId },
+      eventType: "adjustment_event",
+      source: "owner_web",
+      linkedType: "job",
+      linkedId: jobId,
     });
     pushNotif({
       kind: "info",

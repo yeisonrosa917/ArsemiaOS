@@ -283,6 +283,16 @@ dispatcher-side state the foreman never saw). Confirm/decline stamps
   + next action), logistics/compliance grid (truck, base, docs, rating),
   actions row. Filters, counts, and the shared selector are unchanged.
 
+## Sprint 3 note — event foundation
+
+The dual event stores this document referenced (`activity-log` +
+`job-events`) were consolidated in Sprint 3 — see
+`EVENT_TIMELINE_FOUNDATION_SPRINT_3.md`. Assignment mutations now emit
+unified timeline events themselves, and the ReassignModal / pending
+reassignment path routes through the lifecycle-aware mutations (a sent job
+that is reassigned flips to "Update not sent", its truck is cleared, and
+the move lands on the Job Detail timeline).
+
 ## Known risks / notes
 
 - Time-overlap detection still estimates duration as `hours ?? 4`.

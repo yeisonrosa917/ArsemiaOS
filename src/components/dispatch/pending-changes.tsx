@@ -5,7 +5,6 @@ import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useJobsStore } from "@/lib/store/jobs";
-import { useActivityLog } from "@/lib/store/activity-log";
 import { useNotifications } from "@/lib/store/notifications";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
@@ -14,19 +13,25 @@ import type { PendingReassignment } from "@/lib/store/jobs";
 
 /**
  * Pending Dispatch Changes — every staged reassignment across the board in one
- * place. Confirm individually, confirm all, or cancel. Confirming writes the job
- * change + activity log + notification (the same effect as confirming in the
- * reassign modal), so there is one workflow, surfaced in two places.
+ * place. Confirm individually, confirm all, or cancel. Confirming routes
+ * through the lifecycle-aware store mutations (needs-update flip, truck
+ * clearing, unified timeline event), so there is one workflow, surfaced in
+ * two places.
  */
 export function PendingDispatchChanges() {
   const pending = useJobsStore((s) => s.pendingReassignments);
   const jobs = useJobsStore((s) => s.jobs);
   const confirmPending = useJobsStore((s) => s.confirmPending);
   const cancelPending = useJobsStore((s) => s.cancelPending);
-  const pushActivity = useActivityLog((s) => s.push);
   const pushNotif = useNotifications((s) => s.push);
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const actor = getUserByRole(activeRoleId);
+  const ctx = {
+    actorId: actor.id,
+    actorName: actor.name,
+    actorRole: activeRoleId,
+    source: "owner_web" as const,
+  };
   const [collapsed, setCollapsed] = useState(false);
 
   if (pending.length === 0) return null;
@@ -34,20 +39,8 @@ export function PendingDispatchChanges() {
   const customerFor = (jobId: string) => jobs.find((j) => j.id === jobId)?.customer ?? "—";
 
   const doConfirm = (p: PendingReassignment) => {
-    const done = confirmPending(p.jobId);
+    const done = confirmPending(p.jobId, ctx);
     if (!done) return;
-    pushActivity({
-      actorId: actor.id,
-      actorName: actor.name,
-      actorRole: activeRoleId,
-      module: "Dispatch",
-      action: "reassigned",
-      objectType: "Job",
-      objectId: p.jobId,
-      title: `Job ${p.jobId} reassigned`,
-      beforeValue: { foreman: p.fromDriverName ?? null },
-      afterValue: { foreman: p.toDriverName ?? null, reason: p.reason },
-    });
     pushNotif({
       kind: "job_reassigned",
       severity: "info",
@@ -58,17 +51,7 @@ export function PendingDispatchChanges() {
   };
 
   const doCancel = (p: PendingReassignment) => {
-    cancelPending(p.jobId);
-    pushActivity({
-      actorId: actor.id,
-      actorName: actor.name,
-      actorRole: activeRoleId,
-      module: "Dispatch",
-      action: "updated",
-      objectType: "Job",
-      objectId: p.jobId,
-      title: `Pending reassignment cancelled for ${p.jobId}`,
-    });
+    cancelPending(p.jobId, ctx);
   };
 
   return (

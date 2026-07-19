@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { drivers } from "@/lib/mock-data";
 import { useJobsStore as useJobs } from "@/lib/store/jobs";
 import { useFleet } from "@/lib/store/fleet";
-import { useActivityLog } from "@/lib/store/activity-log";
 import { useNotifications } from "@/lib/store/notifications";
 import { usePreferences } from "@/lib/store/preferences";
 import { getUserByRole } from "@/lib/auth/users";
@@ -50,10 +49,17 @@ export function ReassignModal({
     s.pendingReassignments.find((p) => p.jobId === job.id),
   );
 
-  const pushActivity = useActivityLog((s) => s.push);
   const pushNotif = useNotifications((s) => s.push);
   const activeRoleId = usePreferences((s) => s.activeRoleId);
   const actor = getUserByRole(activeRoleId);
+  // Store mutations write the unified timeline events; this modal only
+  // supplies actor context and user-facing notifications.
+  const ctx = {
+    actorId: actor.id,
+    actorName: actor.name,
+    actorRole: activeRoleId,
+    source: "owner_web" as const,
+  };
 
   const vehicles = useFleet((s) => s.vehicles);
   const jobs = useJobs((s) => s.jobs);
@@ -108,25 +114,7 @@ export function ReassignModal({
 
   const handleStage = () => {
     if (!target) return;
-    stageReassignment(
-      job.id,
-      target.id,
-      target.name,
-      actor.name,
-      reason,
-    );
-    pushActivity({
-      actorId: actor.id,
-      actorName: actor.name,
-      actorRole: activeRoleId,
-      module: "Dispatch",
-      action: "reassigned",
-      objectType: "Job",
-      objectId: job.id,
-      title: `Reassignment staged for ${job.id}`,
-      beforeValue: { foreman: current?.name ?? null },
-      afterValue: { foreman: target.name, reason },
-    });
+    stageReassignment(job.id, target.id, target.name, actor.name, reason, ctx);
     pushNotif({
       kind: "job_reassigned",
       severity: "warning",
@@ -137,20 +125,10 @@ export function ReassignModal({
   };
 
   const handleConfirm = () => {
-    const p = confirmPending(job.id);
+    // Routes through the lifecycle-aware mutations: needs-update flip,
+    // truck clearing, and the timeline event all happen in the store.
+    const p = confirmPending(job.id, ctx);
     if (!p) return;
-    pushActivity({
-      actorId: actor.id,
-      actorName: actor.name,
-      actorRole: activeRoleId,
-      module: "Dispatch",
-      action: "reassigned",
-      objectType: "Job",
-      objectId: job.id,
-      title: `Job ${job.id} reassigned`,
-      beforeValue: { foreman: p.fromDriverName ?? null },
-      afterValue: { foreman: p.toDriverName ?? null, reason: p.reason },
-    });
     pushNotif({
       kind: "job_reassigned",
       severity: "info",
@@ -164,17 +142,7 @@ export function ReassignModal({
   };
 
   const handleCancelPending = () => {
-    cancelPending(job.id);
-    pushActivity({
-      actorId: actor.id,
-      actorName: actor.name,
-      actorRole: activeRoleId,
-      module: "Dispatch",
-      action: "updated",
-      objectType: "Job",
-      objectId: job.id,
-      title: `Pending reassignment cancelled for ${job.id}`,
-    });
+    cancelPending(job.id, ctx);
   };
 
   return (

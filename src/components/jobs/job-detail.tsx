@@ -49,7 +49,8 @@ import { useQuotesStore } from "@/lib/store/quotes";
 import { useStorage, isItemFlagged } from "@/lib/store/storage";
 import { useClaims } from "@/lib/store/claims";
 import { useNotifications } from "@/lib/store/notifications";
-import { useJobEvents } from "@/lib/store/job-events";
+import { usePreferences } from "@/lib/store/preferences";
+import { getUserByRole } from "@/lib/auth/users";
 import { JobEventLog } from "./job-event-log";
 import { JobAdjustmentsPanel } from "./job-adjustments-panel";
 import { JobDocumentsPanel } from "./job-documents-panel";
@@ -89,7 +90,6 @@ const STATUS_COLORS: Record<string, string> = {
 
 export function JobDetail({ job: initial }: { job: Job }) {
   const updateJob = useJobsStore((s) => s.updateJob);
-  const stageReassignment = useJobsStore((s) => s.stageReassignment);
   const cancelPending = useJobsStore((s) => s.cancelPending);
   const confirmPending = useJobsStore((s) => s.confirmPending);
   const currentJob = useJobsStore((s) => s.jobs.find((j) => j.id === initial.id)) ?? initial;
@@ -98,7 +98,14 @@ export function JobDetail({ job: initial }: { job: Job }) {
   );
   const job = currentJob;
   const pushNotif = useNotifications((s) => s.push);
-  const pushEvent = useJobEvents((s) => s.push);
+  const activeRoleId = usePreferences((s) => s.activeRoleId);
+  const detailActor = getUserByRole(activeRoleId);
+  const eventCtx = {
+    actorId: detailActor.id,
+    actorName: detailActor.name,
+    actorRole: activeRoleId,
+    source: "owner_web" as const,
+  };
   const contractor = job.driverId ? CONTRACTOR_COMPANIES[job.driverId] : undefined;
 
   // Assigned truck capacity vs this job's CuFt.
@@ -131,36 +138,24 @@ export function JobDetail({ job: initial }: { job: Job }) {
   );
 
   const handleConfirmPending = () => {
-    const p = confirmPending(job.id);
+    // The store routes this through the lifecycle-aware mutations and
+    // writes the timeline event itself.
+    const p = confirmPending(job.id, eventCtx);
     if (!p) return;
     pushNotif({
       kind: "job_reassigned",
       severity: "info",
       title: `Job ${job.id} reassigned`,
       body: p.toDriverName
-        ? `${p.fromDriverName ?? "—"} → ${p.toDriverName}. Foreman will be notified via the mobile app.`
+        ? `${p.fromDriverName ?? "—"} → ${p.toDriverName}.`
         : `Unassigned from ${p.fromDriverName ?? "—"}.`,
       href: `/jobs/${job.id}`,
-    });
-    pushEvent({
-      jobId: job.id,
-      type: "reassigned",
-      actor: "Mariana Castro",
-      message: p.toDriverName
-        ? `Reassignment confirmed: ${p.fromDriverName ?? "—"} → ${p.toDriverName}.`
-        : `Unassignment confirmed.`,
     });
   };
 
   const handleCancelPending = () => {
     if (!pendingForJob) return;
-    cancelPending(job.id);
-    pushEvent({
-      jobId: job.id,
-      type: "reassigned",
-      actor: "Mariana Castro",
-      message: `Pending reassignment cancelled.`,
-    });
+    cancelPending(job.id, eventCtx);
   };
 
   const updateBuilding = (which: "pickupBuilding" | "deliveryBuilding", patch: Partial<BuildingDetails>) => {
