@@ -1,6 +1,6 @@
 # ARSEMIAOS — Organization, Roles, Tickets & Communications Spec
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Status:** Living architecture document  
 **Companion document:** `ARSEMIA_FOREMAN_APP_AND_FIELD_OPERATIONS_SPEC_v2.md`  
 **Purpose:** Define how ArsemiaOS organizes people, branches/franchises, workspaces, tickets, communications, customer links, claims policy, pricing visibility, and operational ownership so the system scales without chaos.
@@ -1544,3 +1544,872 @@ When Claude reads this file:
 8. Avoid dead buttons.
 9. Every new workflow must connect to Jobs, Tickets, Timeline, or a proper workspace.
 
+
+
+---
+
+# V2 CONSOLIDATION ADDENDUM — Owner OS, Roles, Tickets, Communications, Availability & Pricing Boundaries
+
+This addendum consolidates the product decisions made after Sprint 2.2 and its QA patches.
+
+The Owner OS must turn chaos into ordered work. The owner should not have to manually chase every customer, every truck, every claim, every foreman, every seller, every COI, every adjustment, and every schedule conflict.
+
+Core rule:
+
+```text
+Every important record must have:
+- owner or queue;
+- status;
+- priority;
+- next action;
+- timeline;
+- branch/company scope;
+- escalation rule.
+```
+
+If nobody owns it, the system must surface it.
+
+---
+
+## 35. Workspaces: Final Direction
+
+ArsemiaOS should organize work around human responsibility, not random pages.
+
+Recommended top-level workspaces:
+
+```text
+Dashboard
+Sales
+Operations
+Jobs
+Tickets / Assistance Center
+Claims
+Fleet
+Storage / Warehouse
+Finance
+Reports
+Admin / Settings
+```
+
+### Workspace responsibility
+
+| Workspace | Main question answered |
+|---|---|
+| Dashboard | What needs my attention now? |
+| Sales | What leads/quotes need action? |
+| Operations | What is happening today/tomorrow? |
+| Jobs | What jobs exist and what is their status? |
+| Tickets | What issues/request need owners? |
+| Claims | What damage/loss disputes need evidence/decision? |
+| Fleet | What trucks are usable, assigned, down, or due? |
+| Storage | What is in storage/warehouse and what must move? |
+| Finance | What has been billed, paid, reimbursed, or owed? |
+| Reports | What patterns explain performance and risk? |
+| Admin | Who has access, settings, documents, rules? |
+
+---
+
+## 36. Role + Scope Model
+
+A user is not defined only by role. A user has a role and a scope.
+
+```text
+Role = what the user can do.
+Scope = where/how far the user can do it.
+```
+
+Examples:
+
+```text
+Main Owner — all company, all branches, all workspaces.
+Branch Owner — Miami branch only.
+Seller — all branches, Sales workspace, limited customer/job data.
+Dispatcher — assigned branch, Operations/Jobs/Foremen/Fleet.
+Claims Agent — assigned claims and evidence, limited financial access.
+Documents/Admin — COI/contracts/invoices/docs, limited pricing access.
+Foreman — own assignments and execution only.
+Warehouse Operator — storage/warehouse scanning only.
+Finance — invoices/payroll/reimbursements, limited ops access.
+```
+
+### Data model
+
+```ts
+type WorkspaceKey =
+  | "dashboard"
+  | "sales"
+  | "operations"
+  | "jobs"
+  | "tickets"
+  | "claims"
+  | "fleet"
+  | "storage"
+  | "finance"
+  | "reports"
+  | "admin";
+
+type UserRole =
+  | "main_owner"
+  | "branch_owner"
+  | "seller"
+  | "dispatcher"
+  | "claims_agent"
+  | "documents_admin"
+  | "fleet_manager"
+  | "warehouse_operator"
+  | "finance_admin"
+  | "foreman"
+  | "customer_link_user";
+
+type UserScope = {
+  companyId: string;
+  branchIds: string[];
+  workspaceKeys: WorkspaceKey[];
+  canSeeAllBranches?: boolean;
+  canOverrideBranch?: boolean;
+};
+```
+
+---
+
+## 37. Centralized Sales / Support + Local Branch Operations
+
+ArsemiaOS should support a structure where sales/support can be centralized or remote while field operations remain local.
+
+```text
+Corporate / Main Owner
+  → Shared Sales Team
+  → Shared Support Team
+  → Shared Documents/COI Team
+  → Shared Claims Team
+  → Shared Billing/Finance
+  → Local Branch Operations
+      → Foremen
+      → Trucks
+      → Dispatch
+      → Warehouse/Storage
+```
+
+### Why this matters
+
+A branch owner can travel or step away if the system has:
+
+```text
+- remote sellers;
+- centralized communications;
+- ticket routing;
+- local dispatch visibility;
+- foreman confirmation;
+- truck assignment;
+- claims ownership;
+- documents workflow;
+- escalation rules;
+- owner dashboard.
+```
+
+The owner should monitor exceptions, not personally answer every call.
+
+---
+
+## 38. Communications Hub
+
+The preferred name is **Communications Hub**.
+
+It should become the company communication nerve center.
+
+### Public business number
+
+Arsemia can have one public business number:
+
+```text
+Inbound calls
+Outbound calls
+SMS
+Voicemail
+Future WhatsApp
+```
+
+That number should route into ArsemiaOS.
+
+### Intake script
+
+When an existing customer calls:
+
+```text
+“Can I have your name and job number?”
+```
+
+Then the agent opens:
+
+```text
+Customer
+Job
+Quote
+Ticket
+Claim
+Document Request
+Invoice
+```
+
+### Communication record
+
+```ts
+type CommunicationRecord = {
+  id: string;
+  channel: "call" | "sms" | "email" | "whatsapp" | "voicemail";
+  direction: "inbound" | "outbound";
+  from: string;
+  to: string;
+  handledBy?: string;
+  branchId?: string;
+  linkedType?: "lead" | "customer" | "quote" | "job" | "ticket" | "claim" | "document_request" | "invoice";
+  linkedId?: string;
+  disposition?: string;
+  summary?: string;
+  startedAt: string;
+  endedAt?: string;
+  recordingUrl?: string;
+  transcriptUrl?: string;
+  consentStatus?: "not_required" | "consented" | "unknown" | "disabled";
+};
+```
+
+### Monitoring rule
+
+Call recordings/transcripts should exist only where legally enabled and with proper consent/policy. The product should support logs and dispositions first, recording/transcription later.
+
+### Queues
+
+```text
+Sales queue
+Support queue
+Documents/COI queue
+Claims queue
+Billing queue
+Dispatch queue
+Storage queue
+```
+
+### Communication must feed Tickets
+
+If a call requires action, it should become or update a ticket.
+
+```text
+Call about COI → DocumentRequest ticket.
+Call about damage → Claim ticket.
+Call about arrival time → Dispatch ticket/update.
+Call about balance → Billing ticket.
+```
+
+---
+
+## 39. Tickets / Assistance Center
+
+The system should have a dedicated **Tickets / Assistance Center**.
+
+This is where operational exceptions become owned work.
+
+### Ticket sources
+
+```text
+Foreman App Assistance
+Customer call
+SMS/email
+Owner/Admin manual entry
+Job Detail
+Claim intake
+Fleet issue
+Document request
+Finance dispute
+Storage/warehouse issue
+```
+
+### Ticket types
+
+```text
+Dispatch issue
+COI / document request
+Customer issue
+Truck issue
+Late arrival
+Broken item
+Missing item
+Property damage
+Items left in truck
+Storage issue
+Warehouse issue
+Payroll / charge adjustment
+Billing/payment issue
+Seller promise issue
+Other
+```
+
+### Ticket model
+
+```ts
+type TicketType =
+  | "dispatch_issue"
+  | "document_request"
+  | "coi_request"
+  | "customer_issue"
+  | "fleet_issue"
+  | "late_arrival"
+  | "claim_draft"
+  | "missing_item"
+  | "broken_item"
+  | "property_damage"
+  | "items_left_in_truck"
+  | "storage_issue"
+  | "warehouse_issue"
+  | "payroll_adjustment"
+  | "billing_issue"
+  | "seller_promise_issue"
+  | "other";
+
+type TicketStatus =
+  | "new"
+  | "triaged"
+  | "assigned"
+  | "in_progress"
+  | "waiting_customer"
+  | "waiting_foreman"
+  | "waiting_admin"
+  | "waiting_documents"
+  | "waiting_owner_approval"
+  | "resolved"
+  | "closed";
+
+type Ticket = {
+  id: string;
+  ticketNumber: string;
+  type: TicketType;
+  status: TicketStatus;
+  priority: "low" | "normal" | "high" | "urgent";
+  title: string;
+  description?: string;
+  branchId?: string;
+  ownerId?: string;
+  queue: "sales" | "operations" | "documents" | "claims" | "fleet" | "storage" | "finance" | "admin";
+  linkedJobId?: string;
+  linkedCustomerId?: string;
+  linkedClaimId?: string;
+  linkedDocumentRequestId?: string;
+  dueAt?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt?: string;
+};
+```
+
+### Assistance routing examples
+
+```text
+Foreman → Assistance → COI needed
+→ Ticket: DocumentRequest / COI
+→ Documents/Admin queue
+→ linked Job Documents
+→ sent to customer/building/property manager
+→ foreman notified: COI sent
+```
+
+```text
+Foreman → Assistance → Broken item
+→ Ticket: ClaimDraft
+→ Claims queue
+→ requires photos/evidence
+→ linked job timeline
+```
+
+```text
+Foreman → Assistance → Truck issue
+→ Ticket: FleetIssue
+→ Fleet queue + Operations alert
+→ truck may be blocked from assignment suggestions
+```
+
+---
+
+## 40. Documents, COI & Templates
+
+COI should be both attached to the job and sent to the right person.
+
+### COI flow
+
+```text
+Foreman / Customer / Admin requests COI
+→ DocumentRequest created
+→ linked to Job
+→ Admin/Documents selects/generates COI
+→ COI stored in Job Documents
+→ sent to customer, building, property manager, or front desk
+→ delivery logged
+→ foreman sees status only
+```
+
+### Foreman visibility
+
+Foreman should see:
+
+```text
+COI requested
+COI pending
+COI sent
+COI approved/received, if tracked
+```
+
+Foreman should not see:
+
+```text
+internal insurance policy details;
+company/admin notes;
+insurance payout or risk discussions;
+unrelated corporate documents.
+```
+
+### Document request model
+
+```ts
+type DocumentRequest = {
+  id: string;
+  jobId: string;
+  type: "coi" | "contract" | "invoice" | "receipt" | "storage_contract" | "claim_form" | "other";
+  requestedBy: string;
+  requestedFrom: "foreman_app" | "customer_call" | "owner_web" | "sales" | "dispatch";
+  recipientName?: string;
+  recipientEmail?: string;
+  recipientPhone?: string;
+  buildingOrProperty?: string;
+  status: "requested" | "in_progress" | "sent" | "received" | "cancelled";
+  linkedDocumentId?: string;
+  createdAt: string;
+  sentAt?: string;
+};
+```
+
+---
+
+## 41. Customer Move Link — Simple, Not a Full Portal
+
+A moving customer usually does not want to create an account. They want a simple link.
+
+### MVP recommendation
+
+```text
+No full customer portal at MVP.
+Use a secure, no-login, expiring Customer Move Link.
+```
+
+Example concept:
+
+```text
+arsemiamove.com/move/private-access-token
+```
+
+Do not expose details by job number alone.
+
+Bad:
+
+```text
+arsemiamove.com/move/JOB-10421
+```
+
+Good:
+
+```text
+arsemiamove.com/move/long-random-token
+```
+
+### Delivery channels
+
+```text
+SMS = quick access.
+Email = formal documents.
+WhatsApp = future optional.
+```
+
+### Customer link features
+
+```text
+- quote approval;
+- document viewing/signature;
+- COI/document download if appropriate;
+- payment link;
+- basic move status;
+- claim submission;
+- storage status later;
+- secure upload of photos/documents later.
+```
+
+### Security rules
+
+```text
+- long unguessable token;
+- expires;
+- revocable;
+- not indexable;
+- do not cache sensitive data publicly;
+- log access;
+- optional verification for sensitive details: last 4 phone digits, ZIP, email/SMS code.
+```
+
+---
+
+## 42. Pricing Visibility & Pricing Intelligence Boundary
+
+Pricing Intelligence belongs to Owner/Admin/Sales/Finance, not Foreman App.
+
+### Foreman can see
+
+```text
+- customer-facing total/balance if needed;
+- allowed additional charges;
+- materials added;
+- customer-facing documents if needed.
+```
+
+### Foreman cannot see
+
+```text
+- item CuFt pricing logic;
+- quote simulator;
+- margin;
+- sales strategy;
+- admin surcharge internal logic;
+- commissionable/non-commissionable internals;
+- branch profitability.
+```
+
+### Pricing Intelligence / Quote Audit Lab
+
+Owner/Admin tool for:
+
+```text
+- CuFt;
+- mileage;
+- fuel;
+- tolls;
+- admin surcharge;
+- line haul;
+- materials;
+- packing;
+- storage;
+- handling;
+- special requests;
+- discounts;
+- claim credits;
+- commissionable total;
+- margin estimate;
+- warning flags.
+```
+
+### Admin surcharge rule
+
+```text
+Do not call an admin surcharge a tax unless it is legally a tax.
+Treat it as a configurable company fee unless configured otherwise.
+```
+
+---
+
+## 43. Claims, Insurance, Tickets & Deductions
+
+Claims must not automatically equal foreman deductions.
+
+Separate layers:
+
+```text
+Customer claim amount
+Customer settlement
+Insurance coverage
+Company absorption
+Foreman responsibility
+Payroll deduction
+Owner/accounting approval
+```
+
+### Claim model extension
+
+```ts
+type ClaimFinancialResolution = {
+  claimId: string;
+  customerRequestedAmount?: number;
+  customerSettlementAmount?: number;
+  insuranceCoverageAmount?: number;
+  companyAbsorbedAmount?: number;
+  proposedForemanDeductionAmount?: number;
+  approvedForemanDeductionAmount?: number;
+  deductionStatus: "none" | "proposed" | "under_review" | "approved" | "rejected" | "paid";
+  approvedBy?: string;
+  approvedAt?: string;
+  notes?: string;
+};
+```
+
+### Deduction rules
+
+```text
+No automatic 100% deduction.
+No deduction without evidence.
+No deduction before responsibility is determined.
+No deduction without owner/accounting approval.
+Claim settlement and payroll deduction are different objects.
+```
+
+### Traffic ticket policy
+
+Traffic tickets can be modeled separately:
+
+```text
+Traffic Ticket
+→ responsible foreman
+→ company share
+→ foreman share
+→ receipt/evidence
+→ payroll deduction review
+```
+
+---
+
+## 44. Foreman Scheduling & Availability System
+
+This is not implemented yet, but it should be a high-priority future sprint because it directly affects Assignments.
+
+### Purpose
+
+```text
+Dispatcher should not memorize 100 foremen's weekly availability.
+The system should know who can work, who is off, who requested time off, and who should not be suggested.
+```
+
+### Inputs
+
+```text
+- approved time off;
+- pending time off;
+- recurring unavailable days;
+- preferred days off;
+- custom windows;
+- branch/base;
+- truck availability;
+- existing assignments;
+- LD travel blocks;
+- fatigue/long-day warning later.
+```
+
+### UI surfaces
+
+```text
+Foremen profile → Availability tab
+Operations/Assignments → suggestion engine
+Alerts → assignment conflicts
+Foreman App → request time off
+Owner/Dispatcher → approve/decline requests
+Calendar → off days and unavailable periods
+```
+
+### Scheduling rule
+
+```text
+Assignments should not suggest a foreman for a date where they are approved off or recurring unavailable.
+If already assigned, the system must create a conflict alert.
+```
+
+---
+
+## 45. LD Straight / Operational Travel Blocks
+
+LD Straight can require pre-positioning.
+
+This should be modeled as an internal operational block, not a customer-facing job.
+
+Examples:
+
+```text
+Driving to pickup location
+Driving back
+Truck repositioning
+Overnight travel
+```
+
+This affects:
+
+```text
+- foreman availability;
+- truck availability;
+- time conflicts;
+- fatigue warnings;
+- route planning;
+- payroll/travel policy;
+- hotel/reimbursement planning;
+- foreman app schedule.
+```
+
+---
+
+## 46. Owner Dashboard: Freedom Through Exceptions
+
+The goal is not for the owner to click everything manually.
+
+The owner should see exceptions:
+
+```text
+5 jobs unassigned tomorrow
+3 foremen not confirmed
+1 foreman declined
+2 trucks in shop
+4 COIs pending
+8 tickets overdue
+2 claims waiting evidence
+1 deduction needs approval
+3 invoices unpaid
+```
+
+That is how the owner can travel, hire remote staff, and monitor the business without being trapped in every call.
+
+---
+
+## 47. Data Ownership & Safe Imports
+
+ArsemiaOS should own its own operational data from day one.
+
+Safe sources:
+
+```text
+- Arsemia customer submissions;
+- Arsemia jobs;
+- authorized CSV imports;
+- manually entered records;
+- demo data;
+- public data;
+- consent-based marketing contacts.
+```
+
+Features:
+
+```text
+CSV import
+CSV export
+customer consent tracking
+marketing opt-in/out
+unsubscribe state
+data deletion/export tools
+role-scoped PII access
+audit logs
+```
+
+### Marketing consent model
+
+```ts
+type MarketingConsent = {
+  customerId: string;
+  emailOptIn: boolean;
+  smsOptIn: boolean;
+  source: "website" | "quote_form" | "manual" | "referral" | "import";
+  consentDate?: string;
+  consentNote?: string;
+  unsubscribedAt?: string;
+};
+```
+
+---
+
+## 48. Demo Data Realism & QA Rules
+
+Demo data must be realistic. It should not teach the app bad logic.
+
+### Rules
+
+```text
+- Local moves should be local.
+- Long Distance should be actual long distance.
+- Commercial jobs should look commercial.
+- Storage jobs should have storage states.
+- Foremen should have plausible default trucks.
+- Trucks should not randomly conflict unless demo intentionally demonstrates conflict.
+- Cancelled jobs should be counted consistently or clearly labeled.
+- Jobs and Operations should use the same source of truth.
+```
+
+### QA checklist
+
+```text
+Same selected date = same jobs in Jobs and Operations.
+0 jobs = no fake map/route.
+Available foreman with no job = not On Job.
+Date-scoped counts are date-scoped.
+Global views are clearly labeled as global.
+```
+
+---
+
+## 49. Claude Sprint Discipline
+
+Do not give Claude monster implementation prompts.
+
+Process:
+
+```text
+1. Add architecture docs to repo.
+2. Ask Claude for reconciliation report only.
+3. Pick one next sprint.
+4. Implement one dependency at a time.
+5. Run tsc/lint/build.
+6. Do manual QA.
+7. Patch before moving forward.
+```
+
+### Best next sprint candidates
+
+After Sprint 2.2 and QA patches, likely candidates:
+
+```text
+A. Job Detail Timeline / Event System foundation
+B. Tickets / Assistance Center foundation
+C. Documents / COI request flow
+D. Foreman Availability & Time-Off Rules
+E. Foreman App v0 preparation
+```
+
+Recommended dependency order:
+
+```text
+1. Event/Timeline foundation
+2. Tickets/Assistance foundation
+3. Documents/COI request flow
+4. Availability/Time-Off rules
+5. Foreman App v0
+```
+
+Reason:
+
+```text
+Tickets, claims, documents, availability conflicts, and foreman mobile actions all need a reliable event/timeline base.
+```
+
+---
+
+## 50. Reconciliation Prompt For Claude
+
+Use after both MDs are committed.
+
+```text
+Read the architecture documents under docs/architecture.
+Do not implement.
+Do not edit files.
+Produce a reconciliation report only.
+
+Explain:
+1. What the current app already supports.
+2. What is now stable enough to build on.
+3. What conflicts with the architecture direction.
+4. What is missing.
+5. Which next sprint should come first and why.
+6. What must stay out of scope.
+7. Suggested implementation plan for that one sprint only.
+Stop after the report.
+```
+
+---
+
+# END OF V2 ADDENDUM
